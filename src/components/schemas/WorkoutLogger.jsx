@@ -98,10 +98,15 @@ export default function WorkoutLogger({ schemaName, dag, oefeningen, onClose }) 
             <h2 className="font-bold text-foreground">{dag}</h2>
             <p className="text-xs text-muted-foreground">{format(new Date(), 'EEEE d MMMM', { locale: nl })}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <div className="text-xs text-muted-foreground bg-secondary px-3 py-1.5 rounded-full">
               {totalVoltooid}/{totalSets} sets ✓
             </div>
+            <button onClick={() => setShowTimer(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary hover:bg-border rounded-full text-xs text-muted-foreground hover:text-foreground transition-all">
+              <Timer className="w-3.5 h-3.5" />
+              {rustDuur >= 60 ? `${Math.floor(rustDuur / 60)}m${rustDuur % 60 > 0 ? rustDuur % 60 + 's' : ''}` : `${rustDuur}s`}
+            </button>
             <button onClick={onClose} className="p-2 hover:bg-secondary rounded-lg transition-all">
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
