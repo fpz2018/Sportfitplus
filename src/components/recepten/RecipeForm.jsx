@@ -20,15 +20,19 @@ const empty = {
   tags: [],
 };
 
-export default function RecipeForm({ recipe, onSave, onClose }) {
+export default function RecipeForm({ recipe, onSave, onClose, initialImportUrl = '' }) {
   const [form, setForm] = useState(recipe ? {
     ...recipe,
     ingredients: recipe.ingredients?.length ? recipe.ingredients : [{ name: '', amount: '', unit: '' }],
     instructions: recipe.instructions?.length ? recipe.instructions : [''],
   } : empty);
-  const [importUrl, setImportUrl] = useState('');
+  const [importUrl, setImportUrl] = useState(initialImportUrl);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState('');
+
+  useEffect(() => {
+    if (initialImportUrl) handleImport();
+  }, []);
 
   async function handleImport() {
     if (!importUrl.trim()) return;
