@@ -6,6 +6,12 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
+import Dashboard from './pages/Dashboard';
+import Onboarding from './pages/Onboarding';
+import Calculator from './pages/Calculator';
+import Voortgang from './pages/Voortgang';
+import Schemas from './pages/Schemas';
+import AppLayout from './components/layout/AppLayout';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
