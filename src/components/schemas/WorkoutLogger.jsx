@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Check, Plus, Minus, Save, X, History, ChevronDown, ChevronUp } from 'lucide-react';
+import { Check, Plus, Minus, Save, X, History, ChevronDown, ChevronUp, Timer } from 'lucide-react';
+import RestTimer from './RestTimer';
 
 export default function WorkoutLogger({ schemaName, dag, oefeningen, onClose }) {
   const today = format(new Date(), 'yyyy-MM-dd');
