@@ -18,6 +18,8 @@ export default function WorkoutLogger({ schemaName, dag, oefeningen, onClose }) 
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [startTime] = useState(Date.now());
+  const [showTimer, setShowTimer] = useState(false);
+  const [rustDuur, setRustDuur] = useState(90);
 
   useEffect(() => {
     loadHistory();
