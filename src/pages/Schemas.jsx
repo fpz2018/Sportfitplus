@@ -218,6 +218,16 @@ export default function Schemas() {
         </div>
       ))}
 
+      {/* Workout Logger modal */}
+      {loggerDag && (
+        <WorkoutLogger
+          schemaName={schema.label}
+          dag={loggerDag.dag}
+          oefeningen={loggerDag.oefeningen}
+          onClose={() => setLoggerDag(null)}
+        />
+      )}
+
       {/* Premium teaser */}
       <div className="bg-gradient-to-br from-accent/20 to-primary/20 border border-accent/30 rounded-2xl p-6 text-center">
         <Lock className="w-8 h-8 text-accent mx-auto mb-3" />
