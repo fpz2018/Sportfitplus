@@ -272,6 +272,7 @@ export default function Schemas() {
           Upgrade naar Premium →
         </button>
       </div>
+      </>}
     </div>
   );
 }
