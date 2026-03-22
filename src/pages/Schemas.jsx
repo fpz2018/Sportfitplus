@@ -186,7 +186,15 @@ export default function Schemas() {
               </div>
               <span className="font-semibold text-foreground">{dag.dag}</span>
             </div>
-            {openDag === i ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={e => { e.stopPropagation(); setLoggerDag(dag); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/90 transition-all"
+              >
+                <PlayCircle className="w-3.5 h-3.5" /> Start
+              </button>
+              {openDag === i ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+            </div>
           </button>
 
           {openDag === i && (
