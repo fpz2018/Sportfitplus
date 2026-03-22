@@ -234,5 +234,12 @@ export default function WorkoutLogger({ schemaName, dag, oefeningen, onClose }) 
         </div>
       </div>
     </div>
+
+    {showTimer && (
+      <RestTimer
+        defaultDuration={rustDuur}
+        onClose={() => setShowTimer(false)}
+      />
+    )}
   );
 }
