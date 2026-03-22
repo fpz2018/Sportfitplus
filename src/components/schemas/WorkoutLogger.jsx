@@ -49,10 +49,12 @@ export default function WorkoutLogger({ schemaName, dag, oefeningen, onClose }) 
   }
 
   function toggleSet(exIdx, setIdx) {
+    const wasVoltooid = exercises[exIdx].sets[setIdx].voltooid;
     setExercises(prev => prev.map((ex, i) => i !== exIdx ? ex : {
       ...ex,
       sets: ex.sets.map((s, j) => j !== setIdx ? s : { ...s, voltooid: !s.voltooid })
     }));
+    if (!wasVoltooid) setShowTimer(true);
   }
 
   function addSet(exIdx) {
