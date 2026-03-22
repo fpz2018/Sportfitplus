@@ -166,6 +166,9 @@ export default function Voortgang() {
         </div>
       )}
 
+      {/* Krachtvoortgang */}
+      <KrachtVoortgang />
+
       {/* Log history */}
       {logs.length > 0 && (
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
