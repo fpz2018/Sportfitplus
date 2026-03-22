@@ -34,15 +34,20 @@ export default function RecipeForm({ recipe, onSave, onClose }) {
     if (!importUrl.trim()) return;
     setImporting(true);
     setImportError('');
+
+    // Step 1: Fetch raw page source to extract image URL and HTML content
+    const pageData = await base44.functions.invoke('fetchPageSource', { url: importUrl });
+    const { html, imageUrl } = pageData.data || {};
+
+    // Step 2: Let AI extract recipe info from the raw HTML
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Bezoek deze receptpagina en extraheer ALLE informatie: ${importUrl}
+      prompt: `Extraheer alle receptinformatie uit de onderstaande HTML van een receptpagina.
+De afbeelding URL is al gevonden: "${imageUrl || 'niet gevonden'}" — gebruik deze als image_url tenzij hij leeg is.
+Als voedingswaarden niet in de HTML staan, schat ze op basis van de ingrediënten.
+Gebruik Nederlandse taal voor alle tekst.
 
-BELANGRIJK: Zoek ook de directe URL van de hoofdafbeelding van het recept op de pagina. Dit is meestal een grote foto van het gerecht. Geef de volledige absolute URL terug (beginnend met https://).
-
-Geef een volledig recept terug met alle ingrediënten, bereidingsstappen en voedingswaarden.
-Als voedingswaarden niet op de pagina staan, schat ze dan op basis van de ingrediënten.
-Gebruik Nederlandse taal voor alle tekst.`,
-      add_context_from_internet: true,
+HTML:
+${html}`,
       response_json_schema: {
         type: 'object',
         properties: {
@@ -71,6 +76,8 @@ Gebruik Nederlandse taal voor alle tekst.`,
       setForm({
         ...empty,
         ...result,
+        // Prefer the directly extracted imageUrl if AI didn't find one
+        image_url: result.image_url || imageUrl || '',
         source_url: importUrl,
         ingredients: result.ingredients?.length ? result.ingredients : [{ name: '', amount: '', unit: '' }],
         instructions: result.instructions?.length ? result.instructions : [''],
