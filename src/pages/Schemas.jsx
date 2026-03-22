@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
 import { Dumbbell, Clock, BarChart2, ChevronDown, ChevronUp, Lock, PlayCircle } from 'lucide-react';
 import WorkoutLogger from '@/components/schemas/WorkoutLogger';
+import AiSchemaGenerator from '@/components/schemas/AiSchemaGenerator';
 
 const SCHEMAS = {
   beginner: {
