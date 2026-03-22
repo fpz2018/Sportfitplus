@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Dumbbell, Clock, BarChart2, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { Dumbbell, Clock, BarChart2, ChevronDown, ChevronUp, Lock, PlayCircle } from 'lucide-react';
+import WorkoutLogger from '@/components/schemas/WorkoutLogger';
 
 const SCHEMAS = {
   beginner: {
