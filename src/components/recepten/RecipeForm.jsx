@@ -35,7 +35,9 @@ export default function RecipeForm({ recipe, onSave, onClose }) {
     setImporting(true);
     setImportError('');
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Extraheer alle receptinformatie van deze URL: ${importUrl}
+      prompt: `Bezoek deze receptpagina en extraheer ALLE informatie: ${importUrl}
+
+BELANGRIJK: Zoek ook de directe URL van de hoofdafbeelding van het recept op de pagina. Dit is meestal een grote foto van het gerecht. Geef de volledige absolute URL terug (beginnend met https://).
 
 Geef een volledig recept terug met alle ingrediënten, bereidingsstappen en voedingswaarden.
 Als voedingswaarden niet op de pagina staan, schat ze dan op basis van de ingrediënten.
