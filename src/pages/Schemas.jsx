@@ -132,6 +132,7 @@ const SCHEMAS = {
 export default function Schemas() {
   const [selected, setSelected] = useState('beginner');
   const [openDag, setOpenDag] = useState(0);
+  const [loggerDag, setLoggerDag] = useState(null);
   const schema = SCHEMAS[selected];
 
   return (
