@@ -26,6 +26,58 @@ export default function RecipeForm({ recipe, onSave, onClose }) {
     ingredients: recipe.ingredients?.length ? recipe.ingredients : [{ name: '', amount: '', unit: '' }],
     instructions: recipe.instructions?.length ? recipe.instructions : [''],
   } : empty);
+  const [importUrl, setImportUrl] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState('');
+
+  async function handleImport() {
+    if (!importUrl.trim()) return;
+    setImporting(true);
+    setImportError('');
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Extraheer alle receptinformatie van deze URL: ${importUrl}
+
+Geef een volledig recept terug met alle ingrediënten, bereidingsstappen en voedingswaarden.
+Als voedingswaarden niet op de pagina staan, schat ze dan op basis van de ingrediënten.
+Gebruik Nederlandse taal voor alle tekst.`,
+      add_context_from_internet: true,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' },
+          description: { type: 'string' },
+          image_url: { type: 'string' },
+          source_name: { type: 'string' },
+          category: { type: 'string', enum: ['ontbijt', 'lunch', 'diner', 'snack', 'dessert', 'smoothie'] },
+          prep_time_min: { type: 'number' },
+          cook_time_min: { type: 'number' },
+          servings: { type: 'number' },
+          calories_per_serving: { type: 'number' },
+          protein_g: { type: 'number' },
+          carbs_g: { type: 'number' },
+          fat_g: { type: 'number' },
+          ingredients: {
+            type: 'array',
+            items: { type: 'object', properties: { name: { type: 'string' }, amount: { type: 'string' }, unit: { type: 'string' } } }
+          },
+          instructions: { type: 'array', items: { type: 'string' } },
+        }
+      }
+    });
+
+    if (result?.title) {
+      setForm({
+        ...empty,
+        ...result,
+        source_url: importUrl,
+        ingredients: result.ingredients?.length ? result.ingredients : [{ name: '', amount: '', unit: '' }],
+        instructions: result.instructions?.length ? result.instructions : [''],
+      });
+    } else {
+      setImportError('Kon het recept niet extraheren. Controleer de URL of voer het handmatig in.');
+    }
+    setImporting(false);
+  }
 
   function set(k, v) { setForm(f => ({ ...f, [k]: v })); }
 
