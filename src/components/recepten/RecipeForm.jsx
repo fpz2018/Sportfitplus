@@ -124,6 +124,30 @@ Gebruik Nederlandse taal voor alle tekst.`,
         </div>
 
         <div className="p-5 space-y-5">
+          {/* URL Import */}
+          {!recipe && (
+            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+              <label className="text-xs font-medium text-primary mb-2 block flex items-center gap-1.5">
+                <Link className="w-3.5 h-3.5" /> Importeer via URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  value={importUrl}
+                  onChange={e => setImportUrl(e.target.value)}
+                  placeholder="Plak een recept-URL (bijv. allerhande.nl/recept/...)"
+                  className="flex-1 bg-input border border-border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  onKeyDown={e => e.key === 'Enter' && handleImport()}
+                />
+                <button onClick={handleImport} disabled={importing || !importUrl.trim()}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+                  {importing ? <><Loader2 className="w-4 h-4 animate-spin" /> Bezig...</> : 'Importeer'}
+                </button>
+              </div>
+              {importError && <p className="text-xs text-destructive mt-2">{importError}</p>}
+              {importing && <p className="text-xs text-muted-foreground mt-2">AI is het recept aan het extraheren, even geduld...</p>}
+            </div>
+          )}
+
           {/* Basis */}
           <div className="grid grid-cols-1 gap-4">
             <div>
