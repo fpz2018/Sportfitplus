@@ -90,7 +90,7 @@ export default function WorkoutLogger({ schemaName, dag, oefeningen, onClose }) 
   const totalSets = exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
 
   return (
-    <>
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-start justify-center overflow-y-auto py-6 px-4">
       <div className="w-full max-w-2xl bg-card border border-border rounded-2xl shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-border">
