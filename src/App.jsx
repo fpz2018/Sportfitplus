@@ -12,6 +12,8 @@ import Calculator from './pages/Calculator';
 import Voortgang from './pages/Voortgang';
 import Schemas from './pages/Schemas';
 import AppLayout from './components/layout/AppLayout';
+import Voeding from './pages/Voeding';
+import Gids from './pages/Gids';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
