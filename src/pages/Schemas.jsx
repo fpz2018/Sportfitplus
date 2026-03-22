@@ -153,6 +153,9 @@ export default function Schemas() {
         <p className="text-muted-foreground text-sm">Op maat gemaakte schema's gebaseerd op wetenschappelijk onderzoek</p>
       </div>
 
+      {/* AI Schema Generator */}
+      <AiSchemaGenerator profile={profile} />
+
       {/* Doelgroep selector */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-6">
         {Object.entries(SCHEMAS).map(([key, s]) => (
