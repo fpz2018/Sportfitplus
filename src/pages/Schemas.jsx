@@ -133,6 +133,7 @@ const SCHEMAS = {
 };
 
 export default function Schemas() {
+  const [tab, setTab] = useState('templates');
   const [selected, setSelected] = useState('beginner');
   const [openDag, setOpenDag] = useState(0);
   const [loggerDag, setLoggerDag] = useState(null);
