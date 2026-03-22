@@ -163,6 +163,10 @@ Gebruik Nederlandse taal voor alle tekst.`,
             <div>
               <label className={labelCls}>Afbeelding URL</label>
               <input value={form.image_url} onChange={e => set('image_url', e.target.value)} placeholder="https://..." className={inputCls} />
+              {form.image_url && (
+                <img src={form.image_url} alt="Preview" onError={e => e.target.style.display='none'}
+                  className="mt-2 w-full h-40 object-cover rounded-xl border border-border" />
+              )}
             </div>
           </div>
 
