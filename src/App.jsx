@@ -14,6 +14,7 @@ import Schemas from './pages/Schemas';
 import AppLayout from './components/layout/AppLayout';
 import Voeding from './pages/Voeding';
 import Gids from './pages/Gids';
+import Profiel from './pages/Profiel';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
