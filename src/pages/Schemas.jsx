@@ -135,7 +135,16 @@ export default function Schemas() {
   const [selected, setSelected] = useState('beginner');
   const [openDag, setOpenDag] = useState(0);
   const [loggerDag, setLoggerDag] = useState(null);
+  const [profile, setProfile] = useState(null);
   const schema = SCHEMAS[selected];
+
+  useEffect(() => {
+    base44.auth.me().then(u =>
+      base44.entities.UserProfile.filter({ created_by: u.email }).then(p => {
+        if (p.length > 0) setProfile(p[0]);
+      })
+    );
+  }, []);
 
   return (
     <div className="p-6 pb-24 md:pb-8 max-w-4xl mx-auto">
