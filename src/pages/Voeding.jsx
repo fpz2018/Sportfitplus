@@ -119,6 +119,9 @@ export default function Voeding() {
         </div>
       )}
 
+      {/* AI Menu Generator */}
+      <AiMenuGenerator profile={profile} />
+
       {/* Gratis plannen */}
       <h2 className="font-semibold text-foreground mb-4">📋 Maaltijdplannen</h2>
       {FREE_PLANS.map((plan, i) => (
