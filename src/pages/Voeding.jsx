@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Utensils, Lock, ChevronDown, ChevronUp, Apple, Beef, Droplets } from 'lucide-react';
+import AiMenuGenerator from '@/components/voeding/AiMenuGenerator';
 
 const FREE_PLANS = [
   {
