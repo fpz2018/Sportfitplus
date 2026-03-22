@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2, Link, Loader2 } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
 const CATEGORIES = [
   { value: 'ontbijt', label: '🌅 Ontbijt' },
