@@ -150,11 +150,30 @@ export default function Schemas() {
 
   return (
     <div className="p-6 pb-24 md:pb-8 max-w-4xl mx-auto">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Trainingsschema's</h1>
         <p className="text-muted-foreground text-sm">Op maat gemaakte schema's gebaseerd op wetenschappelijk onderzoek</p>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setTab('templates')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${tab === 'templates' ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}
+        >
+          <Dumbbell className="w-4 h-4" /> Template schema's
+        </button>
+        <button
+          onClick={() => setTab('eigen')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${tab === 'eigen' ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}
+        >
+          <User className="w-4 h-4" /> Mijn schema's
+        </button>
+      </div>
+
+      {tab === 'eigen' && <CustomSchemaList />}
+
+      {tab === 'templates' && <>
       {/* AI Schema Generator */}
       <AiSchemaGenerator profile={profile} />
 
