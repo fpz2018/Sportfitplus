@@ -179,8 +179,9 @@ export default function Recepten() {
       {showForm && (
         <RecipeForm
           recipe={editingRecipe}
+          initialImportUrl={sharedUrl}
           onSave={handleSave}
-          onClose={() => { setShowForm(false); setEditingRecipe(null); }}
+          onClose={() => { setShowForm(false); setEditingRecipe(null); setSharedUrl(''); }}
         />
       )}
     </div>
