@@ -24,8 +24,21 @@ export default function Recepten() {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [editingRecipe, setEditingRecipe] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [sharedUrl, setSharedUrl] = useState('');
 
-  useEffect(() => { loadRecipes(); }, []);
+  useEffect(() => {
+    loadRecipes();
+    // Detect URL shared via Web Share Target
+    const params = new URLSearchParams(window.location.search);
+    const shared = params.get('shared_url') || params.get('shared_text') || '';
+    if (shared && shared.startsWith('http')) {
+      setSharedUrl(shared);
+      setEditingRecipe(null);
+      setShowForm(true);
+      // Clean up URL
+      window.history.replaceState({}, '', '/recepten');
+    }
+  }, []);
 
   async function loadRecipes() {
     setLoading(true);
