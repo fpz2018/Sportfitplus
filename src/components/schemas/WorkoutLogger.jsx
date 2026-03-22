@@ -240,6 +240,6 @@ export default function WorkoutLogger({ schemaName, dag, oefeningen, onClose }) 
           onClose={() => setShowTimer(false)}
         />
       )}
-    </>
+    </div>
   );
 }
