@@ -95,6 +95,7 @@ Categorie moet één van zijn: ontbijt, lunch, diner, snack, dessert, smoothie`,
       ...recept,
       source_url: url,
       is_favorite: false,
+      status: 'concept',
     });
 
     bestaandeUrls.add(url);

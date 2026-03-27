@@ -43,7 +43,7 @@ export default function Recepten() {
   async function loadRecipes() {
     setLoading(true);
     const u = await base44.auth.me();
-    const data = await base44.entities.Recipe.filter({ created_by: u.email }, '-created_date');
+    const data = await base44.entities.Recipe.filter({ status: 'gepubliceerd' }, '-created_date');
     setRecipes(data);
     setLoading(false);
   }

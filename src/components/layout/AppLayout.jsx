@@ -21,6 +21,7 @@ const adminNavItems = [
   { to: '/voorstellen', icon: Lightbulb, label: 'Inhoudsvoorstellen' },
   { to: '/bronnen', icon: Upload, label: 'Bronbeheer' },
   { to: '/nieuws-beheer', icon: Newspaper, label: 'Nieuwsbeheer' },
+  { to: '/recepten-beheer', icon: ChefHat, label: 'Recepten beheer' },
 ];
 
 export default function AppLayout() {
