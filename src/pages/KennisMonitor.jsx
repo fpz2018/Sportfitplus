@@ -79,6 +79,8 @@ export default function KennisMonitor() {
     .sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
 
   const pending = artikelen.filter(a => a.status === 'pending').length;
+  const approved = artikelen.filter(a => a.status === 'approved').length;
+  const rejected = artikelen.filter(a => a.status === 'rejected').length;
 
   return (
     <div className="p-6 pb-24 md:pb-8 max-w-4xl mx-auto">
@@ -110,13 +112,17 @@ export default function KennisMonitor() {
 
       {/* Filters */}
       <div className="flex gap-2 flex-wrap mb-5">
-        {['all', 'pending', 'approved', 'rejected'].map(s => (
-          <button key={s} onClick={() => setFilterStatus(s)}
-            className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${filterStatus === s ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>
-            {s === 'all' ? 'Alle' : STATUS_LABELS[s]}
-            {s === 'pending' && pending > 0 && <span className="ml-1.5 bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full text-xs">{pending}</span>}
-          </button>
-        ))}
+        {['all', 'pending', 'approved', 'rejected'].map(s => {
+          const counts = { pending, approved, rejected };
+          const count = counts[s];
+          return (
+            <button key={s} onClick={() => setFilterStatus(s)}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${filterStatus === s ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>
+              {s === 'all' ? 'Alle' : STATUS_LABELS[s]}
+              {count > 0 && <span className="ml-1.5 bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full text-xs">{count}</span>}
+            </button>
+          );
+        })}
         <div className="h-6 w-px bg-border self-center" />
         {['all', 'voeding', 'training', 'herstel', 'supplementen', 'hormonen', 'overig'].map(c => (
           <button key={c} onClick={() => setFilterCat(c)}
