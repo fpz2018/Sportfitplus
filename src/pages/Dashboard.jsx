@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Flame, Dumbbell, TrendingDown, Zap, Target, ChevronRight } from 'lucide-react';
 import KennisHighlightsWidget from '@/components/dashboard/KennisHighlightsWidget';
+import WeekMenuWidget from '@/components/dashboard/WeekMenuWidget';
 import { format, differenceInDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
@@ -148,6 +149,11 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Weekmenu widget */}
+      <div className="mb-8">
+        <WeekMenuWidget />
       </div>
 
       {/* Kennis Highlights + SEO */}

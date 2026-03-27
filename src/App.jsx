@@ -20,6 +20,7 @@ import KennisMonitor from './pages/KennisMonitor';
 import InhoudsVoorstellen from './pages/InhoudsVoorstellen';
 import BronBeheer from './pages/BronBeheer';
 import ReceptenBeheer from './pages/ReceptenBeheer';
+import Weekmenu from './pages/Weekmenu';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
         <Route path="/voorstellen" element={<InhoudsVoorstellen />} />
         <Route path="/bronnen" element={<BronBeheer />} />
         <Route path="/recepten-beheer" element={<ReceptenBeheer />} />
+        <Route path="/weekmenu" element={<Weekmenu />} />
       </Route>
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="*" element={<PageNotFound />} />

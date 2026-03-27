@@ -1,0 +1,51 @@
+{
+  "name": "WeekMenu",
+  "type": "object",
+  "properties": {
+    "datum": {
+      "type": "string",
+      "format": "date",
+      "description": "De datum van de geplande maaltijd"
+    },
+    "maaltijd_type": {
+      "type": "string",
+      "enum": [
+        "ontbijt",
+        "lunch",
+        "diner",
+        "snack"
+      ],
+      "description": "Type maaltijd"
+    },
+    "recept_id": {
+      "type": "string",
+      "description": "ID van het gelinkte recept"
+    },
+    "recept_titel": {
+      "type": "string",
+      "description": "Titel van het recept (cache)"
+    },
+    "recept_image_url": {
+      "type": "string"
+    },
+    "calories": {
+      "type": "number"
+    },
+    "protein_g": {
+      "type": "number"
+    },
+    "carbs_g": {
+      "type": "number"
+    },
+    "fat_g": {
+      "type": "number"
+    },
+    "notitie": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "datum",
+    "maaltijd_type"
+  ]
+}
