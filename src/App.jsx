@@ -24,6 +24,7 @@ import Weekmenu from './pages/Weekmenu';
 import Nieuwsbeheer from './pages/Nieuwsbeheer';
 import Nieuws from './pages/Nieuws';
 import MijnVoortgang from './pages/MijnVoortgang';
+import CoachAnalytics from './pages/CoachAnalytics';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -67,6 +68,7 @@ const AuthenticatedApp = () => {
         <Route path="/weekmenu" element={<Weekmenu />} />
         <Route path="/nieuws" element={<Nieuws />} />
         <Route path="/mijn-voortgang" element={<MijnVoortgang />} />
+        <Route path="/coach-analytics" element={<CoachAnalytics />} />
         <Route path="/nieuwsbeheer" element={<Nieuwsbeheer />} />
       </Route>
       <Route path="/onboarding" element={<Onboarding />} />
