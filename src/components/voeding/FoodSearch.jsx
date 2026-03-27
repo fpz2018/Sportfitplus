@@ -1,13 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Search, Loader2, X } from 'lucide-react';
+import { Search, Loader2, X, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 export default function FoodSearch({ onSelect, onClose }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [scannerActive, setScannerActive] = useState(false);
+  const scannerRef = useRef(null);
+  const htmlScannerRef = useRef(null);
+
+  useEffect(() => {
+    if (scannerActive && scannerRef.current) {
+      const scanner = new Html5QrcodeScanner(
+        'barcode-scanner',
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        false
+      );
+
+      scanner.render(
+        (decodedText) => {
+          setScannerActive(false);
+          scanner.clear();
+          handleBarcodeScan(decodedText);
+        },
+        (error) => {
+          // Ignore errors during scanning
+        }
+      );
+
+      htmlScannerRef.current = scanner;
+    }
+
+    return () => {
+      if (htmlScannerRef.current) {
+        htmlScannerRef.current.clear().catch(() => {});
+      }
+    };
+  }, [scannerActive]);
 
   async function handleSearch() {
     if (!query.trim()) return;
@@ -15,6 +48,15 @@ export default function FoodSearch({ onSelect, onClose }) {
     setSearched(true);
     
     const res = await base44.functions.invoke('searchOpenFoodFacts', { query });
+    setResults(res.data.products || []);
+    setLoading(false);
+  }
+
+  async function handleBarcodeScan(barcode) {
+    setLoading(true);
+    setSearched(true);
+    
+    const res = await base44.functions.invoke('searchOpenFoodFacts', { barcode });
     setResults(res.data.products || []);
     setLoading(false);
   }
@@ -44,23 +86,44 @@ export default function FoodSearch({ onSelect, onClose }) {
         </div>
 
         {/* Search input */}
-        <div className="p-4 border-b border-border shrink-0">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Zoek naar voedingsmiddel..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="flex-1 px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <Button onClick={handleSearch} disabled={loading} className="gap-2">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+        {!scannerActive && (
+          <div className="p-4 border-b border-border shrink-0">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Zoek naar voedingsmiddel..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="flex-1 px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <Button onClick={handleSearch} disabled={loading} className="gap-2">
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+              </Button>
+              <Button onClick={() => setScannerActive(true)} variant="outline" className="gap-2">
+                <QrCode className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {scannerActive && (
+          <div className="p-4 border-b border-border shrink-0 flex gap-2">
+            <Button onClick={() => setScannerActive(false)} variant="outline" className="flex-1">
+              Terug
             </Button>
           </div>
-        </div>
+        )}
+
+        {/* Barcode Scanner */}
+        {scannerActive && (
+          <div className="p-4 flex-1 overflow-y-auto">
+            <div ref={scannerRef} id="barcode-scanner" className="w-full"></div>
+          </div>
+        )}
 
         {/* Results */}
+        {!scannerActive && (
         <div className="overflow-y-auto flex-1">
           {loading ? (
             <div className="flex justify-center items-center py-12">
@@ -97,6 +160,7 @@ export default function FoodSearch({ onSelect, onClose }) {
             </div>
           )}
         </div>
+        )}
       </div>
     </div>
   );
