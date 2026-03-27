@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import ReactMarkdown from 'react-markdown';
 
 const categoriekleur = {
   voeding: 'bg-orange-500/10 text-orange-600',
@@ -111,8 +112,24 @@ export default function Nieuws() {
               )}
 
               {selected.inhoud && (
-                <div className="prose prose-invert max-w-none text-foreground">
-                  <div dangerouslySetInnerHTML={{ __html: selected.inhoud.replace(/\n/g, '<br />') }} />
+                <div className="text-foreground space-y-3 leading-relaxed">
+                  <ReactMarkdown
+                    components={{
+                      h1: ({children}) => <h2 className="text-xl font-bold mt-4 mb-2">{children}</h2>,
+                      h2: ({children}) => <h3 className="text-lg font-semibold mt-3 mb-2">{children}</h3>,
+                      h3: ({children}) => <h4 className="font-semibold mt-2 mb-1">{children}</h4>,
+                      p: ({children}) => <p className="text-foreground">{children}</p>,
+                      ul: ({children}) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
+                      ol: ({children}) => <ol className="list-decimal list-inside space-y-1">{children}</ol>,
+                      li: ({children}) => <li className="text-foreground">{children}</li>,
+                      strong: ({children}) => <strong className="font-semibold">{children}</strong>,
+                      em: ({children}) => <em className="italic">{children}</em>,
+                      a: ({href, children}) => <a href={href} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                      blockquote: ({children}) => <blockquote className="border-l-4 border-primary/30 pl-4 italic text-muted-foreground">{children}</blockquote>,
+                    }}
+                  >
+                    {selected.inhoud}
+                  </ReactMarkdown>
                 </div>
               )}
 
