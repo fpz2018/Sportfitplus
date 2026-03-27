@@ -80,6 +80,24 @@ Sla alleen wetenschappelijk onderbouwde, relevante voorstellen op.`,
   const voorstellen = (aiResult?.voorstellen || []).filter(v => v.betrouwbaarheid >= MIN_BETROUWBAARHEID);
   let aantalOpgeslagen = 0;
 
+  // Maak KennisArtikel aan (net als literatuurmonitor route)
+  const artikel = await base44.asServiceRole.entities.KennisArtikel.create({
+    title_nl: bron.naam,
+    title_en: bron.naam,
+    abstract_nl: `Geanalyseerde bron: ${bron.type}`,
+    abstract_en: `Analyzed source: ${bron.type}`,
+    summary_nl: bronContent.substring(0, 500),
+    summary_en: bronContent.substring(0, 500),
+    journal: bron.type.toUpperCase(),
+    published_date: new Date().toISOString().split('T')[0],
+    url: bron.url || bron.file_url || '',
+    category: 'overig',
+    evidence_level: 'D',
+    relevance_score: 50,
+    status: 'pending',
+    search_query: bron.naam
+  });
+
   for (const v of voorstellen) {
     await base44.asServiceRole.entities.WijzigingsVoorstel.create({
       bron_type: bron.type,
