@@ -3,7 +3,14 @@ import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { Dumbbell, ChevronRight, ChevronLeft, Check } from 'lucide-react';
 
-const STEPS = ['profiel', 'activiteit', 'doelgroep', 'tdee', 'voeding'];
+const STEPS = ['profiel', 'activiteit', 'doelgroep', 'training', 'tdee', 'voeding'];
+
+const METHODE_OPTIES = [
+  { value: 'kracht', label: '🏋️ Klassieke kracht', desc: 'Compound oefeningen, 3-4 sets, 8-12 reps, 60-120s rust' },
+  { value: 'hypertrofie', label: '💪 Hypertrofie', desc: 'Hoog volume, 4-6 sets, 6-12 reps, progressieve overload' },
+  { value: 'hiit', label: '⚡ HIIT', desc: 'Intervallen 85-100% HF, max 3x/week, 20-30 min' },
+  { value: 'tabata', label: '🔥 Tabata', desc: '20s werk / 10s rust, 8 rondes, max 2x/week' },
+];
 
 const ACTIVITY_OPTIONS = [
   { value: 'sedentair', label: 'Zittend leven', desc: 'Weinig of geen beweging' },
@@ -50,7 +57,9 @@ export default function Onboarding() {
     activity_level: 'matig_actief', lifestyle: 'kantoorwerk',
     goal_group: 'beginner', tdee_source: 'berekend',
     tdee: '', nutrition_mode: 'in_app', external_app_name: '',
-    cut_weeks: 12
+    cut_weeks: 12,
+    training_methode: 'kracht', training_frequentie: 3,
+    training_locatie: 'gym', training_ervaring: 'beginner'
   });
 
   function update(key, val) {
@@ -192,8 +201,80 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* Step 3: TDEE */}
+          {/* Step 3: Training voorkeur */}
           {step === 3 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Trainingsvoorkeur</h2>
+              <p className="text-muted-foreground mb-5 text-sm">Dit bepaalt de opbouw van jouw trainingsschema's</p>
+
+              <div className="space-y-5">
+                {/* Methode */}
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Trainingsmethode</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {METHODE_OPTIES.map(opt => (
+                      <button key={opt.value} onClick={() => update('training_methode', opt.value)}
+                        className={`text-left p-3 rounded-xl border transition-all ${data.training_methode === opt.value ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}>
+                        <p className={`font-medium text-sm ${data.training_methode === opt.value ? 'text-primary' : 'text-foreground'}`}>{opt.label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Frequentie */}
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Trainingsfrequentie</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {[2, 3, 4, 5, 6].map(f => (
+                      <button key={f} onClick={() => update('training_frequentie', f)}
+                        className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${data.training_frequentie === f ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}>
+                        {f}x/week
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Ervaring + locatie */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Ervaringsniveau</label>
+                    <div className="space-y-1.5">
+                      {[
+                        { v: 'beginner', l: '🌱 Beginner', d: '< 1 jaar' },
+                        { v: 'gemiddeld', l: '💪 Gemiddeld', d: '1-3 jaar' },
+                        { v: 'gevorderd', l: '🏆 Gevorderd', d: '3+ jaar' },
+                      ].map(({ v, l, d }) => (
+                        <button key={v} onClick={() => update('training_ervaring', v)}
+                          className={`w-full text-left p-3 rounded-xl border transition-all ${data.training_ervaring === v ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}>
+                          <p className={`font-medium text-xs ${data.training_ervaring === v ? 'text-primary' : 'text-foreground'}`}>{l}</p>
+                          <p className="text-xs text-muted-foreground">{d}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Locatie</label>
+                    <div className="space-y-1.5">
+                      {[
+                        { v: 'gym', l: '🏋️ Gym', d: 'Met apparatuur' },
+                        { v: 'thuis', l: '🏠 Thuis', d: 'Geen apparatuur' },
+                      ].map(({ v, l, d }) => (
+                        <button key={v} onClick={() => update('training_locatie', v)}
+                          className={`w-full text-left p-3 rounded-xl border transition-all ${data.training_locatie === v ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}>
+                          <p className={`font-medium text-xs ${data.training_locatie === v ? 'text-primary' : 'text-foreground'}`}>{l}</p>
+                          <p className="text-xs text-muted-foreground">{d}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: TDEE */}
+          {step === 4 && (
             <div>
               <h2 className="text-2xl font-bold mb-2">Jouw TDEE</h2>
               <p className="text-muted-foreground mb-6 text-sm">Totale dagelijkse energiebehoefte</p>
@@ -229,8 +310,8 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* Step 4: Voedingsmodus */}
-          {step === 4 && (
+          {/* Step 5: Voedingsmodus */}
+          {step === 5 && (
             <div>
               <h2 className="text-2xl font-bold mb-2">Voeding bijhouden</h2>
               <p className="text-muted-foreground mb-6 text-sm">Hoe wil je je voeding tracken?</p>

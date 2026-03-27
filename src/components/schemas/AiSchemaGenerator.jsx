@@ -31,11 +31,11 @@ export default function AiSchemaGenerator({ profile }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState({
-    methode: 'kracht',
-    frequentie: profile?.goal_group === 'beginner' ? 3 : profile?.goal_group === 'atleet' ? 5 : 4,
+    methode: profile?.training_methode || 'kracht',
+    frequentie: profile?.training_frequentie || (profile?.goal_group === 'beginner' ? 3 : profile?.goal_group === 'atleet' ? 5 : 4),
     doel: profile?.goal_group || 'gevorderd',
-    ervaring: 'gemiddeld',
-    thuis: false,
+    ervaring: profile?.training_ervaring || 'gemiddeld',
+    thuis: profile?.training_locatie === 'thuis',
   });
 
   function update(k, v) { setForm(f => ({ ...f, [k]: v })); }

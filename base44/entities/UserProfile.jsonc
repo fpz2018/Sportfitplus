@@ -1,0 +1,133 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "gender": {
+      "type": "string",
+      "enum": [
+        "man",
+        "vrouw"
+      ]
+    },
+    "age": {
+      "type": "number"
+    },
+    "weight_kg": {
+      "type": "number"
+    },
+    "height_cm": {
+      "type": "number"
+    },
+    "activity_level": {
+      "type": "string",
+      "enum": [
+        "sedentair",
+        "licht_actief",
+        "matig_actief",
+        "zeer_actief",
+        "extreem_actief"
+      ]
+    },
+    "lifestyle": {
+      "type": "string",
+      "enum": [
+        "student",
+        "kantoorwerk",
+        "drukke_baan",
+        "handarbeid",
+        "ouder_thuis"
+      ]
+    },
+    "goal_group": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "gevorderd",
+        "vrouw",
+        "50plus",
+        "atleet"
+      ]
+    },
+    "training_methode": {
+      "type": "string",
+      "enum": [
+        "kracht",
+        "hypertrofie",
+        "hiit",
+        "tabata"
+      ],
+      "description": "Voorkeurs trainingsmethode"
+    },
+    "training_frequentie": {
+      "type": "number",
+      "description": "Aantal trainingsdagen per week"
+    },
+    "training_locatie": {
+      "type": "string",
+      "enum": [
+        "gym",
+        "thuis"
+      ],
+      "default": "gym"
+    },
+    "training_ervaring": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "gemiddeld",
+        "gevorderd"
+      ],
+      "description": "Ervaringsniveau in de sport"
+    },
+    "tdee": {
+      "type": "number"
+    },
+    "tdee_source": {
+      "type": "string",
+      "enum": [
+        "berekend",
+        "handmatig"
+      ]
+    },
+    "target_calories": {
+      "type": "number"
+    },
+    "protein_target_g": {
+      "type": "number"
+    },
+    "carbs_target_g": {
+      "type": "number"
+    },
+    "fat_target_g": {
+      "type": "number"
+    },
+    "nutrition_mode": {
+      "type": "string",
+      "enum": [
+        "in_app",
+        "externe_app"
+      ],
+      "default": "in_app"
+    },
+    "external_app_name": {
+      "type": "string"
+    },
+    "is_premium": {
+      "type": "boolean",
+      "default": false
+    },
+    "cut_start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "cut_weeks": {
+      "type": "number",
+      "default": 12
+    },
+    "onboarding_done": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": []
+}

@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { User, Scale, Ruler, Flame, Dumbbell, Target, Edit2, Check, X } from 'lucide-react';
+import { User, Scale, Ruler, Dumbbell, Target, Edit2, Check, X } from 'lucide-react';
+
+const METHODE_OPTIES = [
+  { value: 'kracht', label: '🏋️ Klassieke kracht' },
+  { value: 'hypertrofie', label: '💪 Hypertrofie' },
+  { value: 'hiit', label: '⚡ HIIT' },
+  { value: 'tabata', label: '🔥 Tabata' },
+];
 
 const ACTIVITY_LABELS = {
   sedentair: 'Sedentair (weinig/geen beweging)',
@@ -120,6 +127,24 @@ export default function Profiel() {
             </div>
           </div>
 
+          {/* Trainingsvoorkeur */}
+          <div className="bg-card border border-border rounded-2xl p-5 mb-6">
+            <h2 className="font-semibold text-foreground mb-4">🏋️ Trainingsvoorkeur</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Methode', value: METHODE_OPTIES.find(m => m.value === profile.training_methode)?.label || '—' },
+                { label: 'Frequentie', value: profile.training_frequentie ? `${profile.training_frequentie}x per week` : '—' },
+                { label: 'Locatie', value: profile.training_locatie === 'thuis' ? '🏠 Thuis' : profile.training_locatie === 'gym' ? '🏋️ Gym' : '—' },
+                { label: 'Ervaring', value: profile.training_ervaring ? ({ beginner: '🌱 Beginner', gemiddeld: '💪 Gemiddeld', gevorderd: '🏆 Gevorderd' }[profile.training_ervaring] || profile.training_ervaring) : '—' },
+              ].map(({ label, value }) => (
+                <div key={label} className="bg-secondary rounded-xl p-3">
+                  <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                  <p className="font-semibold text-sm text-foreground">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <button onClick={() => setEditing(true)}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-all">
             <Edit2 className="w-4 h-4" /> Profiel bewerken
@@ -180,6 +205,56 @@ export default function Profiel() {
               {Object.entries(ACTIVITY_LABELS).map(([v, l]) => (
                 <button key={v} onClick={() => update('activity_level', v)}
                   className={`w-full text-left px-3 py-2.5 rounded-xl border text-sm transition-all ${form.activity_level === v ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}>
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Trainingsvoorkeur */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Trainingsmethode</label>
+            <div className="grid grid-cols-2 gap-2">
+              {METHODE_OPTIES.map(({ value, label }) => (
+                <button key={value} onClick={() => update('training_methode', value)}
+                  className={`py-2.5 px-3 rounded-xl border text-sm text-left font-medium transition-all ${form.training_methode === value ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Trainingsfrequentie</label>
+              <div className="flex flex-wrap gap-1.5">
+                {[2, 3, 4, 5, 6].map(f => (
+                  <button key={f} onClick={() => update('training_frequentie', f)}
+                    className={`px-3 py-2 rounded-xl border text-xs font-medium transition-all ${form.training_frequentie === f ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}>
+                    {f}x
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Locatie</label>
+              <div className="space-y-1.5">
+                {[{ v: 'gym', l: '🏋️ Gym' }, { v: 'thuis', l: '🏠 Thuis' }].map(({ v, l }) => (
+                  <button key={v} onClick={() => update('training_locatie', v)}
+                    className={`w-full text-left px-3 py-2 rounded-xl border text-xs font-medium transition-all ${form.training_locatie === v ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Ervaringsniveau</label>
+            <div className="grid grid-cols-3 gap-2">
+              {[{ v: 'beginner', l: '🌱 Beginner' }, { v: 'gemiddeld', l: '💪 Gemiddeld' }, { v: 'gevorderd', l: '🏆 Gevorderd' }].map(({ v, l }) => (
+                <button key={v} onClick={() => update('training_ervaring', v)}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-medium transition-all ${form.training_ervaring === v ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}>
                   {l}
                 </button>
               ))}
