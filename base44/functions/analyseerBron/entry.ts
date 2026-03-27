@@ -129,5 +129,48 @@ Sla alleen wetenschappelijk onderbouwde, relevante voorstellen op.`,
     details: `${aantalOpgeslagen} voorstellen gegenereerd van "${bron.naam}"`
   });
 
+  // Genereer ook nieuwsbericht + SEO-voorstellen
+  const aiNewsResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
+    prompt: `Je bent een Nederlandse content-marketeer voor een fitness app (Sportfit Plus). Schrijf op basis van deze bron:
+
+Titel: ${bron.naam}
+Type: ${bron.type}
+Inhoud: ${bronContent.substring(0, 500)}
+
+Genereer het volgende:
+1. Een pakkende Nederlandse blogtitel (max 60 tekens, SEO-geoptimaliseerd)
+2. Een slug (URL-vriendelijk, kleine letters, koppeltekens)
+3. Een korte intro van 2 zinnen voor de preview
+4. Een volledig blogpost-artikel in Markdown (400-600 woorden), praktisch en toegankelijk voor sporters
+5. Een SEO meta-description (max 155 tekens)
+6. Een SEO-geoptimaliseerde paginatitel voor de app homepage (max 60 tekens)
+7. Een meta-description voor de app homepage gebaseerd op deze nieuwe kennis (max 155 tekens)`,
+    response_json_schema: {
+      type: 'object',
+      properties: {
+        titel: { type: 'string' },
+        slug: { type: 'string' },
+        intro: { type: 'string' },
+        inhoud: { type: 'string' },
+        seo_description: { type: 'string' },
+        app_seo_titel: { type: 'string' },
+        app_seo_description: { type: 'string' }
+      }
+    }
+  });
+
+  const slug = aiNewsResult.slug || aiNewsResult.titel?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `artikel-${bron_id}`;
+
+  await base44.asServiceRole.entities.Nieuwsbericht.create({
+    titel: aiNewsResult.titel,
+    slug,
+    intro: aiNewsResult.intro,
+    inhoud: aiNewsResult.inhoud,
+    categorie: 'overig',
+    bron_artikel_id: artikel.id,
+    status: 'concept',
+    seo_description: aiNewsResult.seo_description
+  });
+
   return Response.json({ voorstellen: aantalOpgeslagen });
 });
