@@ -1,0 +1,109 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+
+Deno.serve(async (req) => {
+  const base44 = createClientFromRequest(req);
+
+  // Haal de Google Sheets access token op
+  const { accessToken } = await base44.asServiceRole.connectors.getConnection("googlesheets");
+  const sheetId = Deno.env.get("RECEPTEN_SHEET_ID");
+
+  // Lees kolom A uit het eerste tabblad
+  const sheetsRes = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A:A`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  const sheetsData = await sheetsRes.json();
+  const rows = sheetsData.values || [];
+
+  // Haal bestaande recepten op om duplicaten te voorkomen
+  const bestaande = await base44.asServiceRole.entities.Recipe.list();
+  const bestaandeUrls = new Set(bestaande.map(r => r.source_url).filter(Boolean));
+
+  const resultaten = { toegevoegd: 0, overgeslagen: 0, fouten: 0 };
+
+  for (const row of rows) {
+    const url = row[0]?.trim();
+    if (!url || !url.startsWith('http')) continue;
+    if (bestaandeUrls.has(url)) {
+      resultaten.overgeslagen++;
+      continue;
+    }
+
+    // Haal de pagina op
+    const pageRes = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RecipeBot/1.0)' }
+    });
+    if (!pageRes.ok) {
+      resultaten.fouten++;
+      continue;
+    }
+    const html = await pageRes.text();
+
+    // Verwijder scripts/styles voor kortere tekst aan AI
+    const cleanHtml = html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .slice(0, 6000);
+
+    // AI extraheert het recept
+    const recept = await base44.asServiceRole.integrations.Core.InvokeLLM({
+      prompt: `Extraheer het volgende recept van deze webpagina tekst en geef het terug als JSON.
+Webpagina URL: ${url}
+Tekst: ${cleanHtml}
+
+Geef het recept terug in het Nederlands. Bereken macronutriënten op basis van de ingrediënten indien niet vermeld.
+Categorie moet één van zijn: ontbijt, lunch, diner, snack, dessert, smoothie`,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' },
+          description: { type: 'string' },
+          category: { type: 'string', enum: ['ontbijt', 'lunch', 'diner', 'snack', 'dessert', 'smoothie'] },
+          prep_time_min: { type: 'number' },
+          cook_time_min: { type: 'number' },
+          servings: { type: 'number' },
+          calories_per_serving: { type: 'number' },
+          protein_g: { type: 'number' },
+          carbs_g: { type: 'number' },
+          fat_g: { type: 'number' },
+          ingredients: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                amount: { type: 'string' },
+                unit: { type: 'string' }
+              }
+            }
+          },
+          instructions: { type: 'array', items: { type: 'string' } },
+          tags: { type: 'array', items: { type: 'string' } },
+          image_url: { type: 'string' }
+        }
+      }
+    });
+
+    if (!recept?.title) {
+      resultaten.fouten++;
+      continue;
+    }
+
+    await base44.asServiceRole.entities.Recipe.create({
+      ...recept,
+      source_url: url,
+      is_favorite: false,
+    });
+
+    bestaandeUrls.add(url);
+    resultaten.toegevoegd++;
+  }
+
+  return Response.json({
+    success: true,
+    ...resultaten,
+    bericht: `✅ ${resultaten.toegevoegd} recepten toegevoegd, ${resultaten.overgeslagen} al aanwezig, ${resultaten.fouten} fouten`
+  });
+});
