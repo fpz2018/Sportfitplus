@@ -3,6 +3,7 @@ import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, U
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import NotificationBell from '../NotificationBell';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -38,7 +39,7 @@ export default function AppLayout() {
       {/* Sidebar desktop */}
       <aside className="hidden md:flex flex-col w-64 border-r border-border bg-sidebar shrink-0">
         {/* Logo */}
-        <div className="p-6 border-b border-border">
+        <div className="p-6 border-b border-border flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
               <Dumbbell className="w-5 h-5 text-primary-foreground" />
@@ -48,6 +49,7 @@ export default function AppLayout() {
               <p className="text-xs text-muted-foreground">Jouw fitness app</p>
             </div>
           </div>
+          <NotificationBell />
         </div>
 
         {/* Nav */}

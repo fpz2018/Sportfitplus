@@ -1,0 +1,55 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "training_update",
+        "nutrition_update",
+        "recipe_update",
+        "general"
+      ],
+      "description": "Type wijziging"
+    },
+    "title": {
+      "type": "string",
+      "description": "Notificatietitel"
+    },
+    "message": {
+      "type": "string",
+      "description": "Notificatiebericht"
+    },
+    "related_entity": {
+      "type": "string",
+      "description": "Type entiteit die is gewijzigd (bijv. CustomSchema, MealPlan)"
+    },
+    "related_entity_id": {
+      "type": "string",
+      "description": "ID van de gewijzigde entiteit"
+    },
+    "link": {
+      "type": "string",
+      "description": "Link naar relevante pagina (bijv. /schemas, /voeding)"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is notificatie gelezen"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "in_app",
+        "email"
+      ],
+      "default": "in_app",
+      "description": "Hoe is notificatie verzonden"
+    }
+  },
+  "required": [
+    "type",
+    "title",
+    "message"
+  ]
+}

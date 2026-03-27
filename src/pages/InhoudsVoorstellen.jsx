@@ -82,6 +82,8 @@ export default function InhoudsVoorstellen() {
       record_id: voorstel.record_id || voorstel.id,
       details: `Veld "${voorstel.veld_naam}" bijgewerkt: ${voorstel.voorgestelde_waarde?.substring(0, 100)}`
     });
+    // Stuur notificaties naar alle users
+    await base44.functions.invoke('notifyOnProposalApplied', { voorstel_id: voorstel.id });
     loadVoorstellen();
   }
 
