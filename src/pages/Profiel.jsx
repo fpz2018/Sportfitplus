@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { User, Scale, Ruler, Dumbbell, Target, Edit2, Check, X } from 'lucide-react';
+import { User, Scale, Ruler, Dumbbell, Target, Edit2, Check, X, LogOut } from 'lucide-react';
 
 const METHODE_OPTIES = [
   { value: 'kracht', label: '🏋️ Klassieke kracht' },
@@ -279,6 +279,16 @@ export default function Profiel() {
           ✓ Profiel opgeslagen!
         </div>
       )}
+
+      {/* Logout button */}
+      <div className="mt-8 pt-8 border-t border-border">
+        <button
+          onClick={() => base44.auth.logout()}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-destructive/30 text-sm font-medium text-destructive hover:bg-destructive/10 transition-all"
+        >
+          <LogOut className="w-4 h-4" /> Afmelden
+        </button>
+      </div>
     </div>
   );
 }
