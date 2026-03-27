@@ -1,5 +1,5 @@
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload } from 'lucide-react';
+import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload, Newspaper } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -13,12 +13,14 @@ const navItems = [
   { to: '/voortgang', icon: BarChart2, label: 'Voortgang' },
   { to: '/gids', icon: BookOpen, label: 'Droog Gids' },
   { to: '/profiel', icon: User, label: 'Profiel' },
+  { to: '/nieuws', icon: Newspaper, label: 'Nieuws' },
 ];
 
 const adminNavItems = [
   { to: '/kennis', icon: FlaskConical, label: 'Literatuurmonitor' },
   { to: '/voorstellen', icon: Lightbulb, label: 'Inhoudsvoorstellen' },
   { to: '/bronnen', icon: Upload, label: 'Bronbeheer' },
+  { to: '/nieuws-beheer', icon: Newspaper, label: 'Nieuwsbeheer' },
 ];
 
 export default function AppLayout() {

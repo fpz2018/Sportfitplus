@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { BookOpen, CheckCircle, XCircle, ChevronDown, ChevronUp, RefreshCw, Filter, ExternalLink, Loader2 } from 'lucide-react';
+import { BookOpen, CheckCircle, XCircle, ChevronDown, ChevronUp, RefreshCw, ExternalLink, Loader2, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -15,6 +15,7 @@ export default function KennisMonitor() {
   const [filterStatus, setFilterStatus] = useState('pending');
   const [filterCat, setFilterCat] = useState('all');
   const [user, setUser] = useState(null);
+  const [generatingId, setGeneratingId] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(setUser);
@@ -50,6 +51,13 @@ export default function KennisMonitor() {
       details: `Artikel "${artikel.title_nl || artikel.title_en}" ${status}`
     });
     loadArtikelen();
+  }
+
+  async function handleGenereer(artikel) {
+    setGeneratingId(artikel.id);
+    await base44.functions.invoke('genereerNieuwsEnVoorstel', { artikel_id: artikel.id });
+    setGeneratingId(null);
+    alert('Nieuwsbericht en wijzigingsvoorstel gegenereerd! Ga naar Nieuwsbeheer om te publiceren.');
   }
 
   const filtered = artikelen.filter(a => {
@@ -154,6 +162,20 @@ export default function KennisMonitor() {
                       </Button>
                       <Button onClick={() => handleReview(a, 'rejected')} variant="destructive" className="gap-2 flex-1" size="sm">
                         <XCircle className="w-4 h-4" /> Afwijzen
+                      </Button>
+                    </div>
+                  )}
+                  {a.status === 'approved' && (
+                    <div className="pt-2">
+                      <Button
+                        onClick={() => handleGenereer(a)}
+                        disabled={generatingId === a.id}
+                        variant="outline"
+                        className="gap-2 w-full border-primary/30 text-primary hover:bg-primary/10"
+                        size="sm"
+                      >
+                        {generatingId === a.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        {generatingId === a.id ? 'Genereren...' : 'Genereer nieuwsbericht + app-voorstel'}
                       </Button>
                     </div>
                   )}
