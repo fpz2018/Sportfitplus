@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Plus, Trash2, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import FoodSearch from '@/components/voeding/FoodSearch';
 
 const EXTRA_TYPES = [
   { value: 'snack', label: '🍎 Snack' },
@@ -16,6 +17,7 @@ export default function DayFoodLogEditor({ date, weekMenuItems, profile, onSaved
   const [submitting, setSubmitting] = useState(false);
   const [newExtra, setNewExtra] = useState({ type: 'snack', name: '', calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0 });
   const [notes, setNotes] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const dateStr = date.toISOString().split('T')[0];
 
@@ -75,6 +77,22 @@ export default function DayFoodLogEditor({ date, weekMenuItems, profile, onSaved
     const updated = {
       ...foodLog,
       extras: foodLog.extras.filter((_, i) => i !== idx)
+    };
+    updateTotals(updated);
+    setFoodLog(updated);
+  }
+
+  function addFromFoodSearch(product) {
+    const updated = {
+      ...foodLog,
+      extras: [...(foodLog.extras || []), {
+        type: 'snack',
+        name: product.name,
+        calories: product.calories,
+        protein_g: product.protein_g,
+        carbs_g: product.carbs_g,
+        fat_g: product.fat_g
+      }]
     };
     updateTotals(updated);
     setFoodLog(updated);
@@ -241,8 +259,11 @@ export default function DayFoodLogEditor({ date, weekMenuItems, profile, onSaved
           <Button size="sm" onClick={addExtra} className="w-full gap-2 bg-primary/20 text-primary hover:bg-primary/30 border-0">
             <Plus className="w-4 h-4" /> Toevoegen
           </Button>
-        </div>
-      </div>
+          <Button size="sm" onClick={() => setSearchOpen(true)} variant="outline" className="w-full gap-2 border-primary/30">
+            <Plus className="w-4 h-4" /> Van database zoeken
+          </Button>
+          </div>
+          </div>
 
       {/* Totalen */}
       {profile && (
@@ -292,6 +313,13 @@ export default function DayFoodLogEditor({ date, weekMenuItems, profile, onSaved
           {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
           {submitting ? 'Indienen...' : 'Dag indienen'}
         </Button>
+      )}
+
+      {searchOpen && (
+        <FoodSearch
+          onSelect={addFromFoodSearch}
+          onClose={() => setSearchOpen(false)}
+        />
       )}
     </div>
   );
