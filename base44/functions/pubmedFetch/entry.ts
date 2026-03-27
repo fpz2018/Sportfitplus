@@ -15,9 +15,11 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
 
+  const body = await req.json();
+  const queries = body?.customQueries && body.customQueries.length > 0 ? body.customQueries : QUERIES;
   const results = [];
 
-  for (const query of QUERIES) {
+  for (const query of queries) {
     // Search PubMed
     const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(query)}&retmax=3&sort=date&retmode=json&datetype=pdat&reldate=365`;
     const searchRes = await fetch(searchUrl);

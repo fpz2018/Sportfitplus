@@ -16,6 +16,7 @@ export default function KennisMonitor() {
   const [filterCat, setFilterCat] = useState('all');
   const [user, setUser] = useState(null);
   const [generatingId, setGeneratingId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     base44.auth.me().then(setUser);
@@ -31,9 +32,12 @@ export default function KennisMonitor() {
 
   async function handleFetchPubMed() {
     setFetching(true);
-    await base44.functions.invoke('pubmedFetch', {});
+    await base44.functions.invoke('pubmedFetch', { 
+      customQueries: searchQuery ? searchQuery.split(',').map(q => q.trim()).filter(q => q) : null 
+    });
     await loadArtikelen();
     setFetching(false);
+    setSearchQuery('');
   }
 
   async function handleReview(artikel, status, notes = '') {
@@ -70,17 +74,30 @@ export default function KennisMonitor() {
 
   return (
     <div className="p-6 pb-24 md:pb-8 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-primary" /> Literatuurmonitor
-          </h1>
-          <p className="text-muted-foreground text-sm">{pending} artikelen wachten op review</p>
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <BookOpen className="w-6 h-6 text-primary" /> Literatuurmonitor
+            </h1>
+            <p className="text-muted-foreground text-sm">{pending} artikelen wachten op review</p>
+          </div>
+          <Button onClick={handleFetchPubMed} disabled={fetching} className="gap-2">
+            {fetching ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+            PubMed ophalen
+          </Button>
         </div>
-        <Button onClick={handleFetchPubMed} disabled={fetching} className="gap-2">
-          {fetching ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-          PubMed ophalen
-        </Button>
+        <div className="bg-card border border-border rounded-lg p-4">
+          <p className="text-xs font-medium text-muted-foreground mb-2">Zoekwoorden (gescheiden door komma's)</p>
+          <input 
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="bijv. muscle protein synthesis, creatine monohydrate, ..."
+            className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          <p className="text-xs text-muted-foreground mt-2">Laat leeg om de standaardzoekwoorden te gebruiken</p>
+        </div>
       </div>
 
       {/* Filters */}
