@@ -51,16 +51,16 @@ export default function HRVTracker({ onHRVLogged }) {
   }
 
   async function opslaan(hrv, energiescore, trainingReady, bron, extra = {}) {
-    setLoading(true);
-    try {
-      await base44.entities.HRVLog.create({
-        log_date: today,
-        hrv_waarde: hrv,
-        energiescore,
-        training_ready: trainingReady,
-        bron,
-        ...extra,
-      });
+   setLoading(true);
+   try {
+     await base44.entities.HRVLog.create({
+       log_date: today,
+       hrv_waarde: Number(hrv),
+       energiescore: Number(energiescore),
+       training_ready: trainingReady,
+       bron,
+       ...extra,
+     });
       setMode(null);
       setHrvWaarde('');
       setSlaap(7);
