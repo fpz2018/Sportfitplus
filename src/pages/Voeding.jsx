@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Utensils, Lock, ChevronDown, ChevronUp, Apple, Beef, Droplets } from 'lucide-react';
 import AiMenuGenerator from '@/components/voeding/AiMenuGenerator';
+import OrthoChat from '@/components/voeding/OrthoChat';
 
 const FREE_PLANS = [
   {
@@ -196,6 +197,8 @@ export default function Voeding() {
           </div>
         ))}
       </div>
+
+      <OrthoChat />
 
       {/* Premium lock */}
       <div className="bg-gradient-to-br from-accent/20 to-primary/20 border border-accent/30 rounded-2xl p-6 text-center">
