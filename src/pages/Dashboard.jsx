@@ -49,11 +49,11 @@ export default function Dashboard() {
     : null;
 
   return (
-    <div className="p-6 pb-24 md:pb-8 max-w-5xl mx-auto">
+    <div className="w-full px-4 md:px-6 py-6 pb-24 md:pb-8 max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-muted-foreground text-sm mb-1">{format(new Date(), 'EEEE d MMMM', { locale: nl })}</p>
-        <h1 className="text-3xl font-bold text-foreground">Goedemorgen{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''} 👋</h1>
+        <p className="text-muted-foreground text-xs md:text-sm mb-1">{format(new Date(), 'EEEE d MMMM', { locale: nl })}</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Goedemorgen{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''} 👋</h1>
         {!profile?.onboarding_done && (
           <Link to="/onboarding" className="mt-4 flex items-center gap-3 p-4 rounded-xl bg-primary/10 border border-primary/30 text-primary hover:bg-primary/15 transition-all">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
@@ -102,9 +102,9 @@ export default function Dashboard() {
 
       {/* Vandaag loggen */}
       <div className="grid md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="bg-card border border-border rounded-2xl p-4 md:p-5">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="font-semibold text-foreground">Vandaag</h2>
+            <h2 className="font-semibold text-sm md:text-base text-foreground">Vandaag</h2>
             <Link to="/voortgang" className="text-xs text-primary hover:underline flex items-center gap-1">
               Loggen <ChevronRight className="w-3 h-3" />
             </Link>
@@ -131,8 +131,8 @@ export default function Dashboard() {
         </div>
 
         {/* Snelle links */}
-        <div className="bg-card border border-border rounded-2xl p-5">
-          <h2 className="font-semibold text-foreground mb-4">Snelle toegang</h2>
+        <div className="bg-card border border-border rounded-2xl p-4 md:p-5">
+          <h2 className="font-semibold text-sm md:text-base text-foreground mb-4">Snelle toegang</h2>
           <div className="space-y-2">
             {[
               { to: '/schemas', label: 'Trainingsschema bekijken', icon: Dumbbell },
@@ -169,8 +169,8 @@ export default function Dashboard() {
 
       {/* Recente logs */}
       {recentLogs.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-5">
-          <h2 className="font-semibold text-foreground mb-4">Gewicht deze week</h2>
+        <div className="bg-card border border-border rounded-2xl p-4 md:p-5">
+          <h2 className="font-semibold text-sm md:text-base text-foreground mb-4">Gewicht deze week</h2>
           <div className="flex items-end gap-2 overflow-x-auto pb-2">
             {recentLogs.slice(0, 7).map((log) => (
               <div key={log.id} className="flex flex-col items-center gap-1 min-w-[44px]">
@@ -195,10 +195,10 @@ export default function Dashboard() {
 
 function StatCard({ label, value, icon, color }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-4">
+    <div className="bg-card border border-border rounded-2xl p-3 md:p-4">
       <div className={`${color} mb-2`}>{icon}</div>
-      <p className="text-xs text-muted-foreground mb-1">{label}</p>
-      <p className="text-lg font-bold text-foreground">{value}</p>
+      <p className="text-xs text-muted-foreground mb-1 truncate">{label}</p>
+      <p className="text-base md:text-lg font-bold text-foreground truncate">{value}</p>
     </div>
   );
 }
