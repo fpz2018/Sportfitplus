@@ -27,8 +27,8 @@ export default function AppLayout() {
               <Dumbbell className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <span className="font-bold text-lg text-foreground tracking-tight">DroogFit</span>
-              <p className="text-xs text-muted-foreground">Cut Planner</p>
+              <span className="font-bold text-lg text-foreground tracking-tight">Sportfit Plus</span>
+              <p className="text-xs text-muted-foreground">Jouw fitness app</p>
             </div>
           </div>
         </div>
