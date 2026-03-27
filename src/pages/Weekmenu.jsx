@@ -20,11 +20,17 @@ export default function Weekmenu() {
   const [loading, setLoading] = useState(true);
   const [kiezerOpen, setKiezerOpen] = useState(null); // maaltijd_type string
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
 
   const weekDagen = getWeekDays(addDays(new Date(), weekOffset * 7));
 
   useEffect(() => {
-    base44.auth.me().then(u => { setUser(u); laadItems(u); });
+    base44.auth.me().then(async u => {
+      setUser(u);
+      laadItems(u);
+      const profielen = await base44.entities.UserProfile.filter({ created_by: u.email });
+      if (profielen.length > 0) setProfile(profielen[0]);
+    });
   }, [weekOffset]);
 
   async function laadItems(u) {
@@ -77,7 +83,9 @@ export default function Weekmenu() {
     return dagItems.reduce((acc, i) => ({
       cal: acc.cal + (i.calories || 0),
       prot: acc.prot + (i.protein_g || 0),
-    }), { cal: 0, prot: 0 });
+      carbs: acc.carbs + (i.carbs_g || 0),
+      fat: acc.fat + (i.fat_g || 0),
+    }), { cal: 0, prot: 0, carbs: 0, fat: 0 });
   }
 
   const vandaag = new Date();
@@ -135,6 +143,42 @@ export default function Weekmenu() {
           );
         })}
       </div>
+
+      {/* Macro overzicht voor geselecteerde dag */}
+      {profile && (() => {
+        const t = totalen(geselecteerdeDag);
+        const doelen = [
+          { label: 'Calorieën', gegeten: t.cal, doel: profile.target_calories, kleur: 'bg-orange-400', unit: 'kcal' },
+          { label: 'Eiwit', gegeten: t.prot, doel: profile.protein_target_g, kleur: 'bg-primary', unit: 'g' },
+          { label: 'Koolhydraten', gegeten: t.carbs, doel: profile.carbs_target_g, kleur: 'bg-blue-400', unit: 'g' },
+          { label: 'Vetten', gegeten: t.fat, doel: profile.fat_target_g, kleur: 'bg-accent', unit: 'g' },
+        ].filter(d => d.doel);
+        if (doelen.length === 0) return null;
+        return (
+          <div className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Macro's vandaag</p>
+            {doelen.map(({ label, gegeten, doel, kleur, unit }) => {
+              const pct = Math.min((gegeten / doel) * 100, 100);
+              const resterend = Math.max(doel - gegeten, 0);
+              const over = gegeten > doel;
+              return (
+                <div key={label}>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span className={over ? 'text-destructive font-medium' : 'text-foreground'}>
+                      {gegeten > 0 ? <>{gegeten} / {doel} {unit}</> : <span className="text-muted-foreground">{resterend} {unit} resterend</span>}
+                      {over && <span className="text-destructive ml-1">(+{gegeten - doel})</span>}
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                    <div className={`h-full ${over ? 'bg-destructive' : kleur} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* Dag detail */}
       {loading ? (
