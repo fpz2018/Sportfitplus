@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Flame, Dumbbell, TrendingDown, Zap, Target, ChevronRight } from 'lucide-react';
 import KennisHighlightsWidget from '@/components/dashboard/KennisHighlightsWidget';
 import WeekMenuWidget from '@/components/dashboard/WeekMenuWidget';
+import WaterTracker from '@/components/dashboard/WaterTracker';
 import { format, differenceInDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
@@ -149,6 +150,11 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Water tracker */}
+      <div className="mb-8">
+        <WaterTracker />
       </div>
 
       {/* Weekmenu widget */}

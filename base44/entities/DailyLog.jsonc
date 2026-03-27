@@ -1,0 +1,55 @@
+{
+  "name": "DailyLog",
+  "type": "object",
+  "properties": {
+    "log_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "weight_kg": {
+      "type": "number"
+    },
+    "calories_eaten": {
+      "type": "number"
+    },
+    "protein_g": {
+      "type": "number"
+    },
+    "carbs_g": {
+      "type": "number"
+    },
+    "fat_g": {
+      "type": "number"
+    },
+    "training_done": {
+      "type": "boolean",
+      "default": false
+    },
+    "training_type": {
+      "type": "string",
+      "enum": [
+        "kracht",
+        "cardio_liss",
+        "cardio_hiit",
+        "rust"
+      ]
+    },
+    "steps": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "mood": {
+      "type": "number"
+    },
+    "water_ml": {
+      "type": "number",
+      "default": 0,
+      "description": "Totaal gedronken water in ml vandaag"
+    }
+  },
+  "required": [
+    "log_date"
+  ]
+}
