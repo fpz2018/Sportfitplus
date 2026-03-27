@@ -1,19 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
-  const base44 = createClientFromRequest(req);
+  try {
+    const base44 = createClientFromRequest(req);
 
-  // Haal de Google Sheets access token op
-  const { accessToken } = await base44.asServiceRole.connectors.getConnection("googlesheets");
-  const sheetId = Deno.env.get("RECEPTEN_SHEET_ID");
+    // Haal de Google Sheets access token op
+    const { accessToken } = await base44.asServiceRole.connectors.getConnection("googlesheets");
+    const sheetId = Deno.env.get("RECEPTEN_SHEET_ID");
 
-  // Lees kolom A uit het eerste tabblad
-  const sheetsRes = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A:A`,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
-  );
-  const sheetsData = await sheetsRes.json();
-  const rows = sheetsData.values || [];
+    // Lees kolom A uit het eerste tabblad
+    const sheetsRes = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A:A`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    const sheetsData = await sheetsRes.json();
+    const rows = sheetsData.values || [];
 
   // Haal bestaande recepten op om duplicaten te voorkomen (alleen source_url recepten)
   const bestaande = await base44.asServiceRole.entities.Recipe.list('-created_date', 1000);
@@ -32,14 +33,21 @@ Deno.serve(async (req) => {
     }
 
     // Haal de pagina op
-    const pageRes = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RecipeBot/1.0)' }
-    });
-    if (!pageRes.ok) {
+    let pageRes, html;
+    try {
+      pageRes = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RecipeBot/1.0)' }
+      });
+      if (!pageRes.ok) {
+        resultaten.fouten++;
+        continue;
+      }
+      html = await pageRes.text();
+    } catch (e) {
+      console.error(`Fout bij fetch ${url}:`, e.message);
       resultaten.fouten++;
       continue;
     }
-    const html = await pageRes.text();
 
     // Extraheer afbeelding URL uit de HTML
     let imageUrl = null;
@@ -117,9 +125,12 @@ Categorie moet één van zijn: ontbijt, lunch, diner, snack, dessert, smoothie`,
     resultaten.toegevoegd++;
   }
 
-  return Response.json({
-    success: true,
-    ...resultaten,
-    bericht: `✅ ${resultaten.toegevoegd} recepten toegevoegd, ${resultaten.overgeslagen} al aanwezig, ${resultaten.fouten} fouten`
-  });
+    return Response.json({
+      success: true,
+      ...resultaten,
+      bericht: `✅ ${resultaten.toegevoegd} recepten toegevoegd, ${resultaten.overgeslagen} al aanwezig, ${resultaten.fouten} fouten`
+    });
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
 });
