@@ -1,16 +1,11 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { Dumbbell, ChevronRight, ChevronLeft, Check } from 'lucide-react';
+import { Dumbbell, ChevronRight, ChevronLeft, Check, Loader2, Sparkles } from 'lucide-react';
 
 const STEPS = ['profiel', 'activiteit', 'doelgroep', 'training', 'tdee', 'voeding'];
 
-const METHODE_OPTIES = [
-  { value: 'kracht', label: '🏋️ Klassieke kracht', desc: 'Compound oefeningen, 3-4 sets, 8-12 reps, 60-120s rust' },
-  { value: 'hypertrofie', label: '💪 Hypertrofie', desc: 'Hoog volume, 4-6 sets, 6-12 reps, progressieve overload' },
-  { value: 'hiit', label: '⚡ HIIT', desc: 'Intervallen 85-100% HF, max 3x/week, 20-30 min' },
-  { value: 'tabata', label: '🔥 Tabata', desc: '20s werk / 10s rust, 8 rondes, max 2x/week' },
-];
+
 
 const ACTIVITY_OPTIONS = [
   { value: 'sedentair', label: 'Zittend leven', desc: 'Weinig of geen beweging' },
@@ -58,8 +53,9 @@ export default function Onboarding() {
     goal_group: 'beginner', tdee_source: 'berekend',
     tdee: '', nutrition_mode: 'in_app', external_app_name: '',
     cut_weeks: 12,
-    training_methode: 'kracht', training_frequentie: 3,
-    training_locatie: 'gym', training_ervaring: 'beginner'
+    training_frequentie: 3,
+    training_locatie: 'gym', training_ervaring: 'beginner',
+    training_methode: null
   });
 
   function update(key, val) {
@@ -70,7 +66,10 @@ export default function Onboarding() {
     return calcTDEE(data);
   }
 
+  const [finishing, setFinishing] = useState(false);
+
   async function finish() {
+    setFinishing(true);
     const tdee = data.tdee_source === 'berekend' ? computedTDEE() : parseInt(data.tdee);
     const target = Math.round(tdee * 0.8);
     const protein = Math.round(parseFloat(data.weight_kg) * 2.0);
@@ -78,6 +77,37 @@ export default function Onboarding() {
     const fat = Math.round(fatCals / 9);
     const carbCals = target - (protein * 4) - fatCals;
     const carbs = Math.round(carbCals / 4);
+
+    // AI bepaalt de beste trainingsmethode op basis van alle criteria
+    const aiResult = await base44.integrations.Core.InvokeLLM({
+      prompt: `Je bent een expert personal trainer. Kies de BESTE trainingsmethode voor deze persoon op basis van hun profiel.
+
+Profiel:
+- Geslacht: ${data.gender}
+- Leeftijd: ${data.age} jaar
+- Gewicht: ${data.weight_kg} kg
+- Activiteitsniveau: ${data.activity_level}
+- Levensstijl: ${data.lifestyle}
+- Doelgroep/niveau: ${data.goal_group}
+- Trainingservaring: ${data.training_ervaring}
+- Trainingsfrequentie gewenst: ${data.training_frequentie}x per week
+- Trainingslocatie: ${data.training_locatie}
+
+Kies precies één methode uit: kracht, hypertrofie, hiit, tabata
+- kracht: geschikt voor beginners, ouderen (50+), focus op functionele kracht, compound oefeningen
+- hypertrofie: geschikt voor gevorderden met spiergroeidoel, hoog volume
+- hiit: geschikt voor mensen met weinig tijd, vet verbranden, max 3x/week
+- tabata: alleen voor zeer gevorderden, extreem intensief, max 2x/week
+
+Geef ook een korte motivatie (1 zin) waarom deze methode het best past.`,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          methode: { type: 'string', enum: ['kracht', 'hypertrofie', 'hiit', 'tabata'] },
+          motivatie: { type: 'string' },
+        }
+      }
+    });
 
     const u = await base44.auth.me();
     const existing = await base44.entities.UserProfile.filter({ created_by: u.email });
@@ -93,6 +123,7 @@ export default function Onboarding() {
       height_cm: parseFloat(data.height_cm),
       cut_start_date: new Date().toISOString().split('T')[0],
       onboarding_done: true,
+      training_methode: aiResult?.methode || 'kracht',
     };
     if (existing.length > 0) {
       await base44.entities.UserProfile.update(existing[0].id, profileData);
@@ -201,30 +232,16 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* Step 3: Training voorkeur */}
+          {/* Step 3: Training praktisch */}
           {step === 3 && (
             <div>
-              <h2 className="text-2xl font-bold mb-2">Trainingsvoorkeur</h2>
-              <p className="text-muted-foreground mb-5 text-sm">Dit bepaalt de opbouw van jouw trainingsschema's</p>
+              <h2 className="text-2xl font-bold mb-2">Jouw training</h2>
+              <p className="text-muted-foreground mb-5 text-sm">Op basis hiervan kiest de AI de beste trainingsmethode voor jou</p>
 
               <div className="space-y-5">
-                {/* Methode */}
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Trainingsmethode</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {METHODE_OPTIES.map(opt => (
-                      <button key={opt.value} onClick={() => update('training_methode', opt.value)}
-                        className={`text-left p-3 rounded-xl border transition-all ${data.training_methode === opt.value ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}>
-                        <p className={`font-medium text-sm ${data.training_methode === opt.value ? 'text-primary' : 'text-foreground'}`}>{opt.label}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Frequentie */}
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Trainingsfrequentie</label>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Hoeveel dagen per week kun je trainen?</label>
                   <div className="flex gap-2 flex-wrap">
                     {[2, 3, 4, 5, 6].map(f => (
                       <button key={f} onClick={() => update('training_frequentie', f)}
@@ -238,7 +255,7 @@ export default function Onboarding() {
                 {/* Ervaring + locatie */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Ervaringsniveau</label>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Hoe lang train je al?</label>
                     <div className="space-y-1.5">
                       {[
                         { v: 'beginner', l: '🌱 Beginner', d: '< 1 jaar' },
@@ -254,7 +271,7 @@ export default function Onboarding() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Locatie</label>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Waar train je?</label>
                     <div className="space-y-1.5">
                       {[
                         { v: 'gym', l: '🏋️ Gym', d: 'Met apparatuur' },
@@ -268,6 +285,12 @@ export default function Onboarding() {
                       ))}
                     </div>
                   </div>
+                </div>
+
+                {/* AI melding */}
+                <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
+                  <Sparkles className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <p className="text-xs text-muted-foreground">De AI bepaalt automatisch de beste trainingsmethode (kracht, hypertrofie, HIIT of Tabata) op basis van jouw profiel.</p>
                 </div>
               </div>
             </div>
@@ -352,9 +375,13 @@ export default function Onboarding() {
                 Volgende <ChevronRight className="w-4 h-4" />
               </button>
             ) : (
-              <button onClick={finish}
-                className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-all">
-                <Check className="w-4 h-4" /> Profiel opslaan & starten
+              <button onClick={finish} disabled={finishing}
+                className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-all disabled:opacity-70 disabled:cursor-not-allowed">
+                {finishing ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> AI analyseert jouw profiel...</>
+                ) : (
+                  <><Check className="w-4 h-4" /> Profiel opslaan & starten</>
+                )}
               </button>
             )}
           </div>
