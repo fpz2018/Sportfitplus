@@ -85,10 +85,11 @@ export default function HRVTracker({ onHRVLogged }) {
   }
 
   async function handleVragenlijst() {
-    const hrv = berekenEnergiescore(slaap, stress, herstel) * 0.8 + 40; // Geschatte HRV
-    const energie = berekenEnergiescore(hrv, slaap, stress, herstel);
+    // Geschatte HRV op basis van vragenlijst: 40-120ms range
+    const hrvEstimate = 40 + (slaap * 8) - (stress * 3) + (herstel * 2);
+    const energie = berekenEnergiescore(hrvEstimate, slaap, stress, herstel);
     const trainingReady = bepaalTrainingReady(energie);
-    await opslaan(Math.round(hrv), energie, trainingReady, 'vragenlijst', {
+    await opslaan(Math.round(hrvEstimate), Math.round(energie), trainingReady, 'vragenlijst', {
       slaap_uren: slaap,
       stress_niveau: stress,
       herstel_gevoel: herstel,
