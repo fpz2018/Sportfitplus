@@ -21,6 +21,7 @@ import InhoudsVoorstellen from './pages/InhoudsVoorstellen';
 import BronBeheer from './pages/BronBeheer';
 import ReceptenBeheer from './pages/ReceptenBeheer';
 import Weekmenu from './pages/Weekmenu';
+import Nieuwsbeheer from './pages/Nieuwsbeheer';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -62,6 +63,7 @@ const AuthenticatedApp = () => {
         <Route path="/bronnen" element={<BronBeheer />} />
         <Route path="/recepten-beheer" element={<ReceptenBeheer />} />
         <Route path="/weekmenu" element={<Weekmenu />} />
+        <Route path="/nieuwsbeheer" element={<Nieuwsbeheer />} />
       </Route>
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="*" element={<PageNotFound />} />
