@@ -39,6 +39,18 @@ Deno.serve(async (req) => {
     }
     const html = await pageRes.text();
 
+    // Extraheer afbeelding URL uit de HTML
+    let imageUrl = null;
+    const ogImageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i);
+    if (ogImageMatch) {
+      imageUrl = ogImageMatch[1];
+    } else {
+      const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if (imgMatch) {
+        imageUrl = imgMatch[1];
+      }
+    }
+
     // Verwijder scripts/styles voor kortere tekst aan AI
     const cleanHtml = html
       .replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -94,6 +106,7 @@ Categorie moet één van zijn: ontbijt, lunch, diner, snack, dessert, smoothie`,
     await base44.asServiceRole.entities.Recipe.create({
       ...recept,
       source_url: url,
+      image_url: imageUrl || recept.image_url,
       is_favorite: false,
       status: 'concept',
     });
