@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Flame, Dumbbell, TrendingDown, Zap, Target, ChevronRight } from 'lucide-react';
+import KennisHighlightsWidget from '@/components/dashboard/KennisHighlightsWidget';
 import { format, differenceInDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
@@ -10,6 +11,7 @@ export default function Dashboard() {
   const [todayLog, setTodayLog] = useState(null);
   const [recentLogs, setRecentLogs] = useState([]);
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -18,6 +20,7 @@ export default function Dashboard() {
   async function loadData() {
     const u = await base44.auth.me();
     setUser(u);
+    setIsAdmin(u?.role === 'admin');
     const profiles = await base44.entities.UserProfile.filter({ created_by: u.email });
     if (profiles.length > 0) setProfile(profiles[0]);
     const today = format(new Date(), 'yyyy-MM-dd');
@@ -145,6 +148,11 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Kennis Highlights + SEO */}
+      <div className="mb-8">
+        <KennisHighlightsWidget isAdmin={isAdmin} />
       </div>
 
       {/* Recente logs */}
