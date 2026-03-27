@@ -5,6 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 const EVIDENCE_COLORS = { A: 'bg-green-500/20 text-green-400', B: 'bg-blue-500/20 text-blue-400', C: 'bg-yellow-500/20 text-yellow-400', D: 'bg-red-500/20 text-red-400' };
+const EVIDENCE_LABELS = { 
+  A: 'RCT / Meta-analyse (sterke evidence)', 
+  B: 'Cohort onderzoek', 
+  C: 'Case studies', 
+  D: 'Expertopinieën' 
+};
 const STATUS_LABELS = { pending: 'In behandeling', approved: 'Goedgekeurd', rejected: 'Afgewezen' };
 
 export default function KennisMonitor() {
@@ -64,11 +70,13 @@ export default function KennisMonitor() {
     alert('Nieuwsbericht en wijzigingsvoorstel gegenereerd! Ga naar Nieuwsbeheer om te publiceren.');
   }
 
-  const filtered = artikelen.filter(a => {
-    const matchStatus = filterStatus === 'all' || a.status === filterStatus;
-    const matchCat = filterCat === 'all' || a.category === filterCat;
-    return matchStatus && matchCat;
-  });
+  const filtered = artikelen
+    .filter(a => {
+      const matchStatus = filterStatus === 'all' || a.status === filterStatus;
+      const matchCat = filterCat === 'all' || a.category === filterCat;
+      return matchStatus && matchCat;
+    })
+    .sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
 
   const pending = artikelen.filter(a => a.status === 'pending').length;
 
@@ -116,6 +124,19 @@ export default function KennisMonitor() {
             {c === 'all' ? 'Alle categorieën' : c}
           </button>
         ))}
+      </div>
+
+      {/* Evidence level legend */}
+      <div className="bg-secondary/40 border border-border rounded-lg p-4 mb-6">
+        <p className="text-xs font-semibold text-foreground mb-2">Evidence levels:</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {Object.entries(EVIDENCE_LABELS).map(([level, desc]) => (
+            <div key={level} className="flex items-center gap-2 text-xs">
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${EVIDENCE_COLORS[level]}`}>Level {level}</span>
+              <span className="text-muted-foreground">{desc}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {loading ? (
