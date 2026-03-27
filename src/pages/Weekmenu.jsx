@@ -106,13 +106,11 @@ export default function Weekmenu() {
           <h1 className="text-2xl font-bold text-foreground">Weekmenu</h1>
           <p className="text-muted-foreground text-sm">Plan je maaltijden voor de hele week</p>
         </div>
-        {items.length > 0 && (
-          <button onClick={() => setBoodschappenOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-primary hover:border-primary/40 transition-all">
-            <ShoppingCart className="w-4 h-4" />
-            <span className="hidden sm:inline">Boodschappen</span>
-          </button>
-        )}
+        <button onClick={() => setBoodschappenOpen(true)}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-primary hover:border-primary/40 transition-all">
+          <ShoppingCart className="w-4 h-4" />
+          <span className="hidden sm:inline">Boodschappen</span>
+        </button>
       </div>
 
       {/* Week navigatie */}
@@ -255,9 +253,7 @@ export default function Weekmenu() {
 
       {boodschappenOpen && (
         <Boodschappenlijst
-          items={items}
           alleRecepten={alleRecepten}
-          weekLabel={`${format(weekDagen[0], 'd MMM', { locale: nl })} – ${format(weekDagen[6], 'd MMM yyyy', { locale: nl })}`}
           onSluit={() => setBoodschappenOpen(false)}
         />
       )}

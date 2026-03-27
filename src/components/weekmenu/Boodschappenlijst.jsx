@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ShoppingCart, Loader2, X, Check, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { ShoppingCart, Loader2, X, Check, ChevronDown, ChevronUp, Sparkles, Calendar } from 'lucide-react';
+import { format } from 'date-fns';
 
 const CATEGORIE_VOLGORDE = [
   'groenten', 'fruit', 'vlees & vis', 'zuivel & eieren', 'granen & brood',
@@ -20,16 +21,26 @@ const CATEGORIE_ICONEN = {
   'overig': '🛒',
 };
 
-export default function Boodschappenlijst({ items, alleRecepten, weekLabel, onSluit }) {
+export default function Boodschappenlijst({ alleRecepten, onSluit }) {
   const [loading, setLoading] = useState(false);
   const [lijst, setLijst] = useState(null);
   const [afgevinkt, setAfgevinkt] = useState({});
   const [ingeklapt, setIngeklapt] = useState({});
+  const [datumVan, setDatumVan] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [datumTot, setDatumTot] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [weekLabel, setWeekLabel] = useState('');
+
+  // Haal weekmenu items op voor de geselecteerde datumrange
+  async function laadItems() {
+    const allItems = await base44.entities.WeekMenu.list('-datum', 1000);
+    return allItems.filter(i => i.datum >= datumVan && i.datum <= datumTot);
+  }
 
   // Haal de volledige receptgegevens op voor alle geplande items
   async function genereer() {
     setLoading(true);
 
+    const items = await laadItems();
     const receptIds = [...new Set(items.map(i => i.recept_id).filter(Boolean))];
     const geplandRecepten = alleRecepten.filter(r => receptIds.includes(r.id));
 
@@ -52,8 +63,9 @@ export default function Boodschappenlijst({ items, alleRecepten, weekLabel, onSl
       return;
     }
 
+    const rangeLabel = datumVan === datumTot ? datumVan : `${datumVan} t/m ${datumTot}`;
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Je bent een boodschappenassistent. Hieronder staan de ingrediënten van alle geplande recepten voor ${weekLabel}.
+      prompt: `Je bent een boodschappenassistent. Hieronder staan de ingrediënten van alle geplande recepten voor ${rangeLabel}.
 
 Combineer ingrediënten die hetzelfde zijn (bijv. "2 eieren" + "3 eieren" = "5 eieren").
 Sorteer alle ingrediënten in de juiste categorie.
@@ -103,7 +115,10 @@ Geef een gestructureerde boodschappenlijst terug.`,
   }
 
   // Initieel genereren bij openen
-  useState(() => { genereer(); }, []);
+  useEffect(() => {
+    setWeekLabel(datumVan === datumTot ? datumVan : `${datumVan} t/m ${datumTot}`);
+    genereer();
+  }, [datumVan, datumTot]);
 
   function toggleAfgevinkt(catKey, idx) {
     const key = `${catKey}-${idx}`;
@@ -124,16 +139,36 @@ Geef een gestructureerde boodschappenlijst terug.`,
 
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 p-4">
-      <div className="bg-card border border-border rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
-          <div className="flex items-center gap-2">
-            <ShoppingCart className="w-5 h-5 text-primary" />
-            <div>
-              <p className="font-semibold text-foreground">Boodschappenlijst</p>
-              <p className="text-xs text-muted-foreground">{weekLabel}</p>
-            </div>
-          </div>
+      <div className="bg-card border border-border rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+         {/* Header */}
+         <div className="p-4 border-b border-border shrink-0 space-y-3">
+           <div className="flex items-center justify-between">
+             <div className="flex items-center gap-2">
+               <ShoppingCart className="w-5 h-5 text-primary" />
+               <div>
+                 <p className="font-semibold text-foreground">Boodschappenlijst</p>
+               </div>
+             </div>
+
+
+           {/* Datum selector */}
+           <div className="flex items-center gap-2">
+             <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+             <input
+               type="date"
+               value={datumVan}
+               onChange={(e) => setDatumVan(e.target.value)}
+               className="text-xs bg-secondary border border-border rounded-lg px-2 py-1.5 text-foreground"
+             />
+             <span className="text-xs text-muted-foreground">tot</span>
+             <input
+               type="date"
+               value={datumTot}
+               onChange={(e) => setDatumTot(e.target.value)}
+               className="text-xs bg-secondary border border-border rounded-lg px-2 py-1.5 text-foreground"
+             />
+           </div>
+         </div>
           <div className="flex items-center gap-2">
             {!loading && lijst && (
               <span className="text-xs text-muted-foreground">{totaalAfgevinkt}/{totaalItems}</span>
