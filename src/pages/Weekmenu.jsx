@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, ChevronRight, Loader2, ShoppingCart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, ShoppingCart, Clock } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import MaaltijdSlot from '@/components/weekmenu/MaaltijdSlot';
 import ReceptKiezer from '@/components/weekmenu/ReceptKiezer';
 import MacroSuggestie from '@/components/weekmenu/MacroSuggestie';
 import Boodschappenlijst from '@/components/weekmenu/Boodschappenlijst';
+import DayFoodLogEditor from '@/components/weekmenu/DayFoodLogEditor';
 
 const MAALTIJD_TYPES = ['ontbijt', 'lunch', 'diner', 'snack'];
 
@@ -18,6 +19,7 @@ function getWeekDays(baseDate) {
 export default function Weekmenu() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [geselecteerdeDag, setGeselecteerdeDag] = useState(new Date());
+  const [geselecteerdeTab, setGeselecteerdeTab] = useState('planning');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [kiezerOpen, setKiezerOpen] = useState(null); // maaltijd_type string
@@ -196,12 +198,36 @@ export default function Weekmenu() {
         );
       })()}
 
+      {/* Tabs: Planning / Log indienen */}
+      <div className="flex gap-2 mb-4">
+        <button 
+          onClick={() => setGeselecteerdeTab('planning')}
+          className={`flex-1 py-2.5 rounded-xl border font-medium text-sm transition-all ${
+            geselecteerdeTab === 'planning' 
+              ? 'border-primary bg-primary/10 text-primary' 
+              : 'border-border text-muted-foreground hover:border-primary/40'
+          }`}
+        >
+          Planning
+        </button>
+        <button 
+          onClick={() => setGeselecteerdeTab('log')}
+          className={`flex-1 py-2.5 rounded-xl border font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+            geselecteerdeTab === 'log' 
+              ? 'border-primary bg-primary/10 text-primary' 
+              : 'border-border text-muted-foreground hover:border-primary/40'
+          }`}
+        >
+          <Clock className="w-4 h-4" /> Indienen
+        </button>
+      </div>
+
       {/* Dag detail */}
       {loading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
-      ) : (
+      ) : geselecteerdeTab === 'planning' ? (
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
           <div className="p-4 border-b border-border flex items-center justify-between">
             <div>
@@ -248,6 +274,15 @@ export default function Weekmenu() {
               );
             })()}
           </div>
+        </div>
+      ) : (
+        <div className="bg-card border border-border rounded-2xl p-4">
+          <DayFoodLogEditor
+            date={geselecteerdeDag}
+            weekMenuItems={itemsVoorDag(geselecteerdeDag)}
+            profile={profile}
+            onSaved={() => laadItems(user)}
+          />
         </div>
       )}
 

@@ -1,0 +1,111 @@
+{
+  "name": "FoodLog",
+  "type": "object",
+  "properties": {
+    "log_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum van de voedingslog"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "submitted"
+      ],
+      "default": "draft",
+      "description": "Draft = in bewerking, submitted = ingediend"
+    },
+    "meals": {
+      "type": "array",
+      "description": "Geplande maaltijden van WeekMenu",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "meal_type": {
+            "type": "string"
+          },
+          "recipe_title": {
+            "type": "string"
+          },
+          "calories": {
+            "type": "number"
+          },
+          "protein_g": {
+            "type": "number"
+          },
+          "carbs_g": {
+            "type": "number"
+          },
+          "fat_g": {
+            "type": "number"
+          },
+          "eaten": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      }
+    },
+    "extras": {
+      "type": "array",
+      "description": "Extra snacks, supplementen, whey, etc",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "snack",
+              "supplement",
+              "whey",
+              "other"
+            ]
+          },
+          "calories": {
+            "type": "number"
+          },
+          "protein_g": {
+            "type": "number"
+          },
+          "carbs_g": {
+            "type": "number"
+          },
+          "fat_g": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "total_calories": {
+      "type": "number",
+      "description": "Totaal calorie\u00ebn (geplanned + extra)"
+    },
+    "total_protein_g": {
+      "type": "number"
+    },
+    "total_carbs_g": {
+      "type": "number"
+    },
+    "total_fat_g": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Opmerkingen/notities"
+    },
+    "submitted_at": {
+      "type": "string",
+      "description": "Timestamp wanneer ingediend"
+    }
+  },
+  "required": [
+    "log_date"
+  ]
+}
