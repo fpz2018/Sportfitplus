@@ -5,6 +5,7 @@ import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import MaaltijdSlot from '@/components/weekmenu/MaaltijdSlot';
 import ReceptKiezer from '@/components/weekmenu/ReceptKiezer';
+import MacroSuggestie from '@/components/weekmenu/MacroSuggestie';
 
 const MAALTIJD_TYPES = ['ontbijt', 'lunch', 'diner', 'snack'];
 
@@ -21,6 +22,7 @@ export default function Weekmenu() {
   const [kiezerOpen, setKiezerOpen] = useState(null); // maaltijd_type string
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [alleRecepten, setAlleRecepten] = useState([]);
 
   const weekDagen = getWeekDays(addDays(new Date(), weekOffset * 7));
 
@@ -28,8 +30,12 @@ export default function Weekmenu() {
     base44.auth.me().then(async u => {
       setUser(u);
       laadItems(u);
-      const profielen = await base44.entities.UserProfile.filter({ created_by: u.email });
+      const [profielen, recepten] = await Promise.all([
+        base44.entities.UserProfile.filter({ created_by: u.email }),
+        base44.entities.Recipe.list('-created_date', 500),
+      ]);
       if (profielen.length > 0) setProfile(profielen[0]);
+      setAlleRecepten(recepten);
     });
   }, [weekOffset]);
 
@@ -54,12 +60,13 @@ export default function Weekmenu() {
     return items.find(i => i.datum === dagStr && i.maaltijd_type === type) || null;
   }
 
-  async function voegToe(recept) {
-    if (!kiezerOpen) return;
+  async function voegToe(recept, overrideType = null) {
+    const type = overrideType || kiezerOpen;
+    if (!type) return;
     const dagStr = format(geselecteerdeDag, 'yyyy-MM-dd');
     const nieuw = await base44.entities.WeekMenu.create({
       datum: dagStr,
-      maaltijd_type: kiezerOpen,
+      maaltijd_type: type,
       recept_id: recept.id,
       recept_titel: recept.title,
       recept_image_url: recept.image_url || null,
@@ -212,6 +219,25 @@ export default function Weekmenu() {
                 onRemove={verwijder}
               />
             ))}
+            {profile && alleRecepten.length > 0 && (() => {
+              const t = totalen(geselecteerdeDag);
+              const resterend = {
+                cal: Math.max((profile.target_calories || 0) - t.cal, 0),
+                prot: Math.max((profile.protein_target_g || 0) - t.prot, 0),
+                carbs: Math.max((profile.carbs_target_g || 0) - t.carbs, 0),
+                fat: Math.max((profile.fat_target_g || 0) - t.fat, 0),
+              };
+              const geplandTypes = itemsVoorDag(geselecteerdeDag).map(i => i.maaltijd_type);
+              return (
+                <MacroSuggestie
+                  resterend={resterend}
+                  recepten={alleRecepten}
+                  geselecteerdeDag={geselecteerdeDag}
+                  maaltijdTypes={geplandTypes}
+                  onVoegToe={(recept, type) => voegToe(recept, type)}
+                />
+              );
+            })()}
           </div>
         </div>
       )}
