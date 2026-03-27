@@ -16,8 +16,8 @@ Deno.serve(async (req) => {
   const rows = sheetsData.values || [];
 
   // Haal bestaande recepten op om duplicaten te voorkomen (alleen source_url recepten)
-  const bestaande = await base44.asServiceRole.entities.Recipe.list();
-  const bestaandeUrls = new Set(bestaande.filter(r => r.source_url).map(r => r.source_url));
+  const bestaande = await base44.asServiceRole.entities.Recipe.list('-created_date', 1000);
+  const bestaandeUrls = new Set(bestaande.filter(r => r.source_url).map(r => r.source_url.trim()));
 
   const resultaten = { toegevoegd: 0, overgeslagen: 0, fouten: 0 };
 
