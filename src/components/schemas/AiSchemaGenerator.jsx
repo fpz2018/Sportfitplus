@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Sparkles, ChevronDown, ChevronUp, Loader2, Dumbbell, Moon, RefreshCw } from 'lucide-react';
+import { Sparkles, ChevronDown, ChevronUp, Loader2, Dumbbell, Moon, RefreshCw, Save, CheckCircle } from 'lucide-react';
 
 const FREQ_OPTIES = [
   { value: 2, label: '2x per week' },
@@ -8,6 +8,13 @@ const FREQ_OPTIES = [
   { value: 4, label: '4x per week' },
   { value: 5, label: '5x per week' },
   { value: 6, label: '6x per week' },
+];
+
+const METHODE_OPTIES = [
+  { value: 'kracht', label: '🏋️ Klassieke kracht', desc: 'Compound oefeningen, 3-4 sets, 8-12 reps' },
+  { value: 'hypertrofie', label: '💪 Hypertrofie', desc: 'Hoog volume, 4-6 sets, 8-12 reps, progressieve overload' },
+  { value: 'hiit', label: '⚡ HIIT', desc: 'Intervallen, maximale inspanning, vetverbranding' },
+  { value: 'tabata', label: '🔥 Tabata', desc: '20s werk / 10s rust, 8 rondes per oefening' },
 ];
 
 const DAG_KLEUREN = {
@@ -21,7 +28,10 @@ export default function AiSchemaGenerator({ profile }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [form, setForm] = useState({
+    methode: 'kracht',
     frequentie: profile?.goal_group === 'beginner' ? 3 : profile?.goal_group === 'atleet' ? 5 : 4,
     doel: profile?.goal_group || 'gevorderd',
     ervaring: 'gemiddeld',
@@ -33,27 +43,65 @@ export default function AiSchemaGenerator({ profile }) {
   async function genereer() {
     setLoading(true);
     setResult(null);
+    setSaved(false);
 
     const doelOmschrijving = {
       beginner: 'beginnen met trainen en vet verliezen',
-      gevorderd: 'droogtrainen met behoud van spiermassa',
+      gevorderd: 'gezond en fit worden met behoud van spiermassa',
       vrouw: 'tonen en vet verliezen met focus op onderlichaam',
       '50plus': 'spiermassa behouden en fit blijven na je 50e',
-      atleet: 'prestaties behouden tijdens een calorietekort',
-    }[form.doel] || 'droogtrainen';
+      atleet: 'prestaties maximaliseren en spiermassa opbouwen',
+    }[form.doel] || 'gezond en fit worden';
 
-    const prompt = `Je bent een expert personal trainer gespecialiseerd in droogtrainen en lichaamscompositie.
+    const methodeInstructies = {
+      kracht: `Klassieke krachttraining:
+- Compound oefeningen (squat, deadlift, bench, row, press)
+- 3-4 sets per oefening, 8-12 herhalingen
+- Rusttijd: 60-120 seconden tussen sets
+- Intensiteit: 60-80% van 1RM
+- Progressieve overload week over week`,
+
+      hypertrofie: `Hypertrofie training (spiergroei):
+- Mix van compound + isolatie oefeningen
+- 4-6 sets per oefening, 6-12 herhalingen
+- Rusttijd: 60-90 seconden tussen sets
+- Hoog volume per spiergroep
+- Elke spiergroep 2x per week trainen
+- Progressieve overload is essentieel`,
+
+      hiit: `HIIT (High-Intensity Interval Training):
+- Afwisseling van maximale inspanning (85-100% HF) en rust
+- Intervalverhouding: 20-40s werk / 20-60s rust (1:1 of 1:2 ratio)
+- 5-10 intervallen per ronde
+- Totale duur per sessie: 20-30 minuten
+- Maximaal 3x per week (herstel is cruciaal)
+- Oefeningen: burpees, jump squats, mountain climbers, sprinten`,
+
+      tabata: `Tabata training:
+- Protocol: 20 seconden maximale inspanning / 10 seconden rust
+- 8 rondes per oefening = 4 minuten per blok
+- 1-4 oefeningen per sessie
+- Totale duur: 4-20 minuten (exclusief warming-up)
+- Maximaal 2x per week (extreem intensief)
+- Oefeningen: bodyweight of lichte gewichten`,
+    }[form.methode];
+
+    const prompt = `Je bent een expert personal trainer gespecialiseerd in gezondheid en lichaamscompositie.
 
 Maak een volledig wekelijks trainingsschema voor iemand met:
+- Trainingsmethode: ${METHODE_OPTIES.find(m => m.value === form.methode)?.label}
 - Trainingsfrequentie: ${form.frequentie}x per week
 - Doel: ${doelOmschrijving}
 - Ervaringsniveau: ${form.ervaring}
 - Thuis trainen: ${form.thuis ? 'ja (geen gym apparatuur)' : 'nee (gym beschikbaar)'}
 ${profile?.weight_kg ? `- Gewicht: ${profile.weight_kg} kg` : ''}
 
+RICHTLIJNEN VOOR DEZE METHODE:
+${methodeInstructies}
+
 Maak een schema voor alle 7 dagen van de week (ma t/m zo).
 Zorg voor optimale verdeling van spiergroepen en rustdagen.
-Geef per trainingsdag 4-6 concrete oefeningen met sets en herhalingen.
+Geef per trainingsdag 4-6 concrete oefeningen met sets en herhalingen (inclusief rusttijden).
 Rustdagen mogen actief herstel bevatten (wandelen, stretchen).
 
 Geef ook een korte uitleg van de opbouw en waarom deze structuur werkt.`;
@@ -97,6 +145,26 @@ Geef ook een korte uitleg van de opbouw en waarom deze structuur werkt.`;
     setLoading(false);
   }
 
+  async function slaOp() {
+    if (!result) return;
+    setSaving(true);
+    await base44.entities.CustomSchema.create({
+      name: result.schema_naam,
+      description: result.uitleg,
+      days: result.dagen?.map(dag => ({
+        dag_naam: dag.dag,
+        oefeningen: dag.oefeningen?.map(oe => ({
+          naam: oe.naam,
+          sets: oe.sets,
+          rust: oe.rust || '',
+          tip: oe.tip || '',
+        })) || [],
+      })) || [],
+    });
+    setSaving(false);
+    setSaved(true);
+  }
+
   return (
     <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/30 rounded-2xl mb-6 overflow-hidden">
       <button onClick={() => setOpen(!open)}
@@ -115,6 +183,20 @@ Geef ook een korte uitleg van de opbouw en waarom deze structuur werkt.`;
 
       {open && (
         <div className="border-t border-primary/20 p-5 space-y-5">
+          {/* Trainingsmethode */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-2 block">Trainingsmethode</label>
+            <div className="grid grid-cols-2 gap-2">
+              {METHODE_OPTIES.map(({ value, label, desc }) => (
+                <button key={value} onClick={() => update('methode', value)}
+                  className={`text-left px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${form.methode === value ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}>
+                  <div>{label}</div>
+                  <div className="text-xs opacity-70 font-normal mt-0.5">{desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Frequentie */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-2 block">Trainingsfrequentie per week</label>
@@ -182,14 +264,14 @@ Geef ook een korte uitleg van de opbouw en waarom deze structuur werkt.`;
             )}
           </button>
 
-          {result && <SchemaResultaat result={result} onRefresh={genereer} loading={loading} />}
+          {result && <SchemaResultaat result={result} onRefresh={genereer} loading={loading} onSave={slaOp} saving={saving} saved={saved} />}
         </div>
       )}
     </div>
   );
 }
 
-function SchemaResultaat({ result, onRefresh, loading }) {
+function SchemaResultaat({ result, onRefresh, loading, onSave, saving, saved }) {
   const [openDag, setOpenDag] = useState(null);
 
   return (
@@ -197,10 +279,16 @@ function SchemaResultaat({ result, onRefresh, loading }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <p className="font-semibold text-foreground">{result.schema_naam}</p>
-        <button onClick={onRefresh} disabled={loading}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-all disabled:opacity-50">
-          <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} /> Nieuw schema
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={onRefresh} disabled={loading}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-all disabled:opacity-50">
+            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} /> Nieuw
+          </button>
+          <button onClick={onSave} disabled={saving || saved}
+            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all ${saved ? 'bg-green-500/20 text-green-400' : 'bg-primary/10 text-primary hover:bg-primary/20'} disabled:opacity-60`}>
+            {saved ? <><CheckCircle className="w-3 h-3" /> Opgeslagen!</> : saving ? <><Loader2 className="w-3 h-3 animate-spin" /> Opslaan...</> : <><Save className="w-3 h-3" /> Opslaan</>}
+          </button>
+        </div>
       </div>
 
       {/* Uitleg */}
