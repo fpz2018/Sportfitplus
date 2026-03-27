@@ -15,15 +15,17 @@ Deno.serve(async (req) => {
   const sheetsData = await sheetsRes.json();
   const rows = sheetsData.values || [];
 
-  // Haal bestaande recepten op om duplicaten te voorkomen
+  // Haal bestaande recepten op om duplicaten te voorkomen (alleen source_url recepten)
   const bestaande = await base44.asServiceRole.entities.Recipe.list();
-  const bestaandeUrls = new Set(bestaande.map(r => r.source_url).filter(Boolean));
+  const bestaandeUrls = new Set(bestaande.filter(r => r.source_url).map(r => r.source_url));
 
   const resultaten = { toegevoegd: 0, overgeslagen: 0, fouten: 0 };
 
   for (const row of rows) {
     const url = row[0]?.trim();
     if (!url || !url.startsWith('http')) continue;
+    
+    // Skip alleen als deze URL al bestaat
     if (bestaandeUrls.has(url)) {
       resultaten.overgeslagen++;
       continue;
