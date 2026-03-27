@@ -10,7 +10,7 @@ export default function ReceptKiezer({ maaltijdType, onKies, onSluit }) {
   const [catFilter, setCatFilter] = useState(maaltijdType || 'all');
 
   useEffect(() => {
-    base44.entities.Recipe.filter({ status: 'gepubliceerd' }, '-created_date', 100).then(setRecepten);
+    base44.entities.Recipe.list('-created_date', 500).then(setRecepten);
   }, []);
 
   const filtered = recepten.filter(r => {
