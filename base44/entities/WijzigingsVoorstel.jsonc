@@ -1,0 +1,74 @@
+{
+  "name": "WijzigingsVoorstel",
+  "type": "object",
+  "properties": {
+    "bron_type": {
+      "type": "string",
+      "enum": [
+        "pdf",
+        "youtube",
+        "url",
+        "pubmed"
+      ]
+    },
+    "bron_naam": {
+      "type": "string"
+    },
+    "bron_url": {
+      "type": "string"
+    },
+    "entity_naam": {
+      "type": "string",
+      "description": "Welk record/entiteit wordt aangepast"
+    },
+    "record_id": {
+      "type": "string"
+    },
+    "veld_naam": {
+      "type": "string"
+    },
+    "huidige_waarde": {
+      "type": "string"
+    },
+    "voorgestelde_waarde": {
+      "type": "string"
+    },
+    "onderbouwing_nl": {
+      "type": "string"
+    },
+    "onderbouwing_en": {
+      "type": "string"
+    },
+    "betrouwbaarheid": {
+      "type": "number",
+      "description": "0-100, AI-score"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "applied"
+      ],
+      "default": "pending"
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string"
+    },
+    "review_notes": {
+      "type": "string"
+    },
+    "applied_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "bron_type",
+    "veld_naam",
+    "voorgestelde_waarde"
+  ]
+}

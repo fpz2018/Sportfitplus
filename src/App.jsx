@@ -16,6 +16,9 @@ import Voeding from './pages/Voeding';
 import Gids from './pages/Gids';
 import Profiel from './pages/Profiel';
 import Recepten from './pages/Recepten';
+import KennisMonitor from './pages/KennisMonitor';
+import InhoudsVoorstellen from './pages/InhoudsVoorstellen';
+import BronBeheer from './pages/BronBeheer';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -52,6 +55,9 @@ const AuthenticatedApp = () => {
         <Route path="/gids" element={<Gids />} />
         <Route path="/profiel" element={<Profiel />} />
         <Route path="/recepten" element={<Recepten />} />
+        <Route path="/kennis" element={<KennisMonitor />} />
+        <Route path="/voorstellen" element={<InhoudsVoorstellen />} />
+        <Route path="/bronnen" element={<BronBeheer />} />
       </Route>
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="*" element={<PageNotFound />} />

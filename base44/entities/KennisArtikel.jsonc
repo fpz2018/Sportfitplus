@@ -1,0 +1,89 @@
+{
+  "name": "KennisArtikel",
+  "type": "object",
+  "properties": {
+    "pubmed_id": {
+      "type": "string"
+    },
+    "title_en": {
+      "type": "string"
+    },
+    "title_nl": {
+      "type": "string"
+    },
+    "abstract_en": {
+      "type": "string"
+    },
+    "abstract_nl": {
+      "type": "string"
+    },
+    "summary_en": {
+      "type": "string"
+    },
+    "summary_nl": {
+      "type": "string"
+    },
+    "authors": {
+      "type": "string"
+    },
+    "journal": {
+      "type": "string"
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "url": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "voeding",
+        "training",
+        "herstel",
+        "supplementen",
+        "hormonen",
+        "overig"
+      ]
+    },
+    "evidence_level": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "description": "A=RCT/Meta-analyse, B=Cohort, C=Case study, D=Expert opinion"
+    },
+    "relevance_score": {
+      "type": "number",
+      "description": "0-100, AI-beoordeeld"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string"
+    },
+    "review_notes": {
+      "type": "string"
+    },
+    "search_query": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title_en"
+  ]
+}

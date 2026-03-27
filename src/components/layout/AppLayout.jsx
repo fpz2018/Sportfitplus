@@ -1,6 +1,8 @@
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat } from 'lucide-react';
+import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -13,8 +15,19 @@ const navItems = [
   { to: '/profiel', icon: User, label: 'Profiel' },
 ];
 
+const adminNavItems = [
+  { to: '/kennis', icon: FlaskConical, label: 'Literatuurmonitor' },
+  { to: '/voorstellen', icon: Lightbulb, label: 'Inhoudsvoorstellen' },
+  { to: '/bronnen', icon: Upload, label: 'Bronbeheer' },
+];
+
 export default function AppLayout() {
   const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setIsAdmin(u?.role === 'admin'));
+  }, []);
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -54,6 +67,24 @@ export default function AppLayout() {
             );
           })}
         </nav>
+
+        {/* Admin sectie */}
+        {isAdmin && (
+          <div className="px-4 pb-2 border-t border-border pt-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">Kennissysteem</p>
+            {adminNavItems.map(({ to, icon: Icon, label }) => {
+              const active = location.pathname === to;
+              return (
+                <Link key={to} to={to}
+                  className={cn('flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all mb-1',
+                    active ? 'bg-primary/15 text-primary' : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground')}>
+                  <Icon className="w-4 h-4 shrink-0" />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
         {/* Premium badge */}
         <div className="p-4 border-t border-border">

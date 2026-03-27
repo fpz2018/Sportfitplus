@@ -1,0 +1,35 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "actie": {
+      "type": "string",
+      "enum": [
+        "pubmed_fetch",
+        "ai_samenvatting",
+        "bron_upload",
+        "ai_analyse",
+        "voorstel_goedgekeurd",
+        "voorstel_afgewezen",
+        "voorstel_toegepast",
+        "artikel_goedgekeurd",
+        "artikel_afgewezen"
+      ]
+    },
+    "gebruiker": {
+      "type": "string"
+    },
+    "entity_naam": {
+      "type": "string"
+    },
+    "record_id": {
+      "type": "string"
+    },
+    "details": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "actie"
+  ]
+}

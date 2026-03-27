@@ -1,0 +1,48 @@
+{
+  "name": "BronBestand",
+  "type": "object",
+  "properties": {
+    "naam": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "pdf",
+        "youtube",
+        "url",
+        "google_drive"
+      ]
+    },
+    "url": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "wachten",
+        "verwerken",
+        "klaar",
+        "fout"
+      ],
+      "default": "wachten"
+    },
+    "fout_melding": {
+      "type": "string"
+    },
+    "aantal_voorstellen": {
+      "type": "number",
+      "default": 0
+    },
+    "verwerkt_op": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "naam",
+    "type"
+  ]
+}
