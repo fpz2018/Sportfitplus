@@ -5,6 +5,7 @@ import { nl } from 'date-fns/locale';
 import { Plus, Check, TrendingDown, Scale, Flame, Dumbbell } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import KrachtVoortgang from '@/components/voortgang/KrachtVoortgang';
+import HRVTracker from '@/components/voortgang/HRVTracker';
 
 export default function Voortgang() {
   const [logs, setLogs] = useState([]);
@@ -165,6 +166,9 @@ export default function Voortgang() {
           </ResponsiveContainer>
         </div>
       )}
+
+      {/* HRV & Energiescore */}
+      <HRVTracker onHRVLogged={loadData} />
 
       {/* Krachtvoortgang */}
       <KrachtVoortgang />

@@ -1,0 +1,49 @@
+{
+  "name": "HRVLog",
+  "type": "object",
+  "properties": {
+    "log_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum van HRV meting"
+    },
+    "hrv_waarde": {
+      "type": "number",
+      "description": "HRV in milliseconden (bijv. 45-150ms)"
+    },
+    "bron": {
+      "type": "string",
+      "enum": [
+        "handmatig",
+        "vragenlijst"
+      ],
+      "description": "Hoe de HRV bepaald is"
+    },
+    "slaap_uren": {
+      "type": "number",
+      "description": "Uren slaap afgelopen nacht (voor vragenlijst)"
+    },
+    "stress_niveau": {
+      "type": "number",
+      "description": "Stressniveau 1-10 (voor vragenlijst)"
+    },
+    "herstel_gevoel": {
+      "type": "number",
+      "description": "Hersteld gevoel 1-10 (voor vragenlijst)"
+    },
+    "energiescore": {
+      "type": "number",
+      "description": "Berekende energiescore 1-100 (bepaalt training readiness)"
+    },
+    "training_ready": {
+      "type": "boolean",
+      "description": "Aanbeveling om vandaag te trainen (true=ja, false=rust-dag)"
+    }
+  },
+  "required": [
+    "log_date",
+    "hrv_waarde",
+    "bron",
+    "energiescore"
+  ]
+}
