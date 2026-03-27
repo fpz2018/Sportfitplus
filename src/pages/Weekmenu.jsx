@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, ShoppingCart } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import MaaltijdSlot from '@/components/weekmenu/MaaltijdSlot';
 import ReceptKiezer from '@/components/weekmenu/ReceptKiezer';
 import MacroSuggestie from '@/components/weekmenu/MacroSuggestie';
+import Boodschappenlijst from '@/components/weekmenu/Boodschappenlijst';
 
 const MAALTIJD_TYPES = ['ontbijt', 'lunch', 'diner', 'snack'];
 
@@ -23,6 +24,7 @@ export default function Weekmenu() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [alleRecepten, setAlleRecepten] = useState([]);
+  const [boodschappenOpen, setBoodschappenOpen] = useState(false);
 
   const weekDagen = getWeekDays(addDays(new Date(), weekOffset * 7));
 
@@ -99,9 +101,18 @@ export default function Weekmenu() {
 
   return (
     <div className="p-6 pb-24 md:pb-8 max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Weekmenu</h1>
-        <p className="text-muted-foreground text-sm">Plan je maaltijden voor de hele week</p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Weekmenu</h1>
+          <p className="text-muted-foreground text-sm">Plan je maaltijden voor de hele week</p>
+        </div>
+        {items.length > 0 && (
+          <button onClick={() => setBoodschappenOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-primary hover:border-primary/40 transition-all">
+            <ShoppingCart className="w-4 h-4" />
+            <span className="hidden sm:inline">Boodschappen</span>
+          </button>
+        )}
       </div>
 
       {/* Week navigatie */}
@@ -240,6 +251,15 @@ export default function Weekmenu() {
             })()}
           </div>
         </div>
+      )}
+
+      {boodschappenOpen && (
+        <Boodschappenlijst
+          items={items}
+          alleRecepten={alleRecepten}
+          weekLabel={`${format(weekDagen[0], 'd MMM', { locale: nl })} – ${format(weekDagen[6], 'd MMM yyyy', { locale: nl })}`}
+          onSluit={() => setBoodschappenOpen(false)}
+        />
       )}
 
       {kiezerOpen && (
