@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useLanguage } from '@/lib/LanguageContext';
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
 import { Plus, Check, TrendingDown, Scale, Flame, Dumbbell } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import KrachtVoortgang from '@/components/voortgang/KrachtVoortgang';
 import HRVTracker from '@/components/voortgang/HRVTracker';
 
 export default function Voortgang() {
+  const { t, language } = useLanguage();
   const [logs, setLogs] = useState([]);
   const [profile, setProfile] = useState(null);
   const [today] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -61,31 +63,31 @@ export default function Voortgang() {
   return (
     <div className="p-6 pb-24 md:pb-8 max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Voortgang</h1>
-        <p className="text-muted-foreground text-sm">Log je dagelijkse gewicht en calorieën</p>
+        <h1 className="text-2xl font-bold text-foreground">{t('voortgang')}</h1>
+        <p className="text-muted-foreground text-sm">{t('logJeDagelijkse')}</p>
       </div>
 
       {/* Vandaag */}
       <div className="bg-card border border-border rounded-2xl p-5 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="font-semibold text-foreground">Vandaag loggen</h2>
-            <p className="text-xs text-muted-foreground">{format(new Date(), 'EEEE d MMMM', { locale: nl })}</p>
+            <h2 className="font-semibold text-foreground">{t('vandaagLoggenTitle')}</h2>
+            <p className="text-xs text-muted-foreground">{format(new Date(), 'EEEE d MMMM', { locale: language === 'nl' ? nl : enUS })}</p>
           </div>
           <button onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-all">
             <Plus className="w-4 h-4" />
-            {todayLog ? 'Bewerken' : 'Loggen'}
+            {todayLog ? t('bewerken') : t('loggen')}
           </button>
         </div>
 
         {todayLog && !showForm && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { label: 'Gewicht', value: todayLog.weight_kg ? `${todayLog.weight_kg} kg` : '—', icon: <Scale className="w-4 h-4 text-primary" /> },
-              { label: 'Calorieën', value: todayLog.calories_eaten ? `${todayLog.calories_eaten} kcal` : '—', icon: <Flame className="w-4 h-4 text-orange-400" /> },
-              { label: 'Eiwit', value: todayLog.protein_g ? `${todayLog.protein_g}g` : '—', icon: <Dumbbell className="w-4 h-4 text-green-400" /> },
-              { label: 'Training', value: todayLog.training_done ? '✓ Gedaan' : '✗ Niet', icon: <TrendingDown className="w-4 h-4 text-purple-400" /> },
+              { label: t('gewicht'), value: todayLog.weight_kg ? `${todayLog.weight_kg} kg` : '—', icon: <Scale className="w-4 h-4 text-primary" /> },
+              { label: t('calorieën'), value: todayLog.calories_eaten ? `${todayLog.calories_eaten} kcal` : '—', icon: <Flame className="w-4 h-4 text-orange-400" /> },
+              { label: t('proteïne'), value: todayLog.protein_g ? `${todayLog.protein_g}g` : '—', icon: <Dumbbell className="w-4 h-4 text-green-400" /> },
+              { label: t('vandaag'), value: todayLog.training_done ? `✓ ${language === 'nl' ? 'Gedaan' : 'Done'}` : `✗ ${language === 'nl' ? 'Niet' : 'No'}`, icon: <TrendingDown className="w-4 h-4 text-purple-400" /> },
             ].map(({ label, value, icon }) => (
               <div key={label} className="bg-secondary rounded-xl p-3">
                 <div className="flex items-center gap-2 mb-1">{icon}<span className="text-xs text-muted-foreground">{label}</span></div>
@@ -99,12 +101,12 @@ export default function Voortgang() {
           <div className="space-y-4 mt-2">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
-                { k: 'weight_kg', l: 'Gewicht (kg)', p: '79.5' },
-                { k: 'calories_eaten', l: 'Calorieën gegeten', p: `${profile?.target_calories || 2000}` },
-                { k: 'protein_g', l: 'Eiwit (g)', p: `${profile?.protein_target_g || 160}` },
-                { k: 'carbs_g', l: 'Koolhydraten (g)', p: '200' },
-                { k: 'fat_g', l: 'Vetten (g)', p: '60' },
-                { k: 'steps', l: 'Stappen', p: '8000' },
+                { k: 'weight_kg', l: t('gewichtKg'), p: '79.5' },
+                { k: 'calories_eaten', l: t('calorieënGegeten'), p: `${profile?.target_calories || 2000}` },
+                { k: 'protein_g', l: t('ewitG'), p: `${profile?.protein_target_g || 160}` },
+                { k: 'carbs_g', l: t('koolhydratenG'), p: '200' },
+                { k: 'fat_g', l: t('vettenG'), p: '60' },
+                { k: 'steps', l: t('stappen'), p: '8000' },
               ].map(({ k, l, p }) => (
                 <div key={k}>
                   <label className="text-xs font-medium text-muted-foreground mb-1.5 block">{l}</label>
@@ -118,33 +120,33 @@ export default function Voortgang() {
               <button onClick={() => setForm(f => ({ ...f, training_done: !f.training_done }))}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${form.training_done ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}>
                 <Dumbbell className="w-4 h-4" />
-                {form.training_done ? '✓ Training gedaan' : 'Training gedaan?'}
+                {form.training_done ? t('trainingGedaanCheck') : t('trainingGedaan')}
               </button>
               {form.training_done && (
                 <select value={form.training_type} onChange={e => setForm(f => ({ ...f, training_type: e.target.value }))}
                   className="bg-input border border-border rounded-xl px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option value="kracht">Kracht</option>
-                  <option value="cardio_liss">Cardio LISS</option>
-                  <option value="cardio_hiit">Cardio HIIT</option>
-                  <option value="rust">Rustdag</option>
+                  <option value="kracht">{t('kracht')}</option>
+                  <option value="cardio_liss">{t('cardioLiss')}</option>
+                  <option value="cardio_hiit">{t('cardioHiit')}</option>
+                  <option value="rust">{t('rustdag')}</option>
                 </select>
               )}
             </div>
 
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Notities</label>
-              <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Hoe voelde je je vandaag?"
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">{t('notities')}</label>
+              <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={t('hoeVoeldeJeZe')}
                 className="w-full bg-input border border-border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none h-20" />
             </div>
 
             <div className="flex gap-3">
               <button onClick={() => setShowForm(false)}
                 className="px-5 py-2.5 rounded-xl border border-border text-muted-foreground text-sm hover:border-primary/40 transition-all">
-                Annuleren
+                {t('annuleren')}
               </button>
               <button onClick={saveLog}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-all">
-                <Check className="w-4 h-4" /> Opslaan
+                <Check className="w-4 h-4" /> {t('opslaan')}
               </button>
             </div>
           </div>
@@ -154,7 +156,7 @@ export default function Voortgang() {
       {/* Gewicht grafiek */}
       {chartData.filter(d => d.gewicht).length > 1 && (
         <div className="bg-card border border-border rounded-2xl p-5 mb-6">
-          <h2 className="font-semibold text-foreground mb-5">Gewicht trend (14 dagen)</h2>
+          <h2 className="font-semibold text-foreground mb-5">{t('gewichtTrend')}</h2>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData.filter(d => d.gewicht)}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -177,7 +179,7 @@ export default function Voortgang() {
       {logs.length > 0 && (
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
           <div className="p-5 border-b border-border">
-            <h2 className="font-semibold text-foreground">Logboek</h2>
+            <h2 className="font-semibold text-foreground">{t('logboek')}</h2>
           </div>
           <div className="divide-y divide-border">
             {logs.map(log => (
@@ -186,8 +188,8 @@ export default function Voortgang() {
                 <div className="flex flex-wrap gap-3 flex-1">
                   {log.weight_kg && <span className="text-sm text-foreground">{log.weight_kg} kg</span>}
                   {log.calories_eaten && <span className="text-sm text-orange-400">{log.calories_eaten} kcal</span>}
-                  {log.protein_g && <span className="text-sm text-primary">{log.protein_g}g eiwit</span>}
-                  {log.training_done && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Training ✓</span>}
+                  {log.protein_g && <span className="text-sm text-primary">{log.protein_g}g {t('eiwit')}</span>}
+                  {log.training_done && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{t('trainingCheckmark')}</span>}
                 </div>
               </div>
             ))}
