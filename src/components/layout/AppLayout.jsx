@@ -21,7 +21,7 @@ const adminNavItems = [
   { to: '/kennis', icon: FlaskConical, label: 'Literatuurmonitor' },
   { to: '/voorstellen', icon: Lightbulb, label: 'Inhoudsvoorstellen' },
   { to: '/bronnen', icon: Upload, label: 'Bronbeheer' },
-  { to: '/nieuws-beheer', icon: Newspaper, label: 'Nieuwsbeheer' },
+  { to: '/nieuwsbeheer', icon: Newspaper, label: 'Nieuwsbeheer' },
   { to: '/recepten-beheer', icon: ChefHat, label: 'Recepten beheer' },
 ];
 
