@@ -128,12 +128,14 @@ export default function MijnVoedingsmiddelen() {
         <div className="flex gap-2">
           <button
             onClick={async () => {
-              if (window.confirm('Weet je zeker? Dit verwijdert ALLES.')) {
+              if (window.confirm('Weet je zeker? Dit verwijdert ALLES. Dit kan LANG duren (veel items = veel tijd).')) {
                 setImportLoading(true);
+                setImportSuccess(null);
                 try {
                   await base44.functions.invoke('clearFoods', {});
-                  setImportSuccess('Alle voedingsmiddelen verwijderd');
-                  refetch();
+                  setImportSuccess('Alle voedingsmiddelen verwijderd!');
+                  // Refresh after short delay to ensure server is updated
+                  setTimeout(() => refetch(), 1000);
                 } catch (error) {
                   setImportError('Verwijderen mislukt: ' + error.message);
                 } finally {
