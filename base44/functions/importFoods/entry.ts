@@ -46,11 +46,17 @@ Deno.serve(async (req) => {
     let isNEVO = false;
     let energyKjIdx = -1;
 
-    // Try NEVO format if custom format not complete
+    // Try NEVO format - find voedingsmiddelnaam (product name) for name column
     if (nameIdx === -1) {
-      const nevoNames = ['voedingsmiddelnaam', 'voedsmiddel', 'voedingsmiddel', 'food', 'omschrijving', 'description'];
+      const nevoNames = ['voedingsmiddelnaam', 'dutch food name'];
       nameIdx = header.findIndex(h => nevoNames.some(n => h.includes(n)));
-      isNEVO = true;
+      if (nameIdx !== -1) isNEVO = true;
+    }
+    
+    // Find voedingsmiddelgroep (food group) for category column
+    if (categoryIdx === -1) {
+      const nevoGroups = ['voedingsmiddelgroep', 'food group'];
+      categoryIdx = header.findIndex(h => nevoGroups.some(n => h.includes(n)));
     }
 
     // Energy in kJ (NEVO format) - look for ENERCC (kcal) or ENERCJ (kJ)
