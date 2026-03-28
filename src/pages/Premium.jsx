@@ -34,7 +34,7 @@ export default function Premium() {
         <div className="text-center mb-6">
           <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-3">Premium plan</p>
           <div className="flex items-end justify-center gap-1 mb-1">
-            <span className="text-5xl font-extrabold text-foreground">€9,99</span>
+            <span className="text-5xl font-extrabold text-foreground">€4,99</span>
             <span className="text-muted-foreground mb-2">/maand</span>
           </div>
           <p className="text-xs text-muted-foreground">14 dagen gratis proberen · Opzeggen wanneer je wilt</p>

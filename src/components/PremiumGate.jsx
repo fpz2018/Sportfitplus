@@ -46,7 +46,7 @@ export default function PremiumGate({ isPremium, feature = 'deze functie', previ
               className="flex items-center justify-center gap-2 w-full py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:bg-primary/90 transition-all">
               <Zap className="w-4 h-4" /> Upgrade naar Premium
             </Link>
-            <p className="text-xs text-muted-foreground">Vanaf €9,99/maand · 14 dagen gratis proberen</p>
+            <p className="text-xs text-muted-foreground">Vanaf €4,99/maand · 14 dagen gratis proberen</p>
           </div>
         </div>
       </div>

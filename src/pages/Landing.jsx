@@ -1,22 +1,22 @@
 import { Link } from 'react-router-dom';
-import { Dumbbell, Brain, Utensils, BarChart2, FlaskConical, HeartPulse, ChefHat, Zap, Check, Star, Lock, ArrowRight, Sparkles, Shield, Trophy } from 'lucide-react';
+import { Dumbbell, Brain, Utensils, BarChart2, FlaskConical, HeartPulse, ChefHat, Zap, Check, Star, Lock, ArrowRight, Sparkles, Shield, Trophy, Users } from 'lucide-react';
 
 const FEATURES = [
   {
     icon: Brain,
     color: 'text-purple-400',
     bg: 'bg-purple-500/10',
-    title: 'AI Trainingsschema\'s',
-    desc: 'Gepersonaliseerde schema\'s op basis van jouw doel, ervaring en beschikbare tijd. Kracht, hypertrofie, HIIT of tabata.',
-    free: 'Bekijk 1 voorbeeldschema',
-    premium: 'Onbeperkt AI schema\'s genereren',
+    title: 'Persoonlijk beweegplan',
+    desc: 'Of je nu wilt wandelen, licht fitnessen, revalideren of intensief trainen — het plan past zich aan jouw tempo, leeftijd en mogelijkheden aan.',
+    free: 'Bekijk 1 voorbeeldplan',
+    premium: 'Onbeperkt AI-plannen op maat',
   },
   {
     icon: Utensils,
     color: 'text-green-400',
     bg: 'bg-green-500/10',
-    title: 'Voeding & Macro Tracking',
-    desc: 'Wekelijks menu, recepten, boodschappenlijst en dagelijkse macro-tracking. Volledig afgestemd op jouw calorie- en eiwitdoel.',
+    title: 'Voeding & Macro Coaching',
+    desc: 'Wekelijks menu, recepten, boodschappenlijst en dagelijkse tracking. Aangepast aan allergieën, darmklachten, diëten en calorie­doelen.',
     free: 'Zie je dagdoelen',
     premium: 'Volledige weekmenu\'s & logging',
   },
@@ -25,7 +25,7 @@ const FEATURES = [
     color: 'text-blue-400',
     bg: 'bg-blue-500/10',
     title: 'Supplement Kennisbank',
-    desc: 'Wetenschappelijk onderbouwde supplementinformatie met evidence levels A-D, doseringen en timing.',
+    desc: 'Wetenschappelijk onderbouwde informatie over supplementen — voor energie, darmen, immuunsysteem, slaap en meer.',
     free: 'Bekijk de kennisbank',
     premium: 'Persoonlijk AI supplement advies',
   },
@@ -33,17 +33,17 @@ const FEATURES = [
     icon: BarChart2,
     color: 'text-accent',
     bg: 'bg-accent/10',
-    title: 'Voortgang & Analytics',
-    desc: 'Gewichtstrend, krachtontwikkeling, calorieënbalans en correlatie-analyse over weken en maanden.',
-    free: 'Log je gewicht',
+    title: 'Voortgang & Inzichten',
+    desc: 'Volg gewicht, energie, slaap en welzijn over weken en maanden. Begrijp welke factoren jouw gezondheid echt beïnvloeden.',
+    free: 'Log je dagelijkse data',
     premium: 'Geavanceerde analytics & trends',
   },
   {
     icon: HeartPulse,
     color: 'text-red-400',
     bg: 'bg-red-500/10',
-    title: 'HRV & Welzijn',
-    desc: 'Dagelijkse energiescore op basis van HRV, slaap en stress. AI geeft hersteladvies specifiek voor jou.',
+    title: 'Herstel & Welzijn',
+    desc: 'Dagelijkse energiescore op basis van slaap, stress en herstel. AI geeft concreet advies over rust, ontspanning en leefstijl.',
     free: 'Check je energiescore',
     premium: 'AI welzijnsadvies & trendanalyse',
   },
@@ -52,7 +52,7 @@ const FEATURES = [
     color: 'text-orange-400',
     bg: 'bg-orange-500/10',
     title: 'Recepten & Weekmenu',
-    desc: 'Honderden gezonde recepten met volledige voedingswaarden. AI genereert een weekmenu op basis van jouw macrodoel.',
+    desc: 'Honderden gezonde recepten — ook voor gevoelige darmen, ouderen of specifieke diëten. AI stelt een weekmenu samen dat echt bij je past.',
     free: 'Blader door recepten',
     premium: 'AI weekmenu generator',
   },
@@ -60,24 +60,24 @@ const FEATURES = [
 
 const TESTIMONIALS = [
   {
-    name: 'Sander V.',
-    role: 'Gevorderd, 34 jaar',
-    avatar: '💪',
-    text: 'Na 3 maanden Sportfit Plus ben ik 8 kg afgevallen zonder spierverlies. De AI schema\'s en het supplement advies zijn echt op een ander niveau.',
+    name: 'Ria de Vries',
+    role: '67 jaar, meer energie & minder gewrichtsklachten',
+    avatar: '🌿',
+    text: 'Ik dacht dat dit soort apps alleen voor jonge sporters was. Maar Sportfit Plus stelde een beweeg- en voedingsplan op dat écht bij mij past. In 10 weken voel ik me fitter dan in jaren.',
     stars: 5,
   },
   {
-    name: 'Lisa K.',
-    role: 'Beginner, 28 jaar',
+    name: 'Thomas H.',
+    role: '34 jaar, darmproblemen & vermoeidheid',
     avatar: '🌱',
-    text: 'Eindelijk een app die écht uitlegt waarom je iets doet. Van de gids tot het weekmenu — alles klopt wetenschappelijk én is makkelijk te volgen.',
+    text: 'Na jarenlang last van mijn darmen eindelijk een aanpak die werkt. Het voedingsplan houdt rekening met mijn intoleranties en de supplementadviezen zijn wetenschappelijk onderbouwd.',
     stars: 5,
   },
   {
-    name: 'Marco B.',
-    role: 'Atleet, 41 jaar',
-    avatar: '🏅',
-    text: 'De HRV tracker en het hersteladvies hebben mijn training compleet veranderd. Ik weet nu precies wanneer ik moet pushen en wanneer ik moet rusten.',
+    name: 'Sandra B.',
+    role: '45 jaar, afslanken & meer energie',
+    avatar: '✨',
+    text: 'Geen dieet maar een leefstijlverandering. De weekmenu\'s zijn lekker, realistisch en passen bij mijn drukke leven. De AI past het plan steeds aan op basis van mijn voortgang.',
     stars: 5,
   },
 ];
@@ -135,19 +135,28 @@ export default function Landing() {
 
         <div className="relative max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-6">
-            <Sparkles className="w-3 h-3" /> Wetenschappelijk onderbouwde fitness & voeding AI
+            <Sparkles className="w-3 h-3" /> Wetenschappelijk onderbouwde gezondheids- & leefstijlcoach
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold text-foreground leading-tight mb-6">
-            Jouw{' '}
-            <span className="text-primary">slimste</span>{' '}
-            fitness<br />
-            coach zit in je pocket
+            Jouw persoonlijke{' '}
+            <span className="text-primary">totaalcoach</span>{' '}
+            —<br />
+            voor iedereen
           </h1>
 
-          <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-            Sportfit Plus combineert wetenschappelijk bewijs, AI-personalisatie en praktische tools om jou te helpen afslanken, spieren opbouwen of gezonder leven — op jouw tempo.
+          <p className="text-lg text-muted-foreground mb-6 max-w-2xl mx-auto leading-relaxed">
+            Sportfit Plus is geen fitness-app. Het is een slimme gezondheidscoach die zich aanpast aan <em>jou</em> — of je nu 25 of 70 bent, wilt afslanken, last hebt van je darmen, meer energie wilt of gewoon gezonder wilt leven.
           </p>
+
+          {/* Voor wie */}
+          <div className="flex flex-wrap justify-center gap-2 mb-10">
+            {['60+ & vitaal blijven', 'Darmklachten', 'Meer energie', 'Afvallen', 'Stress & slaap', 'Beginners', 'Sporters', 'Chronische klachten'].map(tag => (
+              <span key={tag} className="px-3 py-1 rounded-full bg-secondary border border-border text-xs text-muted-foreground">
+                {tag}
+              </span>
+            ))}
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Link to="/onboarding"
@@ -167,7 +176,7 @@ export default function Landing() {
         <div className="relative max-w-2xl mx-auto mt-16 grid grid-cols-3 gap-4">
           {[
             { n: '10.000+', l: 'Actieve gebruikers' },
-            { n: '95%', l: 'Behaalt doel binnen 12 weken' },
+            { n: 'Alle leeftijden', l: 'Van 18 tot 80+' },
             { n: '4.9 ⭐', l: 'Gemiddelde beoordeling' },
           ].map(({ n, l }) => (
             <div key={l} className="bg-card border border-border rounded-2xl p-4 text-center">
@@ -178,12 +187,36 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── VOOR WIE ────────────────────────────────────────── */}
+      <section className="py-16 px-4 bg-card/50 border-y border-border">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">Voor iedereen die gezonder wil leven</h2>
+            <p className="text-muted-foreground">Sportfit Plus is geen sportschoolapp. Het is een persoonlijke gezondheidscoach — voor elke levensfase en elk lichaam.</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { icon: '👴', title: '60+ & vitaal', desc: 'Meer energie, sterkere spieren en gewrichten. Op jouw tempo, veilig en verantwoord.' },
+              { icon: '🩺', title: 'Klachten & herstel', desc: 'Darmklachten, vermoeidheid, hormonale schommelingen — het plan houdt er rekening mee.' },
+              { icon: '🌱', title: 'Beginners', desc: 'Geen ervaring nodig. De coach legt alles uit en begeleidt je stap voor stap.' },
+              { icon: '🏃', title: 'Actieve sporters', desc: 'Optimaliseer prestaties, herstel en voeding met wetenschappelijke onderbouwing.' },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="bg-card border border-border rounded-2xl p-5 text-center hover:border-primary/30 transition-all">
+                <div className="text-3xl mb-3">{icon}</div>
+                <h3 className="font-semibold text-foreground text-sm mb-2">{title}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── FEATURES ────────────────────────────────────────── */}
       <section id="features" className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">Alles wat je nodig hebt</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">Van trainingsschema tot supplement advies — één app, volledig gepersonaliseerd op jou.</p>
+            <p className="text-muted-foreground max-w-xl mx-auto">Van beweegplan tot voedingscoaching — één slimme coach, volledig afgestemd op jóuw situatie, klachten en doelen.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -220,9 +253,9 @@ export default function Landing() {
           <p className="text-muted-foreground mb-14">In 3 stappen naar een gepersonaliseerd programma</p>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { step: '01', icon: '🎯', title: 'Vertel je doel', desc: 'Vul de slimme onboarding in. Jouw doelen, activiteitsniveau, slaap, stress en eetpatroon.' },
-              { step: '02', icon: '🤖', title: 'AI maakt jouw plan', desc: 'Op basis van wetenschappelijke literatuur en jouw profiel krijg je direct een schema, macro\'s en supplement advies.' },
-              { step: '03', icon: '📈', title: 'Log, volg & verbeter', desc: 'Dagelijks bijhouden is makkelijk. De app leert van jouw data en past aanbevelingen automatisch aan.' },
+              { step: '01', icon: '🎯', title: 'Vertel wie je bent', desc: 'Vul de slimme onboarding in: je leeftijd, klachten, doelen, eetpatroon, slaap en activiteitsniveau. Geen oordeel, geen aannames.' },
+              { step: '02', icon: '🤖', title: 'AI maakt jouw plan', desc: 'Op basis van wetenschappelijke literatuur en jouw unieke profiel krijg je direct een persoonlijk beweeg-, voedings- en welzijnsplan.' },
+              { step: '03', icon: '📈', title: 'Log, volg & verbeter', desc: 'Dagelijks bijhouden is makkelijk. De coach leert van jouw data en past het plan aan naarmate je vordert.' },
             ].map(({ step, icon, title, desc }) => (
               <div key={step} className="text-center">
                 <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
@@ -273,7 +306,7 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-3xl font-bold text-foreground mb-3">Simpele, eerlijke prijzen</h2>
-            <p className="text-muted-foreground">Begin gratis. Upgrade wanneer je klaar bent voor meer.</p>
+            <p className="text-muted-foreground">Begin gratis. Upgrade wanneer je klaar bent voor meer. Voor minder dan een kop koffie per week.</p>
           </div>
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
 
@@ -305,7 +338,7 @@ export default function Landing() {
               </div>
               <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">Premium</p>
               <div className="flex items-end gap-1 mb-1">
-                <span className="text-4xl font-extrabold text-foreground">€9,99</span>
+                <span className="text-4xl font-extrabold text-foreground">€4,99</span>
                 <span className="text-muted-foreground text-sm mb-1">/maand</span>
               </div>
               <p className="text-sm text-muted-foreground mb-6">Alles unlocked. Opzeggen wanneer je wilt.</p>
@@ -320,7 +353,7 @@ export default function Landing() {
                 className="block w-full py-3 rounded-xl bg-primary text-primary-foreground text-center font-semibold text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
                 Premium proberen →
               </Link>
-              <p className="text-xs text-muted-foreground text-center mt-3">14 dagen gratis proberen</p>
+              <p className="text-xs text-muted-foreground text-center mt-3">14 dagen gratis proberen · Minder dan €0,17/dag</p>
             </div>
           </div>
         </div>
@@ -333,7 +366,7 @@ export default function Landing() {
             <Dumbbell className="w-8 h-8 text-primary" />
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Klaar om te starten?</h2>
-          <p className="text-muted-foreground mb-8 text-lg">Vul in 2 minuten de onboarding in en krijg direct jouw persoonlijk programma.</p>
+          <p className="text-muted-foreground mb-8 text-lg">Vul in 2 minuten de onboarding in en krijg direct jouw persoonlijk gezondheids- en leefstijlplan — volledig op maat.</p>
           <Link to="/onboarding"
             className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-semibold text-base hover:bg-primary/90 transition-all shadow-lg shadow-primary/25">
             Gratis beginnen <ArrowRight className="w-5 h-5" />
