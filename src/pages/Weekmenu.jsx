@@ -8,6 +8,7 @@ import ReceptKiezer from '@/components/weekmenu/ReceptKiezer';
 import MacroSuggestie from '@/components/weekmenu/MacroSuggestie';
 import Boodschappenlijst from '@/components/weekmenu/Boodschappenlijst';
 import DayFoodLogEditor from '@/components/weekmenu/DayFoodLogEditor';
+import FoodSearch from '@/components/voeding/FoodSearch';
 
 const MAALTIJD_TYPES = ['ontbijt', 'lunch', 'diner', 'snack'];
 
@@ -27,6 +28,7 @@ export default function Weekmenu() {
   const [profile, setProfile] = useState(null);
   const [alleRecepten, setAlleRecepten] = useState([]);
   const [boodschappenOpen, setBoodschappenOpen] = useState(false);
+  const [foodSearchType, setFoodSearchType] = useState(null); // maaltijd_type voor food search
 
   const weekDagen = getWeekDays(addDays(new Date(), weekOffset * 7));
 
@@ -86,6 +88,23 @@ export default function Weekmenu() {
   async function verwijder(item) {
     await base44.entities.WeekMenu.delete(item.id);
     setItems(prev => prev.filter(i => i.id !== item.id));
+  }
+
+  async function voegVoedingsmiddelToe(voedingsmiddel) {
+    if (!foodSearchType) return;
+    const dagStr = format(geselecteerdeDag, 'yyyy-MM-dd');
+    const nieuw = await base44.entities.WeekMenu.create({
+      datum: dagStr,
+      maaltijd_type: foodSearchType,
+      recept_titel: voedingsmiddel.name,
+      calories: voedingsmiddel.calories,
+      protein_g: voedingsmiddel.protein_g,
+      carbs_g: voedingsmiddel.carbs_g,
+      fat_g: voedingsmiddel.fat_g,
+      recept_image_url: voedingsmiddel.image_url || null,
+    });
+    setItems(prev => [...prev, nieuw]);
+    setFoodSearchType(null);
   }
 
   // Dagelijkse macrototalen
@@ -252,6 +271,7 @@ export default function Weekmenu() {
                 item={itemVoorType(geselecteerdeDag, type)}
                 onAdd={(t) => setKiezerOpen(t)}
                 onRemove={verwijder}
+                onOpenFoodSearch={(t) => setFoodSearchType(t)}
               />
             ))}
             {profile && alleRecepten.length > 0 && (() => {
@@ -298,6 +318,13 @@ export default function Weekmenu() {
           maaltijdType={kiezerOpen}
           onKies={voegToe}
           onSluit={() => setKiezerOpen(null)}
+        />
+      )}
+
+      {foodSearchType && (
+        <FoodSearch
+          onSelect={voegVoedingsmiddelToe}
+          onClose={() => setFoodSearchType(null)}
         />
       )}
     </div>

@@ -7,7 +7,7 @@ const TYPE_ICONS = {
   snack: '🍎',
 };
 
-export default function MaaltijdSlot({ type, item, onAdd, onRemove }) {
+export default function MaaltijdSlot({ type, item, onAdd, onRemove, onOpenFoodSearch }) {
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-border/50 last:border-0">
       <span className="text-base w-6 shrink-0">{TYPE_ICONS[type]}</span>
@@ -35,10 +35,16 @@ export default function MaaltijdSlot({ type, item, onAdd, onRemove }) {
           </button>
         </div>
       ) : (
-        <button onClick={() => onAdd(type)}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-all flex-1">
-          <Plus className="w-3.5 h-3.5" /> Recept kiezen
-        </button>
+        <div className="flex items-center gap-2 flex-1">
+          <button onClick={() => onAdd(type)}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-all flex-1">
+            <Plus className="w-3.5 h-3.5" /> Recept kiezen
+          </button>
+          <button onClick={() => onOpenFoodSearch(type)}
+            className="text-xs text-muted-foreground hover:text-primary transition-all px-2 py-1 rounded-lg border border-border hover:border-primary/40">
+            Voedingsmiddel
+          </button>
+        </div>
       )}
     </div>
   );
