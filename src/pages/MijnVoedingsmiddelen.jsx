@@ -123,7 +123,7 @@ export default function MijnVoedingsmiddelen() {
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Mijn Voedingsmiddelen</h1>
-          <p className="text-muted-foreground text-sm">Beheer je voedingsmiddelendatabase</p>
+          <p className="text-muted-foreground text-sm">{voedingsmiddelen.length} items • Beheer je voedingsmiddelendatabase</p>
         </div>
         <div className="flex gap-2">
           <button
