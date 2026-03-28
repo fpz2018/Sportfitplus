@@ -30,6 +30,8 @@ import Supplementen from './pages/Supplementen';
 import SupplementenBeheer from './pages/SupplementenBeheer';
 import KennisUpdate from './pages/KennisUpdate';
 import Welzijn from './pages/Welzijn';
+import Landing from './pages/Landing';
+import Premium from './pages/Premium';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,9 +50,14 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
+      // Show landing page for unauthenticated visitors
+      return (
+        <Routes>
+          <Route path="*" element={<Landing />} />
+          <Route path="/landing" element={<Landing />} />
+          <Route path="/premium" element={<Premium />} />
+        </Routes>
+      );
     }
   }
 
@@ -81,6 +88,8 @@ const AuthenticatedApp = () => {
         <Route path="/welzijn" element={<Welzijn />} />
       </Route>
       <Route path="/onboarding" element={<Onboarding />} />
+      <Route path="/landing" element={<Landing />} />
+      <Route path="/premium" element={<Premium />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
