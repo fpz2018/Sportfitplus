@@ -9,21 +9,28 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all foods for this user
-    const foods = await base44.entities.Food.list('-created_date', 10000);
-
-    // Delete in batches with delay
+    // Get all foods and delete in small batches
     let deleted = 0;
-    for (let i = 0; i < foods.length; i++) {
-      await base44.entities.Food.delete(foods[i].id);
-      deleted++;
-      // Add small delay every 10 deletes to avoid rate limits
-      if (deleted % 10 === 0) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+    let hasMore = true;
+    
+    while (hasMore) {
+      const foods = await base44.entities.Food.list('-created_date', 100);
+      
+      if (foods.length === 0) {
+        hasMore = false;
+        break;
+      }
+
+      // Delete in sequence with proper delays
+      for (const food of foods) {
+        await base44.entities.Food.delete(food.id);
+        deleted++;
+        // Wait 50ms between each delete
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
     }
 
-    return Response.json({ success: true, deleted: foods.length });
+    return Response.json({ success: true, deleted });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
