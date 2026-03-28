@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Brain, Loader2, ChevronDown, ChevronUp, CheckCircle, XCircle, Zap, Clock, BookOpen, FlaskConical, Dumbbell, Utensils, Calculator, User, Sparkles, ArrowRight, FileText } from 'lucide-react';
+import { Brain, Loader2, ChevronDown, ChevronUp, CheckCircle, XCircle, Zap, Clock, BookOpen, FlaskConical, Dumbbell, Utensils, Calculator, User, Sparkles, ArrowRight, FileText, Code } from 'lucide-react';
 
 const DOMEIN_ICONEN = {
   gids: BookOpen, calculator: Calculator, supplementen: FlaskConical,
@@ -239,7 +239,14 @@ export default function KennisUpdate() {
                               {inzicht.status}
                             </span>
                           </div>
-                          <p className="font-semibold text-foreground text-sm leading-snug">{inzicht.titel}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-foreground text-sm leading-snug">{inzicht.titel}</p>
+                            {inzicht.aanbevolen_wijziging?.startsWith('[CODE') && (
+                              <span className="flex items-center gap-1 text-xs bg-orange-500/15 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full font-medium shrink-0">
+                                <Code className="w-3 h-3" /> code
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{inzicht.samenvatting}</p>
                         </div>
                       </div>
