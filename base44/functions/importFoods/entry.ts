@@ -77,6 +77,31 @@ Deno.serve(async (req) => {
       fiberIdx = header.findIndex(h => nevoFiber.some(n => h.includes(n)));
     }
 
+    // Micronutrients (optional)
+    const getMicroIdx = (keywords) => header.findIndex(h => keywords.some(k => h.includes(k)));
+    
+    const sodiumIdx = getMicroIdx(['natrium', 'sodium', 'na']);
+    const potassiumIdx = getMicroIdx(['kalium', 'potassium', 'k']);
+    const calciumIdx = getMicroIdx(['calcium', 'ca']);
+    const ironIdx = getMicroIdx(['ijzer', 'iron', 'fe']);
+    const magnesiumIdx = getMicroIdx(['magnesium', 'mg']);
+    const phosphorusIdx = getMicroIdx(['fosfor', 'phosphorus', 'p']);
+    const zincIdx = getMicroIdx(['zink', 'zinc', 'zn']);
+    const vitaminAIdx = getMicroIdx(['vitamine a', 'vitamin a', 'vit a', 'retinol']);
+    const vitaminCIdx = getMicroIdx(['vitamine c', 'vitamin c', 'vit c']);
+    const vitaminDIdx = getMicroIdx(['vitamine d', 'vitamin d', 'vit d']);
+    const vitaminEIdx = getMicroIdx(['vitamine e', 'vitamin e', 'vit e']);
+    const vitaminB1Idx = getMicroIdx(['vitamine b1', 'vitamin b1', 'thiamine']);
+    const vitaminB2Idx = getMicroIdx(['vitamine b2', 'vitamin b2', 'riboflavin']);
+    const vitaminB3Idx = getMicroIdx(['vitamine b3', 'vitamin b3', 'niacine']);
+    const vitaminB6Idx = getMicroIdx(['vitamine b6', 'vitamin b6']);
+    const vitaminB12Idx = getMicroIdx(['vitamine b12', 'vitamin b12', 'cyanocobalamine']);
+    const folateIdx = getMicroIdx(['folaat', 'folate']);
+    const cholesterolIdx = getMicroIdx(['cholesterol']);
+    const saturatedFatIdx = getMicroIdx(['verzadigd', 'saturated']);
+    const unsaturatedFatIdx = getMicroIdx(['onverzadigd', 'unsaturated']);
+    const sugarIdx = getMicroIdx(['suiker', 'sugar']);
+
     if (nameIdx === -1 || caloriesIdx === -1 || proteinIdx === -1 || carbsIdx === -1 || fatIdx === -1) {
       return Response.json({ 
         error: 'CSV must contain: name/omschrijving, calories/energie, protein_g/eiwit, carbs_g/koolhydraten, fat_g/vet' 
@@ -107,7 +132,7 @@ Deno.serve(async (req) => {
           calories = Math.round(calories / 4.184);
         }
 
-        foods.push({
+        const food = {
           name,
           calories,
           protein_g: protein,
@@ -117,7 +142,32 @@ Deno.serve(async (req) => {
           category: categoryIdx !== -1 ? values[categoryIdx] || 'overig' : 'overig',
           brand: brandIdx !== -1 ? values[brandIdx] : undefined,
           source: isNEVO ? 'nevo_rivm' : 'handmatig'
-        });
+        };
+
+        // Add micronutrients if available
+        if (sodiumIdx !== -1) food.sodium_mg = parseFloat(values[sodiumIdx]) || 0;
+        if (potassiumIdx !== -1) food.potassium_mg = parseFloat(values[potassiumIdx]) || 0;
+        if (calciumIdx !== -1) food.calcium_mg = parseFloat(values[calciumIdx]) || 0;
+        if (ironIdx !== -1) food.iron_mg = parseFloat(values[ironIdx]) || 0;
+        if (magnesiumIdx !== -1) food.magnesium_mg = parseFloat(values[magnesiumIdx]) || 0;
+        if (phosphorusIdx !== -1) food.phosphorus_mg = parseFloat(values[phosphorusIdx]) || 0;
+        if (zincIdx !== -1) food.zinc_mg = parseFloat(values[zincIdx]) || 0;
+        if (vitaminAIdx !== -1) food.vitamin_a_ug = parseFloat(values[vitaminAIdx]) || 0;
+        if (vitaminCIdx !== -1) food.vitamin_c_mg = parseFloat(values[vitaminCIdx]) || 0;
+        if (vitaminDIdx !== -1) food.vitamin_d_ug = parseFloat(values[vitaminDIdx]) || 0;
+        if (vitaminEIdx !== -1) food.vitamin_e_mg = parseFloat(values[vitaminEIdx]) || 0;
+        if (vitaminB1Idx !== -1) food.vitamin_b1_mg = parseFloat(values[vitaminB1Idx]) || 0;
+        if (vitaminB2Idx !== -1) food.vitamin_b2_mg = parseFloat(values[vitaminB2Idx]) || 0;
+        if (vitaminB3Idx !== -1) food.vitamin_b3_mg = parseFloat(values[vitaminB3Idx]) || 0;
+        if (vitaminB6Idx !== -1) food.vitamin_b6_mg = parseFloat(values[vitaminB6Idx]) || 0;
+        if (vitaminB12Idx !== -1) food.vitamin_b12_ug = parseFloat(values[vitaminB12Idx]) || 0;
+        if (folateIdx !== -1) food.folate_ug = parseFloat(values[folateIdx]) || 0;
+        if (cholesterolIdx !== -1) food.cholesterol_mg = parseFloat(values[cholesterolIdx]) || 0;
+        if (saturatedFatIdx !== -1) food.saturated_fat_g = parseFloat(values[saturatedFatIdx]) || 0;
+        if (unsaturatedFatIdx !== -1) food.unsaturated_fat_g = parseFloat(values[unsaturatedFatIdx]) || 0;
+        if (sugarIdx !== -1) food.sugar_g = parseFloat(values[sugarIdx]) || 0;
+
+        foods.push(food);
       } catch (e) {
         errors.push(`Row ${i + 1}: ${e.message}`);
       }

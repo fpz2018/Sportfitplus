@@ -30,6 +30,90 @@
       "type": "number",
       "description": "Vezels in gram per 100g"
     },
+    "sodium_mg": {
+      "type": "number",
+      "description": "Natrium in mg per 100g"
+    },
+    "potassium_mg": {
+      "type": "number",
+      "description": "Kalium in mg per 100g"
+    },
+    "calcium_mg": {
+      "type": "number",
+      "description": "Calcium in mg per 100g"
+    },
+    "iron_mg": {
+      "type": "number",
+      "description": "IJzer in mg per 100g"
+    },
+    "magnesium_mg": {
+      "type": "number",
+      "description": "Magnesium in mg per 100g"
+    },
+    "phosphorus_mg": {
+      "type": "number",
+      "description": "Fosfor in mg per 100g"
+    },
+    "zinc_mg": {
+      "type": "number",
+      "description": "Zink in mg per 100g"
+    },
+    "vitamin_a_ug": {
+      "type": "number",
+      "description": "Vitamine A in \u00b5g per 100g"
+    },
+    "vitamin_c_mg": {
+      "type": "number",
+      "description": "Vitamine C in mg per 100g"
+    },
+    "vitamin_d_ug": {
+      "type": "number",
+      "description": "Vitamine D in \u00b5g per 100g"
+    },
+    "vitamin_e_mg": {
+      "type": "number",
+      "description": "Vitamine E in mg per 100g"
+    },
+    "vitamin_b1_mg": {
+      "type": "number",
+      "description": "Vitamine B1 (Thiamine) in mg per 100g"
+    },
+    "vitamin_b2_mg": {
+      "type": "number",
+      "description": "Vitamine B2 (Riboflavin) in mg per 100g"
+    },
+    "vitamin_b3_mg": {
+      "type": "number",
+      "description": "Vitamine B3 (Niacine) in mg per 100g"
+    },
+    "vitamin_b6_mg": {
+      "type": "number",
+      "description": "Vitamine B6 in mg per 100g"
+    },
+    "vitamin_b12_ug": {
+      "type": "number",
+      "description": "Vitamine B12 in \u00b5g per 100g"
+    },
+    "folate_ug": {
+      "type": "number",
+      "description": "Folaat in \u00b5g per 100g"
+    },
+    "cholesterol_mg": {
+      "type": "number",
+      "description": "Cholesterol in mg per 100g"
+    },
+    "saturated_fat_g": {
+      "type": "number",
+      "description": "Verzadigd vet in gram per 100g"
+    },
+    "unsaturated_fat_g": {
+      "type": "number",
+      "description": "Onverzadigd vet in gram per 100g"
+    },
+    "sugar_g": {
+      "type": "number",
+      "description": "Suiker in gram per 100g"
+    },
     "category": {
       "type": "string",
       "enum": [
