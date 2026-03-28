@@ -1,0 +1,62 @@
+{
+  "name": "CodeTaak",
+  "type": "object",
+  "properties": {
+    "titel": {
+      "type": "string",
+      "description": "Korte omschrijving van de code-wijziging"
+    },
+    "beschrijving": {
+      "type": "string",
+      "description": "Gedetailleerde uitleg wat er aangepast moet worden"
+    },
+    "bestand": {
+      "type": "string",
+      "description": "Welk bestand aangepast moet worden (bijv. pages/Calculator.jsx)"
+    },
+    "huidige_waarde": {
+      "type": "string",
+      "description": "De huidige code/waarde"
+    },
+    "nieuwe_waarde": {
+      "type": "string",
+      "description": "De gewenste nieuwe code/waarde"
+    },
+    "onderbouwing": {
+      "type": "string",
+      "description": "Wetenschappelijke onderbouwing"
+    },
+    "prioriteit": {
+      "type": "string",
+      "enum": [
+        "hoog",
+        "middel",
+        "laag"
+      ],
+      "default": "middel"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "gedaan"
+      ],
+      "default": "open"
+    },
+    "inzicht_id": {
+      "type": "string",
+      "description": "Gekoppeld AppInzicht ID"
+    },
+    "voorstel_id": {
+      "type": "string",
+      "description": "Gekoppeld WijzigingsVoorstel ID"
+    },
+    "gedaan_op": {
+      "type": "string",
+      "description": "Timestamp wanneer afgevinkt"
+    }
+  },
+  "required": [
+    "titel"
+  ]
+}

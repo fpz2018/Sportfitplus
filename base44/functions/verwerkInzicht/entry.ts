@@ -144,9 +144,27 @@ Schrijf alles in het Nederlands.`,
       toegepast = true;
       details = `Nieuw SupplementNieuws concept aangemaakt (id: ${nieuw.id})`;
     } else {
-      // Algemeen: markeer als toegepast zonder automatische wijziging
+      // Code-wijziging vereist: maak een CodeTaak aan
+      const taakTitel = voorstel.bron_naam?.replace('AppInzicht: ', '') || voorstel.veld_naam;
+      let bestand = '';
+      let beschrijving = voorstel.voorgestelde_waarde || '';
+      // Extraheer bestandsnaam uit de aanbevolen_wijziging als die er in zit
+      const bestandMatch = beschrijving.match(/\[CODE AANPASSING VEREIST — ([^\]]+)\]/);
+      if (bestandMatch) bestand = bestandMatch[1];
+      const schoneWaarde = beschrijving.replace(/\[CODE AANPASSING VEREIST — [^\]]+\]\n\n/, '');
+
+      await base44.asServiceRole.entities.CodeTaak.create({
+        titel: taakTitel,
+        beschrijving: schoneWaarde,
+        bestand,
+        huidige_waarde: voorstel.huidige_waarde || '',
+        onderbouwing: voorstel.onderbouwing_nl || '',
+        prioriteit: 'middel',
+        status: 'open',
+        voorstel_id: voorstel_id,
+      });
       toegepast = true;
-      details = 'Handmatig toepassen vereist (domein niet automatiseerbaar)';
+      details = 'CodeTaak aangemaakt — handmatig doorvoeren vereist';
     }
 
     // Update voorstel status

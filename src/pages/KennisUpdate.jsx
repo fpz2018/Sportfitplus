@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Brain, Loader2, ChevronDown, ChevronUp, CheckCircle, XCircle, Zap, Clock, BookOpen, FlaskConical, Dumbbell, Utensils, Calculator, User, Sparkles, ArrowRight, FileText, Code } from 'lucide-react';
+import { Brain, Loader2, ChevronDown, ChevronUp, CheckCircle, XCircle, Zap, Clock, BookOpen, FlaskConical, Dumbbell, Utensils, Calculator, User, Sparkles, ArrowRight, FileText, Code, Square, CheckSquare } from 'lucide-react';
 
 const DOMEIN_ICONEN = {
   gids: BookOpen, calculator: Calculator, supplementen: FlaskConical,
@@ -33,6 +33,7 @@ export default function KennisUpdate() {
   const [filterDomein, setFilterDomein] = useState('alle');
   const [filterStatus, setFilterStatus] = useState('nieuw');
   const [actiefTab, setActiefTab] = useState('inzichten'); // 'inzichten' | 'voorstellen'
+  const [codeTaken, setCodeTaken] = useState([]);
   const [bezig, setBezig] = useState({}); // { [inzicht_id]: boolean }
   const [verwerkBezig, setVerwerkBezig] = useState({}); // { [voorstel_id]: boolean }
 
@@ -45,14 +46,16 @@ export default function KennisUpdate() {
 
   async function laadData() {
     setLoading(true);
-    const [ins, rs, vs] = await Promise.all([
+    const [ins, rs, vs, taken] = await Promise.all([
       base44.entities.AppInzicht.list('-created_date', 100),
       base44.entities.KennisAnalyseRun.list('-created_date', 10),
       base44.entities.WijzigingsVoorstel.filter({ bron_type: 'pubmed' }, '-created_date', 50),
+      base44.entities.CodeTaak.list('-created_date', 100),
     ]);
     setInzichten(ins);
     setRuns(rs);
     setVoorstellen(vs);
+    setCodeTaken(taken);
     setLoading(false);
   }
 
@@ -103,7 +106,17 @@ export default function KennisUpdate() {
 
   const pendingVoorstellen = voorstellen.filter(v => v.status === 'pending');
   const nieuw = inzichten.filter(i => i.status === 'nieuw').length;
+  const openTaken = codeTaken.filter(t => t.status === 'open').length;
   const laasteRun = runs[0];
+
+  async function vinkAfTaak(taak) {
+    const nieuweStatus = taak.status === 'open' ? 'gedaan' : 'open';
+    await base44.entities.CodeTaak.update(taak.id, {
+      status: nieuweStatus,
+      gedaan_op: nieuweStatus === 'gedaan' ? new Date().toISOString() : null,
+    });
+    setCodeTaken(prev => prev.map(t => t.id === taak.id ? { ...t, status: nieuweStatus } : t));
+  }
 
   if (!isAdmin) return (
     <div className="p-6 text-center text-muted-foreground">Geen toegang. Alleen admins.</div>
@@ -134,7 +147,7 @@ export default function KennisUpdate() {
           {[
             { l: 'Nieuwe inzichten', v: nieuw, color: nieuw > 0 ? 'text-primary' : 'text-muted-foreground' },
             { l: 'Wacht op review', v: pendingVoorstellen.length, color: pendingVoorstellen.length > 0 ? 'text-accent' : 'text-muted-foreground' },
-            { l: 'Toegepast', v: voorstellen.filter(v => v.status === 'applied').length, color: 'text-green-400' },
+            { l: 'Code taken open', v: openTaken, color: openTaken > 0 ? 'text-orange-400' : 'text-muted-foreground' },
             { l: 'Laatste analyse', v: laasteRun ? new Date(laasteRun.gestart_op).toLocaleDateString('nl-NL') : '—', color: 'text-muted-foreground' },
           ].map(({ l, v, color }) => (
             <div key={l} className="bg-card border border-border rounded-xl p-3">
@@ -182,6 +195,10 @@ export default function KennisUpdate() {
         <button onClick={() => setActiefTab('voorstellen')}
           className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${actiefTab === 'voorstellen' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           Concept-wijzigingen {pendingVoorstellen.length > 0 && <span className="ml-1.5 bg-accent text-accent-foreground text-xs px-1.5 py-0.5 rounded-full">{pendingVoorstellen.length}</span>}
+        </button>
+        <button onClick={() => setActiefTab('taken')}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${actiefTab === 'taken' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+          Code taken {openTaken > 0 && <span className="ml-1.5 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">{openTaken}</span>}
         </button>
       </div>
 
@@ -309,6 +326,97 @@ export default function KennisUpdate() {
                         <p className="text-xs text-muted-foreground">Gegenereerd op {new Date(inzicht.created_date).toLocaleString('nl-NL')}</p>
                       </div>
                     )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Tab: Code Taken */}
+      {actiefTab === 'taken' && (
+        <>
+          {loading ? (
+            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+          ) : codeTaken.length === 0 ? (
+            <div className="bg-card border border-dashed border-border rounded-2xl p-12 text-center">
+              <Code className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" />
+              <p className="text-muted-foreground text-sm">Geen code taken. Wanneer een voorstel handmatige code-aanpassing vereist, verschijnt het hier.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {/* Open taken eerst */}
+              {['open', 'gedaan'].map(statusGroep => {
+                const gefilterdeItems = codeTaken.filter(t => t.status === statusGroep);
+                if (gefilterdeItems.length === 0) return null;
+                return (
+                  <div key={statusGroep}>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+                      {statusGroep === 'open' ? `📋 Open (${gefilterdeItems.length})` : `✅ Gedaan (${gefilterdeItems.length})`}
+                    </p>
+                    <div className="space-y-2">
+                      {gefilterdeItems.map(taak => {
+                        const isOpen = expanded === taak.id;
+                        const isDone = taak.status === 'gedaan';
+                        return (
+                          <div key={taak.id} className={`bg-card border rounded-2xl overflow-hidden transition-all ${isDone ? 'border-border opacity-60' : 'border-orange-500/30'}`}>
+                            <div className="flex items-start gap-3 p-4">
+                              <button onClick={() => vinkAfTaak(taak)} className="mt-0.5 shrink-0 hover:scale-110 transition-transform">
+                                {isDone
+                                  ? <CheckSquare className="w-5 h-5 text-green-400" />
+                                  : <Square className="w-5 h-5 text-orange-400" />}
+                              </button>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap mb-1">
+                                  <p className={`font-semibold text-sm ${isDone ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{taak.titel}</p>
+                                  {taak.prioriteit && (
+                                    <span className={`text-xs px-2 py-0.5 rounded-full border ${PRIORITEIT_STIJL[taak.prioriteit]}`}>{taak.prioriteit}</span>
+                                  )}
+                                </div>
+                                {taak.bestand && (
+                                  <p className="text-xs font-mono text-orange-400/80 bg-orange-500/10 px-2 py-0.5 rounded inline-block mb-1">
+                                    {taak.bestand}
+                                  </p>
+                                )}
+                                {taak.beschrijving && (
+                                  <p className="text-xs text-muted-foreground line-clamp-2">{taak.beschrijving}</p>
+                                )}
+                              </div>
+                              <button onClick={() => setExpanded(isOpen ? null : taak.id)} className="shrink-0 mt-0.5">
+                                {isOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                              </button>
+                            </div>
+
+                            {isOpen && (
+                              <div className="border-t border-border p-4 space-y-3">
+                                {taak.huidige_waarde && (
+                                  <div className="bg-secondary/40 rounded-xl p-3">
+                                    <p className="text-xs font-semibold text-muted-foreground mb-1">📌 HUIDIGE WAARDE</p>
+                                    <p className="text-sm text-muted-foreground whitespace-pre-wrap font-mono text-xs">{taak.huidige_waarde}</p>
+                                  </div>
+                                )}
+                                {taak.beschrijving && (
+                                  <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-3">
+                                    <p className="text-xs font-semibold text-orange-400 mb-1">✏️ WAT AANPASSEN</p>
+                                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{taak.beschrijving}</p>
+                                  </div>
+                                )}
+                                {taak.onderbouwing && (
+                                  <div className="bg-secondary/30 rounded-xl p-3">
+                                    <p className="text-xs font-semibold text-muted-foreground mb-1">🔬 ONDERBOUWING</p>
+                                    <p className="text-sm text-muted-foreground">{taak.onderbouwing}</p>
+                                  </div>
+                                )}
+                                {isDone && taak.gedaan_op && (
+                                  <p className="text-xs text-green-400">✅ Afgevinkt op {new Date(taak.gedaan_op).toLocaleString('nl-NL')}</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}
