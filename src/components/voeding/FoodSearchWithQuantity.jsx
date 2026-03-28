@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Search, X, QrCode, ChevronLeft, Plus, Minus } from 'lucide-react';
+import { X, QrCode, ChevronLeft, Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
@@ -27,7 +27,6 @@ function guessUnit(productName) {
       return { unit, defaultQty };
     }
   }
-  // Default to grams
   return { unit: 'g', defaultQty: 100 };
 }
 
@@ -113,8 +112,6 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
   function handleConfirm() {
     if (!selectedProduct) return;
     
-    // Bereken macros op basis van hoeveelheid
-    // Open Food Facts data staat per 100g/ml, behalve voor stuks die per stuk zijn
     const multiplier = unit === 'stuk' ? quantity : quantity / 100;
 
     onSelect({
@@ -137,7 +134,6 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center p-4">
         <div className="bg-card rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col border border-border">
-          {/* Header */}
           <div className="p-4 border-b border-border flex items-center justify-between shrink-0">
             <button onClick={() => setSelectedProduct(null)} 
               className="p-1 rounded-lg hover:bg-secondary transition-all">
@@ -149,7 +145,6 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
             </button>
           </div>
 
-          {/* Product preview */}
           <div className="p-6 border-b border-border flex gap-4 items-start">
             {selectedProduct.image_url && (
               <img src={selectedProduct.image_url} alt={selectedProduct.name} 
@@ -166,7 +161,6 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
             </div>
           </div>
 
-          {/* Quantity input */}
           <div className="p-6 flex-1 flex flex-col items-center justify-center">
             <p className="text-sm text-muted-foreground mb-6">Hoeveel {unit === 'stuk' ? 'stuks' : unit}?</p>
             
@@ -189,16 +183,13 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
               </button>
             </div>
 
-            {/* Unit selector */}
             <div className="w-full space-y-3">
               <p className="text-xs font-semibold text-muted-foreground uppercase">Eenheid</p>
               <div className="grid grid-cols-4 gap-2">
                 {['stuk', 'g', 'ml', 'liter'].map(u => (
                   <button
                     key={u}
-                    onClick={() => {
-                      setUnit(u);
-                    }}
+                    onClick={() => setUnit(u)}
                     className={`py-2.5 rounded-lg border font-medium text-sm transition-all ${
                       unit === u
                         ? 'border-primary bg-primary/10 text-primary'
@@ -211,7 +202,6 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
               </div>
             </div>
 
-            {/* Macro preview */}
             <div className="mt-8 w-full bg-secondary/50 rounded-xl p-4">
               <p className="text-xs font-semibold text-muted-foreground mb-2">Deze hoeveelheid:</p>
               {(() => {
@@ -228,7 +218,6 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="p-4 border-t border-border flex gap-2 shrink-0">
             <button onClick={() => setSelectedProduct(null)}
               className="flex-1 py-2.5 rounded-xl border border-border text-muted-foreground hover:border-primary/40 transition-all font-medium">
@@ -248,7 +237,6 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center p-4">
       <div className="bg-card rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col border border-border">
-        {/* Header */}
         <div className="p-4 border-b border-border flex items-center justify-between shrink-0">
           <h2 className="font-semibold text-foreground">Voedingsmiddel zoeken</h2>
           <button onClick={onClose} className="p-2 hover:bg-secondary rounded-lg transition-all">
@@ -256,7 +244,6 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
           </button>
         </div>
 
-        {/* Search input */}
         {!scannerActive && (
           <div className="p-4 border-b border-border shrink-0">
             <div className="flex gap-2">
@@ -283,51 +270,49 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
           </div>
         )}
 
-        {/* Barcode Scanner */}
         {scannerActive && (
           <div className="p-4 flex-1 overflow-y-auto">
             <div ref={scannerRef} id="barcode-scanner" className="w-full"></div>
           </div>
         )}
 
-        {/* Results */}
         {!scannerActive && (
-        <div className="overflow-y-auto flex-1">
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="w-6 h-6 border-4 border-muted-foreground border-t-primary rounded-full animate-spin"></div>
-            </div>
-          ) : searched && results.length === 0 ? (
-            <div className="flex justify-center items-center py-12">
-              <p className="text-sm text-muted-foreground">Geen resultaten gevonden</p>
-            </div>
-          ) : results.length === 0 ? (
-            <div className="flex justify-center items-center py-12">
-              <p className="text-sm text-muted-foreground">Voer een zoekterm in</p>
-            </div>
-          ) : (
-            <div className="space-y-2 p-4">
-              {results.map((product) => (
-                <button
-                  key={product.id}
-                  onClick={() => handleSelectProduct(product)}
-                  className="w-full flex items-start gap-3 p-3 rounded-xl border border-border hover:bg-secondary/50 transition-all text-left"
-                >
-                  {product.image_url && (
-                    <img src={product.image_url} alt={product.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-foreground truncate">{product.name}</p>
-                    {product.brands && <p className="text-xs text-muted-foreground">{product.brands}</p>}
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {product.calories} kcal · {product.protein_g}g P · {product.carbs_g}g K · {product.fat_g}g V
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+          <div className="overflow-y-auto flex-1">
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="w-6 h-6 border-4 border-muted-foreground border-t-primary rounded-full animate-spin"></div>
+              </div>
+            ) : searched && results.length === 0 ? (
+              <div className="flex justify-center items-center py-12">
+                <p className="text-sm text-muted-foreground">Geen resultaten gevonden</p>
+              </div>
+            ) : results.length === 0 ? (
+              <div className="flex justify-center items-center py-12">
+                <p className="text-sm text-muted-foreground">Voer een zoekterm in</p>
+              </div>
+            ) : (
+              <div className="space-y-2 p-4">
+                {results.map((product) => (
+                  <button
+                    key={product.id}
+                    onClick={() => handleSelectProduct(product)}
+                    className="w-full flex items-start gap-3 p-3 rounded-xl border border-border hover:bg-secondary/50 transition-all text-left"
+                  >
+                    {product.image_url && (
+                      <img src={product.image_url} alt={product.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm text-foreground truncate">{product.name}</p>
+                      {product.brands && <p className="text-xs text-muted-foreground">{product.brands}</p>}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {product.calories} kcal · {product.protein_g}g P · {product.carbs_g}g K · {product.fat_g}g V
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
