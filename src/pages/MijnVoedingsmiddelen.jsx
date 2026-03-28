@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Search, Plus, Edit2, Trash2, Loader2, Save, X, Upload, Download } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Loader2, Save, X, Upload, Download, Copy } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
 export default function MijnVoedingsmiddelen() {
@@ -20,6 +20,7 @@ export default function MijnVoedingsmiddelen() {
   const [importLoading, setImportLoading] = useState(false);
   const [importError, setImportError] = useState(null);
   const [importSuccess, setImportSuccess] = useState(null);
+  const [removeDuplicatesLoading, setRemoveDuplicatesLoading] = useState(false);
 
   const { data: voedingsmiddelen = [], isLoading, refetch } = useQuery({
     queryKey: ['voedingsmiddelen'],
@@ -60,6 +61,25 @@ export default function MijnVoedingsmiddelen() {
     setNieuwItem({ name: '', calories: '', protein_g: '', carbs_g: '', fat_g: '', category: 'overig' });
     setToevoegForm(false);
     refetch();
+  }
+
+  async function removeDuplicates() {
+    setRemoveDuplicatesLoading(true);
+    setImportError(null);
+    setImportSuccess(null);
+    try {
+      const res = await base44.functions.invoke('removeDuplicateFoods', {});
+      if (res.data?.success) {
+        setImportSuccess(`${res.data.duplicates_removed} dubbelen verwijderd. ${res.data.remaining} items over.`);
+        refetch();
+      } else {
+        setImportError(res.data?.error || 'Verwijderen mislukt');
+      }
+    } catch (error) {
+      setImportError(error.message || 'Verwijderen mislukt');
+    } finally {
+      setRemoveDuplicatesLoading(false);
+    }
   }
 
   async function handleImport(e) {
@@ -119,6 +139,14 @@ export default function MijnVoedingsmiddelen() {
           <p className="text-muted-foreground text-sm">{voedingsmiddelen.length} items • Beheer je voedingsmiddelendatabase</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={removeDuplicates}
+            disabled={removeDuplicatesLoading}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all text-sm font-medium disabled:opacity-50"
+          >
+            {removeDuplicatesLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
+            Dubbelen verwijderen
+          </button>
           <button
             onClick={async () => {
               if (window.confirm('Weet je zeker? Dit verwijdert ALLES. Dit kan LANG duren (veel items = veel tijd).')) {
