@@ -309,6 +309,7 @@ function SupplementAdvies() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [supplementen, setSupplementen] = useState([]);
   const [extraWensen, setExtraWensen] = useState('');
+  const [toonOpgeslagen, setToonOpgeslagen] = useState(true);
 
   useEffect(() => {
     async function load() {
@@ -324,44 +325,39 @@ function SupplementAdvies() {
     load();
   }, []);
 
-  async function genereerAdvies() {
+  const opgeslaanAdvies = profile?.supplement_advies;
+  const heeftOpgeslaanAdvies = opgeslaanAdvies?.length > 0;
+
+  async function herGenereer() {
     setLoading(true);
     setAdvies(null);
 
-    const supplementLijst = supplementen.map(s =>
-      `${s.naam} (${s.categorie}, Evidence: ${s.evidence_level || 'onbekend'}, Doelen: ${s.doelen?.join(', ') || '-'})`
+    const suppLijst = supplementen.map(s =>
+      `${s.naam} (${s.categorie}, Evidence: ${s.evidence_level || '?'}, Dosering: ${s.dosering || '?'}, Timing: ${s.timing || '?'}, Doelen: ${s.doelen?.join(', ') || '-'})`
     ).join('\n');
 
     const profielInfo = profile ? `
-      - Leeftijd: ${profile.age || 'onbekend'}
-      - Gewicht: ${profile.weight_kg || 'onbekend'} kg
-      - Geslacht: ${profile.gender || 'onbekend'}
-      - Doel groep: ${profile.goal_group || 'onbekend'}
-      - Activiteitsniveau: ${profile.activity_level || 'onbekend'}
-      - Trainingsmethode: ${profile.training_methode || 'onbekend'}
-      - Trainingservaring: ${profile.training_ervaring || 'onbekend'}
-      - Caloriedoel: ${profile.target_calories || 'onbekend'} kcal
-    ` : 'Geen profiel beschikbaar';
+      - Geslacht: ${profile.gender}, Leeftijd: ${profile.age}, Gewicht: ${profile.weight_kg} kg
+      - Activiteit: ${profile.activity_level}, Levensstijl: ${profile.lifestyle}
+      - Doelgroep: ${profile.goal_group}, Ervaring: ${profile.training_ervaring}
+      - Slaap: ${profile.slaap_uren || '?'} uur, Stress: ${profile.stress_niveau || '?'}/10
+      - Voedingspatroon: ${profile.voedingspatroon || 'omnivoor'}
+      - Gezondheids doelen: ${profile.gezondheids_doelen?.join(', ') || '-'}
+      - Supplement doelen: ${profile.supplement_doelen?.join(', ') || '-'}
+      - Huidige supplementen: ${profile.huidige_supplementen || 'geen'}
+      - Extra wensen: ${extraWensen || 'geen'}
+    ` : 'Geen profiel';
 
     const res = await base44.integrations.Core.InvokeLLM({
-      prompt: `Je bent een expert in voedingssupplementen en sportvoeding. Geef gepersonaliseerd supplement advies op basis van het gebruikersprofiel.
+      prompt: `Je bent een expert sportvoedingsdeskundige. Geef gepersonaliseerd supplement advies.
 
-GEBRUIKERSPROFIEL:
+PROFIEL:
 ${profielInfo}
 
-EXTRA WENSEN VAN GEBRUIKER: ${extraWensen || 'geen'}
+KENNISBANK SUPPLEMENTEN:
+${suppLijst}
 
-BESCHIKBARE SUPPLEMENTEN IN ONZE DATABASE:
-${supplementLijst}
-
-Geef een concreet, wetenschappelijk onderbouwd advies met:
-1. Top 3-5 meest relevante supplementen voor deze persoon
-2. Waarom elk supplement geschikt is
-3. Aanbevolen dosering en timing
-4. Volgorde van prioriteit (wat is het meest impactvol)
-5. Wat ze NIET nodig hebben (en waarom)
-
-Wees specifiek, praktisch en gebaseerd op bewijs. Schrijf in het Nederlands.`,
+Geef top 3-5 supplement aanbevelingen, ALLEEN uit de kennisbank, met prioriteit, reden, dosering en timing specifiek voor dit profiel. Schrijf in het Nederlands.`,
       response_json_schema: {
         type: "object",
         properties: {
@@ -373,22 +369,24 @@ Wees specifiek, praktisch en gebaseerd op bewijs. Schrijf in het Nederlands.`,
                 naam: { type: "string" },
                 reden: { type: "string" },
                 dosering: { type: "string" },
+                timing: { type: "string" },
                 prioriteit: { type: "number" }
               }
             }
           },
-          niet_nodig: { type: "array", items: { type: "string" } },
-          samenvatting: { type: "string" },
-          disclaimer: { type: "string" }
+          samenvatting: { type: "string" }
         }
       }
     });
 
     setAdvies(res);
+    setToonOpgeslagen(false);
     setLoading(false);
   }
 
   if (loadingProfile) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+
+  const toonAdvies = toonOpgeslagen && heeftOpgeslaanAdvies ? opgeslaanAdvies : advies?.aanbevolen;
 
   return (
     <div className="space-y-5">
@@ -397,100 +395,94 @@ Wees specifiek, praktisch en gebaseerd op bewijs. Schrijf in het Nederlands.`,
           <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-primary" />
           </div>
-          <div>
+          <div className="flex-1">
             <h2 className="font-semibold text-foreground">Persoonlijk Supplement Advies</h2>
-            <p className="text-xs text-muted-foreground">AI-analyse op basis van jouw profiel</p>
+            <p className="text-xs text-muted-foreground">
+              {heeftOpgeslaanAdvies && toonOpgeslagen
+                ? `Gegenereerd tijdens onboarding · ${profile.supplement_advies_gegenereerd_op ? new Date(profile.supplement_advies_gegenereerd_op).toLocaleDateString('nl-NL') : ''}`
+                : 'AI-analyse op basis van jouw profiel + kennisbank'}
+            </p>
           </div>
         </div>
 
         {!profile && (
           <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 mb-4">
-            <p className="text-sm text-yellow-500">⚠️ Vul eerst je profiel in voor een nauwkeuriger advies.</p>
+            <p className="text-sm text-yellow-500">⚠️ Vul eerst je profiel in voor een nauwkeurig advies.</p>
           </div>
         )}
 
         {profile && (
-          <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
             {[
               { l: 'Doelgroep', v: profile.goal_group },
-              { l: 'Activiteit', v: profile.activity_level },
-              { l: 'Trainingsmethode', v: profile.training_methode },
-              { l: 'Ervaring', v: profile.training_ervaring },
-            ].map(({ l, v }) => v && (
+              { l: 'Slaap', v: profile.slaap_uren ? `${profile.slaap_uren}u` : null },
+              { l: 'Stress', v: profile.stress_niveau ? `${profile.stress_niveau}/10` : null },
+              { l: 'Dieet', v: profile.voedingspatroon },
+            ].filter(x => x.v).map(({ l, v }) => (
               <div key={l} className="bg-secondary/50 rounded-lg p-2">
                 <p className="text-xs text-muted-foreground">{l}</p>
-                <p className="text-xs font-medium text-foreground capitalize">{v.replace('_', ' ')}</p>
+                <p className="text-xs font-medium text-foreground capitalize">{v?.replace(/_/g, ' ')}</p>
               </div>
             ))}
           </div>
         )}
 
-        <div className="mb-4">
-          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Specifieke wensen of doelen (optioneel)</label>
-          <textarea
-            value={extraWensen}
-            onChange={e => setExtraWensen(e.target.value)}
-            placeholder="Bijv: ik slaap slecht, ik wil meer energie, ik ben vegetariër..."
-            className="w-full bg-input border border-border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder-muted-foreground resize-none h-20 focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
+        {!heeftOpgeslaanAdvies && (
+          <div className="mb-4">
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Extra wensen (optioneel)</label>
+            <textarea value={extraWensen} onChange={e => setExtraWensen(e.target.value)}
+              placeholder="Bijv: ik slaap slecht, ik ben vegetariër..."
+              className="w-full bg-input border border-border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder-muted-foreground resize-none h-16 focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+        )}
 
-        <button onClick={genereerAdvies} disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:bg-primary/90 transition-all disabled:opacity-60">
-          {loading ? (
-            <><div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> Analyseren...</>
+        <div className="flex gap-2">
+          {heeftOpgeslaanAdvies && toonOpgeslagen ? (
+            <button onClick={() => { setToonOpgeslagen(false); herGenereer(); }} disabled={loading}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-border text-muted-foreground rounded-xl font-medium text-sm hover:border-primary hover:text-primary transition-all disabled:opacity-60">
+              {loading ? <><div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /> Analyseren...</> : <><Sparkles className="w-4 h-4" /> Nieuw advies genereren</>}
+            </button>
           ) : (
-            <><Sparkles className="w-4 h-4" /> Genereer mijn advies</>
+            <button onClick={herGenereer} disabled={loading}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:bg-primary/90 transition-all disabled:opacity-60">
+              {loading ? <><div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> Analyseren...</> : <><Sparkles className="w-4 h-4" /> {heeftOpgeslaanAdvies ? 'Opnieuw genereren' : 'Genereer advies'}</>}
+            </button>
           )}
-        </button>
+        </div>
       </div>
 
-      {advies && (
+      {/* Advies resultaten */}
+      {toonAdvies?.length > 0 && (
         <div className="space-y-4">
-          {advies.samenvatting && (
+          {(toonOpgeslagen ? null : advies?.samenvatting) && (
             <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4">
               <p className="text-sm text-foreground">{advies.samenvatting}</p>
             </div>
           )}
-
-          {advies.aanbevolen?.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-3">✅ AANBEVOLEN VOOR JOU</p>
-              <div className="space-y-3">
-                {advies.aanbevolen.sort((a, b) => a.prioriteit - b.prioriteit).map((s, i) => (
-                  <div key={i} className="bg-card border border-border rounded-xl p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="w-6 h-6 bg-primary rounded-full text-primary-foreground text-xs font-bold flex items-center justify-center">{i + 1}</span>
-                      <p className="font-semibold text-foreground">{s.naam}</p>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">{s.reden}</p>
-                    {s.dosering && (
-                      <div className="bg-secondary/50 rounded-lg px-3 py-1.5 inline-block">
-                        <p className="text-xs text-muted-foreground">Dosering: <span className="text-foreground font-medium">{s.dosering}</span></p>
-                      </div>
-                    )}
-                  </div>
-                ))}
+          <p className="text-xs font-semibold text-muted-foreground">✅ AANBEVOLEN VOOR JOU</p>
+          <div className="space-y-3">
+            {[...toonAdvies].sort((a, b) => (a.prioriteit || 0) - (b.prioriteit || 0)).map((s, i) => (
+              <div key={i} className="bg-card border border-border rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-6 h-6 bg-primary rounded-full text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                  <p className="font-semibold text-foreground">{s.naam}</p>
+                </div>
+                <p className="text-sm text-muted-foreground mb-2">{s.reden}</p>
+                <div className="flex flex-wrap gap-2">
+                  {s.dosering && (
+                    <span className="bg-secondary/50 rounded-lg px-2.5 py-1 text-xs text-muted-foreground">
+                      💊 {s.dosering}
+                    </span>
+                  )}
+                  {s.timing && (
+                    <span className="bg-primary/10 rounded-lg px-2.5 py-1 text-xs text-primary">
+                      ⏰ {s.timing}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-
-          {advies.niet_nodig?.length > 0 && (
-            <div className="bg-secondary/30 border border-border rounded-xl p-4">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">❌ NIET NOODZAKELIJK VOOR JOU</p>
-              <ul className="space-y-1">
-                {advies.niet_nodig.map((s, i) => (
-                  <li key={i} className="text-sm text-muted-foreground flex gap-2">
-                    <span>•</span> {s}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {advies.disclaimer && (
-            <p className="text-xs text-muted-foreground italic px-1">{advies.disclaimer}</p>
-          )}
+            ))}
+          </div>
         </div>
       )}
     </div>

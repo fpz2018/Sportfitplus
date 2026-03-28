@@ -55,12 +55,10 @@
         "hypertrofie",
         "hiit",
         "tabata"
-      ],
-      "description": "Voorkeurs trainingsmethode"
+      ]
     },
     "training_frequentie": {
-      "type": "number",
-      "description": "Aantal trainingsdagen per week"
+      "type": "number"
     },
     "training_locatie": {
       "type": "string",
@@ -76,8 +74,7 @@
         "beginner",
         "gemiddeld",
         "gevorderd"
-      ],
-      "description": "Ervaringsniveau in de sport"
+      ]
     },
     "tdee": {
       "type": "number"
@@ -127,6 +124,76 @@
     "onboarding_done": {
       "type": "boolean",
       "default": false
+    },
+    "slaap_uren": {
+      "type": "number",
+      "description": "Gemiddeld aantal uren slaap per nacht"
+    },
+    "stress_niveau": {
+      "type": "number",
+      "description": "Stressniveau 1-10"
+    },
+    "gezondheids_doelen": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Bijv. spieropbouw, vetverlies, energie, slaap"
+    },
+    "blessures_klachten": {
+      "type": "string",
+      "description": "Huidige blessures of klachten"
+    },
+    "voedingspatroon": {
+      "type": "string",
+      "enum": [
+        "omnivoor",
+        "vegetarisch",
+        "veganistisch",
+        "pescotarisch",
+        "keto",
+        "anders"
+      ],
+      "description": "Eetpatroon"
+    },
+    "supplement_doelen": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Specifieke doelen voor supplementen"
+    },
+    "huidige_supplementen": {
+      "type": "string",
+      "description": "Welke supplementen gebruikt de gebruiker al"
+    },
+    "supplement_advies": {
+      "type": "array",
+      "description": "AI-gegenereerd persoonlijk supplementadvies op basis van profiel + kennisbank",
+      "items": {
+        "type": "object",
+        "properties": {
+          "naam": {
+            "type": "string"
+          },
+          "prioriteit": {
+            "type": "number"
+          },
+          "reden": {
+            "type": "string"
+          },
+          "dosering": {
+            "type": "string"
+          },
+          "timing": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "supplement_advies_gegenereerd_op": {
+      "type": "string",
+      "description": "Timestamp wanneer advies is gegenereerd"
     }
   },
   "required": []
