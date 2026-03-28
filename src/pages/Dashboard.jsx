@@ -6,6 +6,7 @@ import { nl } from 'date-fns/locale';
 import DagTraining from '@/components/dashboard/DagTraining';
 import DagVoeding from '@/components/dashboard/DagVoeding';
 import DagWelzijn from '@/components/dashboard/DagWelzijn';
+import DagSupplementen from '@/components/dashboard/DagSupplementen';
 import DagHeader from '@/components/dashboard/DagHeader';
 import { Zap, ArrowRight } from 'lucide-react';
 
@@ -69,6 +70,7 @@ export default function Dashboard() {
         <>
           <DagTraining profile={profile} todayLog={todayLog} onLogUpdate={refreshLog} />
           <DagVoeding profile={profile} todayLog={todayLog} today={today} />
+          <DagSupplementen profile={profile} />
           <DagWelzijn profile={profile} todayLog={todayLog} onLogUpdate={refreshLog} />
         </>
       )}

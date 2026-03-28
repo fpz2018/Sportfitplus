@@ -90,26 +90,6 @@ export default function DagWelzijn({ profile, todayLog, onLogUpdate }) {
         </div>
       )}
 
-      {/* Supplement reminder */}
-      {profile?.supplement_advies?.length > 0 && (
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 mb-4">
-          <p className="text-xs font-medium text-blue-400 mb-1">💊 Supplementen vandaag</p>
-          <div className="space-y-1">
-            {profile.supplement_advies.slice(0, 3).map((s, i) => (
-              <p key={i} className="text-xs text-muted-foreground">
-                <span className="text-foreground font-medium">{s.naam}</span>
-                {s.timing && ` · ${s.timing}`}
-              </p>
-            ))}
-            {profile.supplement_advies.length > 3 && (
-              <Link to="/supplementen" className="text-xs text-blue-400 hover:underline">
-                +{profile.supplement_advies.length - 3} meer bekijken
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
-
       <Link to="/welzijn"
         className="block text-center py-2.5 border border-border rounded-xl text-sm font-medium text-muted-foreground hover:border-primary/40 transition-all">
         HRV meten & trends bekijken
