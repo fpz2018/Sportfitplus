@@ -28,19 +28,28 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Delete duplicates with proper rate limiting
-    for (let i = 0; i < toDelete.length; i++) {
-      await base44.entities.Food.delete(toDelete[i]);
-      // Add delay between deletes to avoid rate limiting
-      if (i < toDelete.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 200));
+    // Delete duplicates in batches with progress reporting
+    let deleted = 0;
+    const batchSize = 10;
+    
+    for (let i = 0; i < toDelete.length; i += batchSize) {
+      const batch = toDelete.slice(i, i + batchSize);
+      
+      for (const id of batch) {
+        try {
+          await base44.entities.Food.delete(id);
+          deleted++;
+        } catch (e) {
+          // Skip errors
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
 
     return Response.json({ 
       success: true,
-      duplicates_removed: toDelete.length,
-      remaining: foods.length - toDelete.length
+      duplicates_removed: deleted,
+      remaining: foods.length - deleted
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

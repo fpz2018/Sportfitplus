@@ -21,6 +21,7 @@ export default function MijnVoedingsmiddelen() {
   const [importError, setImportError] = useState(null);
   const [importSuccess, setImportSuccess] = useState(null);
   const [removeDuplicatesLoading, setRemoveDuplicatesLoading] = useState(false);
+  const [removalProgress, setRemovalProgress] = useState(null);
 
   const { data: voedingsmiddelen = [], isLoading, refetch } = useQuery({
     queryKey: ['voedingsmiddelen'],
@@ -67,11 +68,14 @@ export default function MijnVoedingsmiddelen() {
     setRemoveDuplicatesLoading(true);
     setImportError(null);
     setImportSuccess(null);
+    setRemovalProgress({ removed: 0, total: voedingsmiddelen.length });
+    
     try {
       const res = await base44.functions.invoke('removeDuplicateFoods', {});
       if (res.data?.success) {
+        setRemovalProgress({ removed: res.data.duplicates_removed, total: voedingsmiddelen.length });
         setImportSuccess(`${res.data.duplicates_removed} dubbelen verwijderd. ${res.data.remaining} items over.`);
-        refetch();
+        setTimeout(() => refetch(), 500);
       } else {
         setImportError(res.data?.error || 'Verwijderen mislukt');
       }
@@ -197,6 +201,20 @@ export default function MijnVoedingsmiddelen() {
           </button>
         </div>
       </div>
+
+      {/* Removal progress */}
+      {removeDuplicatesLoading && removalProgress && (
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-4">
+          <p className="text-sm text-blue-600 mb-2 font-medium">Dubbelen verwijderen...</p>
+          <div className="w-full bg-blue-500/20 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all" 
+              style={{ width: `${(removalProgress.removed / removalProgress.total) * 100}%` }}
+            />
+          </div>
+          <p className="text-xs text-blue-600 mt-2">{removalProgress.removed} / {removalProgress.total} verwijderd</p>
+        </div>
+      )}
 
       {/* Import feedback */}
       {importSuccess && (
