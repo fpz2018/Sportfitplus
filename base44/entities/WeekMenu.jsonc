@@ -40,6 +40,15 @@
     "fat_g": {
       "type": "number"
     },
+    "quantity": {
+      "type": "number",
+      "description": "Hoeveelheid (stuks, gram, ml, etc.)"
+    },
+    "quantity_unit": {
+      "type": "string",
+      "description": "Eenheid (stuk, g, ml, liter, etc.)",
+      "default": "g"
+    },
     "notitie": {
       "type": "string"
     }

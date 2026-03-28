@@ -8,7 +8,7 @@ import ReceptKiezer from '@/components/weekmenu/ReceptKiezer';
 import MacroSuggestie from '@/components/weekmenu/MacroSuggestie';
 import Boodschappenlijst from '@/components/weekmenu/Boodschappenlijst';
 import DayFoodLogEditor from '@/components/weekmenu/DayFoodLogEditor';
-import FoodSearch from '@/components/voeding/FoodSearch';
+import FoodSearchWithQuantity from '@/components/voeding/FoodSearchWithQuantity';
 
 const MAALTIJD_TYPES = ['ontbijt', 'lunch', 'diner', 'snack'];
 
@@ -102,6 +102,8 @@ export default function Weekmenu() {
       carbs_g: voedingsmiddel.carbs_g,
       fat_g: voedingsmiddel.fat_g,
       recept_image_url: voedingsmiddel.image_url || null,
+      quantity: voedingsmiddel.quantity,
+      quantity_unit: voedingsmiddel.quantity_unit,
     });
     setItems(prev => [...prev, nieuw]);
     setFoodSearchType(null);
@@ -322,7 +324,7 @@ export default function Weekmenu() {
       )}
 
       {foodSearchType && (
-        <FoodSearch
+        <FoodSearchWithQuantity
           onSelect={voegVoedingsmiddelToe}
           onClose={() => setFoodSearchType(null)}
         />

@@ -41,7 +41,9 @@ export default function MaaltijdSlot({ type, items = [], onAdd, onRemove, onOpen
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-foreground truncate">{item.recept_titel}</p>
+                <p className="text-xs font-medium text-foreground truncate">
+                  {item.recept_titel} {item.quantity && `(${item.quantity}${item.quantity_unit || 'g'})`}
+                </p>
                 {item.calories && (
                   <p className="text-xs text-muted-foreground">{Math.round(item.calories)} kcal</p>
                 )}
