@@ -40,8 +40,13 @@ export default function MijnVoedingsmiddelen() {
   });
 
   async function verwijder(id) {
-    await base44.entities.Food.delete(id);
-    refetch();
+    try {
+      await base44.entities.Food.delete(id);
+      refetch();
+    } catch (error) {
+      setImportError('Voedingsmiddel kon niet worden verwijderd');
+      refetch();
+    }
   }
 
   async function updateItem(id) {
