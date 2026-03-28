@@ -1,0 +1,80 @@
+{
+  "name": "SupplementNieuws",
+  "type": "object",
+  "properties": {
+    "titel": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "intro": {
+      "type": "string",
+      "description": "Korte intro voor preview"
+    },
+    "inhoud": {
+      "type": "string",
+      "description": "Volledig artikel in Markdown"
+    },
+    "categorie": {
+      "type": "string",
+      "enum": [
+        "eiwit",
+        "aminozuren",
+        "vitaminen",
+        "mineralen",
+        "kruiden",
+        "adaptogenen",
+        "omega",
+        "probiotica",
+        "sport_performance",
+        "overig"
+      ]
+    },
+    "supplement_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Gekoppelde supplementen"
+    },
+    "bron_url": {
+      "type": "string",
+      "description": "PubMed of andere wetenschappelijke bron"
+    },
+    "bron_naam": {
+      "type": "string"
+    },
+    "evidence_level": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ]
+    },
+    "afbeelding_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "concept",
+        "gepubliceerd"
+      ],
+      "default": "concept"
+    },
+    "gepubliceerd_op": {
+      "type": "string",
+      "format": "date"
+    },
+    "seo_description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "titel",
+    "inhoud"
+  ]
+}

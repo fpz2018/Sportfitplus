@@ -1,0 +1,606 @@
+import { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { Link } from 'react-router-dom';
+import { FlaskConical, ShoppingBag, BookOpen, Sparkles, ChevronRight } from 'lucide-react';
+
+const TABS = [
+  { id: 'kennisbank', label: 'Kennisbank', icon: BookOpen },
+  { id: 'shop', label: 'Shop', icon: ShoppingBag },
+  { id: 'advies', label: 'AI Advies', icon: Sparkles },
+  { id: 'nieuws', label: 'Nieuws', icon: FlaskConical },
+];
+
+export default function Supplementen() {
+  const [activeTab, setActiveTab] = useState('kennisbank');
+
+  return (
+    <div className="p-4 pb-24 md:pb-8 max-w-4xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <FlaskConical className="w-7 h-7 text-primary" /> Supplementen
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">Wetenschappelijk onderbouwde kennis, shop en persoonlijk advies</p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 bg-secondary/50 rounded-xl p-1 mb-6 overflow-x-auto">
+        {TABS.map(tab => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex-1 justify-center ${
+                activeTab === tab.id
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {activeTab === 'kennisbank' && <SupplementenKennisbank />}
+      {activeTab === 'shop' && <SupplementenShop />}
+      {activeTab === 'advies' && <SupplementAdvies />}
+      {activeTab === 'nieuws' && <SupplementenNieuws />}
+    </div>
+  );
+}
+
+// --- KENNISBANK ---
+function SupplementenKennisbank() {
+  const [supplementen, setSupplementen] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [zoek, setZoek] = useState('');
+  const [cat, setCat] = useState('alle');
+  const [geselecteerd, setGeselecteerd] = useState(null);
+
+  const CATS = ['alle', 'eiwit', 'aminozuren', 'vitaminen', 'mineralen', 'kruiden', 'adaptogenen', 'omega', 'probiotica', 'sport_performance'];
+
+  useEffect(() => {
+    base44.entities.Supplement.list().then(s => {
+      setSupplementen(s.filter(x => x.status === 'gepubliceerd'));
+      setLoading(false);
+    });
+  }, []);
+
+  const gefilterd = supplementen.filter(s => {
+    const matchZoek = !zoek || s.naam?.toLowerCase().includes(zoek.toLowerCase());
+    const matchCat = cat === 'alle' || s.categorie === cat;
+    return matchZoek && matchCat;
+  });
+
+  const EVIDENCE_KLEUR = { A: 'text-green-400', B: 'text-blue-400', C: 'text-yellow-400', D: 'text-muted-foreground' };
+
+  if (geselecteerd) {
+    return (
+      <div>
+        <button onClick={() => setGeselecteerd(null)} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-all">
+          ← Terug naar kennisbank
+        </button>
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
+          {geselecteerd.image_url && (
+            <img src={geselecteerd.image_url} alt={geselecteerd.naam} className="w-full h-40 object-cover rounded-xl" />
+          )}
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-foreground">{geselecteerd.naam}</h2>
+              <span className="text-xs text-muted-foreground capitalize">{geselecteerd.categorie}</span>
+            </div>
+            {geselecteerd.evidence_level && (
+              <div className="text-right">
+                <span className={`text-lg font-bold ${EVIDENCE_KLEUR[geselecteerd.evidence_level]}`}>
+                  {geselecteerd.evidence_level}
+                </span>
+                <p className="text-xs text-muted-foreground">Evidence</p>
+              </div>
+            )}
+          </div>
+
+          {geselecteerd.beschrijving && <p className="text-sm text-muted-foreground">{geselecteerd.beschrijving}</p>}
+
+          {geselecteerd.voordelen?.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-foreground mb-2 text-sm">✅ Bewezen voordelen</h3>
+              <ul className="space-y-1">
+                {geselecteerd.voordelen.map((v, i) => (
+                  <li key={i} className="text-sm text-muted-foreground flex gap-2">
+                    <span className="text-primary">•</span> {v}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            {geselecteerd.dosering && (
+              <div className="bg-secondary/50 rounded-xl p-3">
+                <p className="text-xs text-muted-foreground mb-1">Dosering</p>
+                <p className="text-sm font-medium text-foreground">{geselecteerd.dosering}</p>
+              </div>
+            )}
+            {geselecteerd.timing && (
+              <div className="bg-secondary/50 rounded-xl p-3">
+                <p className="text-xs text-muted-foreground mb-1">Timing</p>
+                <p className="text-sm font-medium text-foreground">{geselecteerd.timing}</p>
+              </div>
+            )}
+          </div>
+
+          {geselecteerd.bijwerkingen && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3">
+              <p className="text-xs font-semibold text-destructive mb-1">⚠️ Bijwerkingen / Let op</p>
+              <p className="text-sm text-muted-foreground">{geselecteerd.bijwerkingen}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <input
+        type="text"
+        placeholder="Zoek supplement..."
+        value={zoek}
+        onChange={e => setZoek(e.target.value)}
+        className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+      />
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {CATS.map(c => (
+          <button key={c} onClick={() => setCat(c)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${cat === c ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'}`}>
+            {c.replace('_', ' ')}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+      ) : gefilterd.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground text-sm">Geen supplementen gevonden</div>
+      ) : (
+        <div className="grid gap-3">
+          {gefilterd.map(s => (
+            <button key={s.id} onClick={() => setGeselecteerd(s)}
+              className="bg-card border border-border rounded-xl p-4 text-left flex items-center gap-4 hover:border-primary/40 transition-all group">
+              {s.image_url ? (
+                <img src={s.image_url} alt={s.naam} className="w-14 h-14 rounded-lg object-cover shrink-0" />
+              ) : (
+                <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <FlaskConical className="w-6 h-6 text-primary" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-semibold text-foreground text-sm">{s.naam}</p>
+                  {s.evidence_level && (
+                    <span className={`text-xs font-bold ${EVIDENCE_KLEUR[s.evidence_level]}`}>
+                      {s.evidence_level}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground capitalize mb-1">{s.categorie?.replace('_', ' ')}</p>
+                {s.doelen?.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {s.doelen.slice(0, 3).map(d => (
+                      <span key={d} className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">{d}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-all shrink-0" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- SHOP ---
+function SupplementenShop() {
+  const [producten, setProducten] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [cat, setCat] = useState('alle');
+
+  const CATS = ['alle', 'eiwit', 'vitaminen', 'mineralen', 'kruiden', 'sport_performance'];
+
+  useEffect(() => {
+    base44.entities.SupplementProduct.list().then(p => {
+      setProducten(p.filter(x => x.status === 'actief'));
+      setLoading(false);
+    });
+  }, []);
+
+  const gefilterd = producten.filter(p => cat === 'alle' || p.categorie === cat);
+  const featured = gefilterd.filter(p => p.featured);
+  const overig = gefilterd.filter(p => !p.featured);
+
+  return (
+    <div className="space-y-5">
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {CATS.map(c => (
+          <button key={c} onClick={() => setCat(c)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${cat === c ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'}`}>
+            {c.replace('_', ' ')}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+      ) : gefilterd.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground text-sm">Geen producten gevonden</div>
+      ) : (
+        <>
+          {featured.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-3">⭐ AANBEVOLEN</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {featured.map(p => <ProductCard key={p.id} product={p} />)}
+              </div>
+            </div>
+          )}
+          {overig.length > 0 && (
+            <div>
+              {featured.length > 0 && <p className="text-xs font-semibold text-muted-foreground mb-3 mt-2">ALLE PRODUCTEN</p>}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {overig.map(p => <ProductCard key={p.id} product={p} />)}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function ProductCard({ product }) {
+  const isAffiliate = product.type === 'affiliate';
+
+  return (
+    <div className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/40 transition-all">
+      {product.image_url ? (
+        <img src={product.image_url} alt={product.naam} className="w-full h-40 object-cover" />
+      ) : (
+        <div className="w-full h-40 bg-primary/5 flex items-center justify-center">
+          <ShoppingBag className="w-10 h-10 text-primary/30" />
+        </div>
+      )}
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-1">
+          <p className="font-semibold text-foreground text-sm leading-tight">{product.naam}</p>
+          {product.merk && <span className="text-xs text-muted-foreground ml-2 shrink-0">{product.merk}</span>}
+        </div>
+        {product.beschrijving && <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{product.beschrijving}</p>}
+        <div className="flex items-center justify-between">
+          {!isAffiliate && product.prijs ? (
+            <span className="font-bold text-primary">€{product.prijs.toFixed(2)}</span>
+          ) : (
+            <span className="text-xs text-muted-foreground">{product.affiliate_partner || 'Extern'}</span>
+          )}
+          {isAffiliate && product.affiliate_url ? (
+            <a href={product.affiliate_url} target="_blank" rel="noopener noreferrer"
+              className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/90 transition-all">
+              Bekijk aanbieding →
+            </a>
+          ) : (
+            <button className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/90 transition-all">
+              In winkelwagen
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- AI ADVIES ---
+function SupplementAdvies() {
+  const [profile, setProfile] = useState(null);
+  const [advies, setAdvies] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [supplementen, setSupplementen] = useState([]);
+  const [extraWensen, setExtraWensen] = useState('');
+
+  useEffect(() => {
+    async function load() {
+      const user = await base44.auth.me();
+      const [profiles, supps] = await Promise.all([
+        base44.entities.UserProfile.filter({ created_by: user.email }),
+        base44.entities.Supplement.list()
+      ]);
+      if (profiles.length > 0) setProfile(profiles[0]);
+      setSupplementen(supps.filter(s => s.status === 'gepubliceerd'));
+      setLoadingProfile(false);
+    }
+    load();
+  }, []);
+
+  async function genereerAdvies() {
+    setLoading(true);
+    setAdvies(null);
+
+    const supplementLijst = supplementen.map(s =>
+      `${s.naam} (${s.categorie}, Evidence: ${s.evidence_level || 'onbekend'}, Doelen: ${s.doelen?.join(', ') || '-'})`
+    ).join('\n');
+
+    const profielInfo = profile ? `
+      - Leeftijd: ${profile.age || 'onbekend'}
+      - Gewicht: ${profile.weight_kg || 'onbekend'} kg
+      - Geslacht: ${profile.gender || 'onbekend'}
+      - Doel groep: ${profile.goal_group || 'onbekend'}
+      - Activiteitsniveau: ${profile.activity_level || 'onbekend'}
+      - Trainingsmethode: ${profile.training_methode || 'onbekend'}
+      - Trainingservaring: ${profile.training_ervaring || 'onbekend'}
+      - Caloriedoel: ${profile.target_calories || 'onbekend'} kcal
+    ` : 'Geen profiel beschikbaar';
+
+    const res = await base44.integrations.Core.InvokeLLM({
+      prompt: `Je bent een expert in voedingssupplementen en sportvoeding. Geef gepersonaliseerd supplement advies op basis van het gebruikersprofiel.
+
+GEBRUIKERSPROFIEL:
+${profielInfo}
+
+EXTRA WENSEN VAN GEBRUIKER: ${extraWensen || 'geen'}
+
+BESCHIKBARE SUPPLEMENTEN IN ONZE DATABASE:
+${supplementLijst}
+
+Geef een concreet, wetenschappelijk onderbouwd advies met:
+1. Top 3-5 meest relevante supplementen voor deze persoon
+2. Waarom elk supplement geschikt is
+3. Aanbevolen dosering en timing
+4. Volgorde van prioriteit (wat is het meest impactvol)
+5. Wat ze NIET nodig hebben (en waarom)
+
+Wees specifiek, praktisch en gebaseerd op bewijs. Schrijf in het Nederlands.`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          aanbevolen: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                naam: { type: "string" },
+                reden: { type: "string" },
+                dosering: { type: "string" },
+                prioriteit: { type: "number" }
+              }
+            }
+          },
+          niet_nodig: { type: "array", items: { type: "string" } },
+          samenvatting: { type: "string" },
+          disclaimer: { type: "string" }
+        }
+      }
+    });
+
+    setAdvies(res);
+    setLoading(false);
+  }
+
+  if (loadingProfile) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+
+  return (
+    <div className="space-y-5">
+      <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-foreground">Persoonlijk Supplement Advies</h2>
+            <p className="text-xs text-muted-foreground">AI-analyse op basis van jouw profiel</p>
+          </div>
+        </div>
+
+        {!profile && (
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 mb-4">
+            <p className="text-sm text-yellow-500">⚠️ Vul eerst je profiel in voor een nauwkeuriger advies.</p>
+          </div>
+        )}
+
+        {profile && (
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {[
+              { l: 'Doelgroep', v: profile.goal_group },
+              { l: 'Activiteit', v: profile.activity_level },
+              { l: 'Trainingsmethode', v: profile.training_methode },
+              { l: 'Ervaring', v: profile.training_ervaring },
+            ].map(({ l, v }) => v && (
+              <div key={l} className="bg-secondary/50 rounded-lg p-2">
+                <p className="text-xs text-muted-foreground">{l}</p>
+                <p className="text-xs font-medium text-foreground capitalize">{v.replace('_', ' ')}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mb-4">
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Specifieke wensen of doelen (optioneel)</label>
+          <textarea
+            value={extraWensen}
+            onChange={e => setExtraWensen(e.target.value)}
+            placeholder="Bijv: ik slaap slecht, ik wil meer energie, ik ben vegetariër..."
+            className="w-full bg-input border border-border rounded-xl px-3 py-2.5 text-sm text-foreground placeholder-muted-foreground resize-none h-20 focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+
+        <button onClick={genereerAdvies} disabled={loading}
+          className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:bg-primary/90 transition-all disabled:opacity-60">
+          {loading ? (
+            <><div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> Analyseren...</>
+          ) : (
+            <><Sparkles className="w-4 h-4" /> Genereer mijn advies</>
+          )}
+        </button>
+      </div>
+
+      {advies && (
+        <div className="space-y-4">
+          {advies.samenvatting && (
+            <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4">
+              <p className="text-sm text-foreground">{advies.samenvatting}</p>
+            </div>
+          )}
+
+          {advies.aanbevolen?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-3">✅ AANBEVOLEN VOOR JOU</p>
+              <div className="space-y-3">
+                {advies.aanbevolen.sort((a, b) => a.prioriteit - b.prioriteit).map((s, i) => (
+                  <div key={i} className="bg-card border border-border rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="w-6 h-6 bg-primary rounded-full text-primary-foreground text-xs font-bold flex items-center justify-center">{i + 1}</span>
+                      <p className="font-semibold text-foreground">{s.naam}</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">{s.reden}</p>
+                    {s.dosering && (
+                      <div className="bg-secondary/50 rounded-lg px-3 py-1.5 inline-block">
+                        <p className="text-xs text-muted-foreground">Dosering: <span className="text-foreground font-medium">{s.dosering}</span></p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {advies.niet_nodig?.length > 0 && (
+            <div className="bg-secondary/30 border border-border rounded-xl p-4">
+              <p className="text-xs font-semibold text-muted-foreground mb-2">❌ NIET NOODZAKELIJK VOOR JOU</p>
+              <ul className="space-y-1">
+                {advies.niet_nodig.map((s, i) => (
+                  <li key={i} className="text-sm text-muted-foreground flex gap-2">
+                    <span>•</span> {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {advies.disclaimer && (
+            <p className="text-xs text-muted-foreground italic px-1">{advies.disclaimer}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- NIEUWS ---
+function SupplementenNieuws() {
+  const [artikelen, setArtikelen] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [geselecteerd, setGeselecteerd] = useState(null);
+  const [cat, setCat] = useState('alle');
+
+  const CATS = ['alle', 'eiwit', 'vitaminen', 'mineralen', 'kruiden', 'sport_performance'];
+
+  useEffect(() => {
+    base44.entities.SupplementNieuws.list('-gepubliceerd_op').then(a => {
+      setArtikelen(a.filter(x => x.status === 'gepubliceerd'));
+      setLoading(false);
+    });
+  }, []);
+
+  const gefilterd = artikelen.filter(a => cat === 'alle' || a.categorie === cat);
+  const EVIDENCE_KLEUR = { A: 'bg-green-500/20 text-green-400', B: 'bg-blue-500/20 text-blue-400', C: 'bg-yellow-500/20 text-yellow-400', D: 'bg-secondary text-muted-foreground' };
+
+  if (geselecteerd) {
+    return (
+      <div>
+        <button onClick={() => setGeselecteerd(null)} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-all">
+          ← Terug naar nieuws
+        </button>
+        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+          {geselecteerd.afbeelding_url && (
+            <img src={geselecteerd.afbeelding_url} alt={geselecteerd.titel} className="w-full h-48 object-cover" />
+          )}
+          <div className="p-5 space-y-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              {geselecteerd.evidence_level && (
+                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${EVIDENCE_KLEUR[geselecteerd.evidence_level]}`}>
+                  Evidence {geselecteerd.evidence_level}
+                </span>
+              )}
+              {geselecteerd.categorie && (
+                <span className="px-2 py-0.5 bg-secondary rounded-full text-xs text-muted-foreground capitalize">{geselecteerd.categorie.replace('_', ' ')}</span>
+              )}
+              {geselecteerd.gepubliceerd_op && (
+                <span className="text-xs text-muted-foreground">{new Date(geselecteerd.gepubliceerd_op).toLocaleDateString('nl-NL')}</span>
+              )}
+            </div>
+            <h1 className="text-xl font-bold text-foreground">{geselecteerd.titel}</h1>
+            {geselecteerd.intro && <p className="text-muted-foreground text-sm leading-relaxed">{geselecteerd.intro}</p>}
+            <div className="border-t border-border pt-4">
+              <div className="prose prose-sm prose-invert max-w-none text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                {geselecteerd.inhoud}
+              </div>
+            </div>
+            {geselecteerd.bron_url && (
+              <div className="border-t border-border pt-3">
+                <p className="text-xs text-muted-foreground">
+                  Bron: <a href={geselecteerd.bron_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{geselecteerd.bron_naam || geselecteerd.bron_url}</a>
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {CATS.map(c => (
+          <button key={c} onClick={() => setCat(c)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${cat === c ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'}`}>
+            {c.replace('_', ' ')}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+      ) : gefilterd.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground text-sm">Geen artikelen gevonden</div>
+      ) : (
+        <div className="space-y-3">
+          {gefilterd.map(a => (
+            <button key={a.id} onClick={() => setGeselecteerd(a)}
+              className="w-full bg-card border border-border rounded-xl overflow-hidden hover:border-primary/40 transition-all text-left flex gap-0">
+              {a.afbeelding_url && (
+                <img src={a.afbeelding_url} alt={a.titel} className="w-24 h-24 object-cover shrink-0" />
+              )}
+              <div className="p-3 flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  {a.evidence_level && (
+                    <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${EVIDENCE_KLEUR[a.evidence_level]}`}>
+                      {a.evidence_level}
+                    </span>
+                  )}
+                  {a.gepubliceerd_op && (
+                    <span className="text-xs text-muted-foreground">{new Date(a.gepubliceerd_op).toLocaleDateString('nl-NL')}</span>
+                  )}
+                </div>
+                <p className="font-semibold text-sm text-foreground line-clamp-2 mb-1">{a.titel}</p>
+                {a.intro && <p className="text-xs text-muted-foreground line-clamp-2">{a.intro}</p>}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

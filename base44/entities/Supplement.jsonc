@@ -1,0 +1,98 @@
+{
+  "name": "Supplement",
+  "type": "object",
+  "properties": {
+    "naam": {
+      "type": "string",
+      "description": "Naam van het supplement"
+    },
+    "categorie": {
+      "type": "string",
+      "enum": [
+        "eiwit",
+        "aminozuren",
+        "vitaminen",
+        "mineralen",
+        "kruiden",
+        "adaptogenen",
+        "omega",
+        "probiotica",
+        "sport_performance",
+        "overig"
+      ],
+      "description": "Categorie"
+    },
+    "beschrijving": {
+      "type": "string",
+      "description": "Korte beschrijving"
+    },
+    "voordelen": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Bewezen voordelen"
+    },
+    "dosering": {
+      "type": "string",
+      "description": "Aanbevolen dosering"
+    },
+    "timing": {
+      "type": "string",
+      "description": "Wanneer innemen (bijv. voor training)"
+    },
+    "bijwerkingen": {
+      "type": "string",
+      "description": "Mogelijke bijwerkingen"
+    },
+    "evidence_level": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "description": "A=Sterk bewijs, B=Matig, C=Beperkt, D=Anecdotisch"
+    },
+    "doelgroepen": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Voor wie is dit supplement geschikt"
+    },
+    "doelen": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "spieropbouw",
+          "vetverlies",
+          "herstel",
+          "energie",
+          "focus",
+          "slaap",
+          "immuunsysteem",
+          "gezondheid",
+          "prestatie",
+          "hormonen"
+        ]
+      }
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "concept",
+        "gepubliceerd"
+      ],
+      "default": "concept"
+    }
+  },
+  "required": [
+    "naam"
+  ]
+}

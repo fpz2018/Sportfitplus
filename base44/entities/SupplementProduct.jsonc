@@ -1,0 +1,76 @@
+{
+  "name": "SupplementProduct",
+  "type": "object",
+  "properties": {
+    "naam": {
+      "type": "string"
+    },
+    "merk": {
+      "type": "string"
+    },
+    "supplement_id": {
+      "type": "string",
+      "description": "Gekoppeld supplement"
+    },
+    "beschrijving": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "eigen_product",
+        "affiliate"
+      ],
+      "default": "affiliate"
+    },
+    "prijs": {
+      "type": "number",
+      "description": "Prijs in euro (voor eigen producten)"
+    },
+    "affiliate_url": {
+      "type": "string",
+      "description": "Affiliate link"
+    },
+    "affiliate_partner": {
+      "type": "string",
+      "description": "Bijv. Bol.com, Holland & Barrett"
+    },
+    "voorraad": {
+      "type": "number",
+      "default": 0
+    },
+    "categorie": {
+      "type": "string",
+      "enum": [
+        "eiwit",
+        "aminozuren",
+        "vitaminen",
+        "mineralen",
+        "kruiden",
+        "adaptogenen",
+        "omega",
+        "probiotica",
+        "sport_performance",
+        "overig"
+      ]
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "actief",
+        "inactief"
+      ],
+      "default": "actief"
+    }
+  },
+  "required": [
+    "naam"
+  ]
+}

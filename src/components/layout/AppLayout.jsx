@@ -1,5 +1,5 @@
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload, Newspaper, CalendarDays, TrendingUp, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload, Newspaper, CalendarDays, TrendingUp, Menu, X, Pill } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -19,6 +19,7 @@ const navItemsConfig = [
   { to: '/gids', icon: BookOpen, labelKey: 'gids' },
   { to: '/profiel', icon: User, labelKey: 'profiel' },
   { to: '/nieuws', icon: Newspaper, labelKey: 'nieuws' },
+  { to: '/supplementen', icon: Pill, labelKey: 'supplementen' },
 ];
 
 const adminNavItemsConfig = [
@@ -28,6 +29,7 @@ const adminNavItemsConfig = [
   { to: '/coach-analytics', icon: TrendingUp, labelKey: 'coachAnalytics' },
   { to: '/nieuwsbeheer', icon: Newspaper, labelKey: 'nieuwsbeheer' },
   { to: '/recepten-beheer', icon: ChefHat, labelKey: 'receptenBeheer' },
+  { to: '/supplementen-beheer', icon: Pill, labelKey: 'supplementenBeheer' },
 ];
 
 export default function AppLayout() {

@@ -18,6 +18,8 @@ export const translations = {
     coachAnalytics: 'Coach Analytics',
     nieuwsbeheer: 'Nieuwsbeheer',
     receptenBeheer: 'Recepten beheer',
+    supplementen: 'Supplementen',
+    supplementenBeheer: 'Supplementen Beheer',
     upgradePremium: 'Upgrade naar Premium',
     kennissysteem: 'Kennissysteem',
 
@@ -114,6 +116,8 @@ export const translations = {
     coachAnalytics: 'Coach Analytics',
     nieuwsbeheer: 'News Management',
     receptenBeheer: 'Recipe Management',
+    supplementen: 'Supplements',
+    supplementenBeheer: 'Supplements Management',
     upgradePremium: 'Upgrade to Premium',
     kennissysteem: 'Knowledge System',
 
