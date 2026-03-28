@@ -114,10 +114,8 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
     if (!selectedProduct) return;
     
     // Bereken macros op basis van hoeveelheid
-    // Standaard zijn macros per 100g/ml/stuk
-    const multiplier = guessUnit(selectedProduct.name).unit === selectedProduct.name.includes('stuk') 
-      ? quantity 
-      : quantity / 100;
+    // Open Food Facts data staat per 100g/ml, behalve voor stuks die per stuk zijn
+    const multiplier = unit === 'stuk' ? quantity : quantity / 100;
 
     onSelect({
       name: selectedProduct.name,
@@ -163,7 +161,7 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
                 <p className="text-xs text-muted-foreground">{selectedProduct.brands}</p>
               )}
               <p className="text-sm text-muted-foreground mt-2">
-                {Math.round(selectedProduct.calories)} kcal · {selectedProduct.protein_g}g eiwit per 100{unit === 'stuk' ? ' stuks' : unit}
+                {Math.round(selectedProduct.calories)} kcal · {selectedProduct.protein_g}g eiwit per {unit === 'stuk' ? 'stuk' : '100' + unit}
               </p>
             </div>
           </div>
@@ -217,10 +215,17 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
             {/* Macro preview */}
             <div className="mt-8 w-full bg-secondary/50 rounded-xl p-4">
               <p className="text-xs font-semibold text-muted-foreground mb-2">Deze hoeveelheid:</p>
-              <p className="text-sm font-medium text-foreground">
-                {Math.round(selectedProduct.calories * (unit === 'stuk' ? quantity : quantity / 100))} kcal
-                · {(selectedProduct.protein_g * (unit === 'stuk' ? quantity : quantity / 100)).toFixed(1)}g eiwit
-              </p>
+              {(() => {
+                const mult = unit === 'stuk' ? quantity : quantity / 100;
+                return (
+                  <p className="text-sm font-medium text-foreground">
+                    {Math.round(selectedProduct.calories * mult)} kcal
+                    · {(selectedProduct.protein_g * mult).toFixed(1)}g eiwit
+                    · {(selectedProduct.carbs_g * mult).toFixed(1)}g koolh.
+                    · {(selectedProduct.fat_g * mult).toFixed(1)}g vet
+                  </p>
+                );
+              })()}
             </div>
           </div>
 
