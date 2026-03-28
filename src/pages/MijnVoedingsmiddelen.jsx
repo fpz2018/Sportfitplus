@@ -69,7 +69,7 @@ export default function MijnVoedingsmiddelen() {
     refetch();
   }
 
-  function handleImport(e) {
+  async function handleImport(e) {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -77,33 +77,27 @@ export default function MijnVoedingsmiddelen() {
     setImportError(null);
     setImportSuccess(null);
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const text = event.target?.result;
-        if (!text) throw new Error('Bestand kon niet gelezen worden');
-        
-        const res = await base44.functions.invoke('importFoods', { csv: text });
-        
-        if (res.data?.success) {
-          setImportSuccess(`${res.data.imported} voedingsmiddelen geïmporteerd!`);
-          refetch();
-          e.target.value = '';
-        } else {
-          setImportError(res.data?.error || 'Import mislukt');
-        }
-      } catch (error) {
-        console.error('Import error:', error);
-        setImportError(error.message || 'Import mislukt');
-      } finally {
-        setImportLoading(false);
+    try {
+      // Upload file to get URL
+      const uploadRes = await base44.integrations.Core.UploadFile({ file });
+      const fileUrl = uploadRes.file_url;
+
+      // Call import function with file URL instead of raw content
+      const res = await base44.functions.invoke('importFoods', { file_url: fileUrl });
+      
+      if (res.data?.success) {
+        setImportSuccess(`${res.data.imported} voedingsmiddelen geïmporteerd!`);
+        refetch();
+        e.target.value = '';
+      } else {
+        setImportError(res.data?.error || 'Import mislukt');
       }
-    };
-    reader.onerror = () => {
-      setImportError('Bestand kon niet gelezen worden');
+    } catch (error) {
+      console.error('Import error:', error);
+      setImportError(error.message || 'Import mislukt');
+    } finally {
       setImportLoading(false);
-    };
-    reader.readAsText(file);
+    }
   }
 
   function downloadTemplate() {

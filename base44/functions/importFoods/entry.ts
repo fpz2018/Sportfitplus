@@ -10,7 +10,16 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const text = body.csv;
+    let text = body.csv;
+
+    // If file_url provided, fetch the file content
+    if (body.file_url && !text) {
+      const fileRes = await fetch(body.file_url);
+      if (!fileRes.ok) {
+        return Response.json({ error: 'Failed to fetch file' }, { status: 400 });
+      }
+      text = await fileRes.text();
+    }
 
     if (!text) {
       return Response.json({ error: 'No CSV data provided' }, { status: 400 });
