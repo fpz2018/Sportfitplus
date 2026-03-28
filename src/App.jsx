@@ -29,6 +29,7 @@ import CoachAnalytics from './pages/CoachAnalytics';
 import Supplementen from './pages/Supplementen';
 import SupplementenBeheer from './pages/SupplementenBeheer';
 import KennisUpdate from './pages/KennisUpdate';
+import Welzijn from './pages/Welzijn';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -77,6 +78,7 @@ const AuthenticatedApp = () => {
         <Route path="/supplementen" element={<Supplementen />} />
         <Route path="/supplementen-beheer" element={<SupplementenBeheer />} />
         <Route path="/kennis-update" element={<KennisUpdate />} />
+        <Route path="/welzijn" element={<Welzijn />} />
       </Route>
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="*" element={<PageNotFound />} />

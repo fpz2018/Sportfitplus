@@ -23,6 +23,7 @@ export const translations = {
     kennisUpdate: 'Kennis Analyse',
     upgradePremium: 'Upgrade naar Premium',
     kennissysteem: 'Kennissysteem',
+    welzijn: 'Herstel & Welzijn',
 
     // Common
     loading: 'Laden...',
@@ -122,6 +123,7 @@ export const translations = {
     kennisUpdate: 'Knowledge Analysis',
     upgradePremium: 'Upgrade to Premium',
     kennissysteem: 'Knowledge System',
+    welzijn: 'Recovery & Wellbeing',
 
     // Common
     loading: 'Loading...',
