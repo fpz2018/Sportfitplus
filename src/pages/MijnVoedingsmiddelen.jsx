@@ -127,6 +127,26 @@ export default function MijnVoedingsmiddelen() {
         </div>
         <div className="flex gap-2">
           <button
+            onClick={async () => {
+              if (window.confirm('Weet je zeker? Dit verwijdert ALLES.')) {
+                setImportLoading(true);
+                try {
+                  await base44.functions.invoke('clearFoods', {});
+                  setImportSuccess('Alle voedingsmiddelen verwijderd');
+                  refetch();
+                } catch (error) {
+                  setImportError('Verwijderen mislukt: ' + error.message);
+                } finally {
+                  setImportLoading(false);
+                }
+              }
+            }}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-destructive text-destructive hover:bg-destructive/10 transition-all text-sm font-medium"
+          >
+            <Trash2 className="w-4 h-4" />
+            Alles wissen
+          </button>
+          <button
             onClick={downloadTemplate}
             className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all text-sm font-medium"
           >
