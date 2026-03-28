@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, ChevronRight, Loader2, ShoppingCart, Clock, Home } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Loader2, ShoppingCart, Clock } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import MaaltijdSlot from '@/components/weekmenu/MaaltijdSlot';
@@ -125,14 +124,6 @@ export default function Weekmenu() {
 
   return (
     <div className="p-6 pb-24 md:pb-8 max-w-4xl mx-auto">
-      <div className="mb-6 flex items-center gap-2 text-sm">
-        <Link to="/" className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-all">
-          <Home className="w-4 h-4" /> Dashboard
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-foreground font-medium">Weekmenu</span>
-      </div>
-
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Weekmenu</h1>
