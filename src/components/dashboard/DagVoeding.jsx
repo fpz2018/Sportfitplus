@@ -38,11 +38,23 @@ export default function DagVoeding({ profile, todayLog, today }) {
 
   const calTarget = profile?.target_calories || 0;
   const protTarget = profile?.protein_target_g || 0;
+  const carbTarget = profile?.carbs_target_g || 0;
+  const fatTarget = profile?.fat_target_g || 0;
+  
   const calEaten = todayLog?.calories_eaten || 0;
   const protEaten = todayLog?.protein_g || 0;
+  const carbsEaten = todayLog?.carbs_g || 0;
+  const fatEaten = todayLog?.fat_g || 0;
 
   const geplandCal = maaltijden.reduce((s, m) => s + (m.calories || 0), 0);
   const geplandProt = maaltijden.reduce((s, m) => s + (m.protein_g || 0), 0);
+  const geplandCarbs = maaltijden.reduce((s, m) => s + (m.carbs_g || 0), 0);
+  const geplandFat = maaltijden.reduce((s, m) => s + (m.fat_g || 0), 0);
+  
+  const resterendCal = Math.max(calTarget - calEaten - geplandCal, 0);
+  const resterendProt = Math.max(protTarget - protEaten - geplandProt, 0);
+  const resterendCarbs = Math.max(carbTarget - carbsEaten - geplandCarbs, 0);
+  const resterendFat = Math.max(fatTarget - fatEaten - geplandFat, 0);
 
   return (
     <div className="bg-card border border-border rounded-2xl p-5">
@@ -53,7 +65,7 @@ export default function DagVoeding({ profile, todayLog, today }) {
           </div>
           <div>
             <h2 className="font-semibold text-foreground">Voeding vandaag</h2>
-            <p className="text-xs text-muted-foreground">Doel: {calTarget} kcal · {protTarget}g eiwit · {profile?.carbs_target_g || 0}g koolh. · {profile?.fat_target_g || 0}g vet</p>
+            <p className="text-xs text-muted-foreground">Nog nodig: {Math.round(resterendCal)} kcal · {Math.round(resterendProt)}g eiwit · {Math.round(resterendCarbs)}g koolh. · {Math.round(resterendFat)}g vet</p>
           </div>
         </div>
         <Link to="/weekmenu" className="text-xs text-primary flex items-center gap-1 hover:underline shrink-0">
@@ -61,12 +73,14 @@ export default function DagVoeding({ profile, todayLog, today }) {
         </Link>
       </div>
 
-      {/* Macros progress */}
-      {calEaten > 0 && (
+      {/* Macros progress - gegeten + gepland vs doel */}
+      {(calEaten > 0 || geplandCal > 0) && (
         <div className="space-y-2.5 mb-4 p-4 bg-secondary/40 rounded-xl">
-          <p className="text-xs font-medium text-muted-foreground mb-1">Gelogd vandaag</p>
-          <ProgressBar label="Calorieën" value={calEaten} max={calTarget} color="bg-orange-400" />
-          <ProgressBar label="Eiwit" value={protEaten} max={protTarget} color="bg-primary" />
+          <p className="text-xs font-medium text-muted-foreground mb-1">Gegeten + Gepland</p>
+          <ProgressBar label="Calorieën" value={calEaten + geplandCal} max={calTarget} color="bg-orange-400" />
+          <ProgressBar label="Eiwit" value={protEaten + geplandProt} max={protTarget} color="bg-primary" />
+          <ProgressBar label="Koolhydraten" value={carbsEaten + geplandCarbs} max={carbTarget} color="bg-blue-400" />
+          <ProgressBar label="Vetten" value={fatEaten + geplandFat} max={fatTarget} color="bg-accent" />
         </div>
       )}
 
