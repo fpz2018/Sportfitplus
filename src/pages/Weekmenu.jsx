@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { ChevronLeft, ChevronRight, Loader2, ShoppingCart, Clock } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
