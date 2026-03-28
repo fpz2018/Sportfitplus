@@ -21,8 +21,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'CSV must have header and at least one row' }, { status: 400 });
     }
 
-    // Parse header - support NEVO format and custom format
-    const header = lines[0].split(',').map(h => h.toLowerCase().trim());
+    // Parse header - support NEVO format (pipe-delimited with quotes) and custom format (comma-delimited)
+    const delimiter = lines[0].includes('|') ? '|' : ',';
+    const header = lines[0].split(delimiter).map(h => h.toLowerCase().trim().replace(/^"|"$/g, ''));
     
     // Try custom format first
     let nameIdx = header.indexOf('name');
@@ -112,7 +113,7 @@ Deno.serve(async (req) => {
 
     for (let i = 1; i < lines.length; i++) {
       try {
-        const values = lines[i].split(',').map(v => v.trim());
+        const values = lines[i].split(delimiter).map(v => v.trim().replace(/^"|"$/g, ''));
         
         const name = values[nameIdx];
         let calories = parseFloat(values[caloriesIdx]);
