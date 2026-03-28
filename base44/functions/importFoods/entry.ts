@@ -76,30 +76,30 @@ Deno.serve(async (req) => {
       fiberIdx = header.findIndex(h => nevoFiber.some(n => h.includes(n)));
     }
 
-    // Micronutrients (optional)
+    // Micronutrients (optional) - NEVO uses short codes (NA, K, CA, etc)
     const getMicroIdx = (keywords) => header.findIndex(h => keywords.some(k => h.includes(k)));
     
-    const sodiumIdx = getMicroIdx(['natrium', 'sodium', 'na']);
-    const potassiumIdx = getMicroIdx(['kalium', 'potassium', 'k']);
-    const calciumIdx = getMicroIdx(['calcium', 'ca']);
-    const ironIdx = getMicroIdx(['ijzer', 'iron', 'fe']);
-    const magnesiumIdx = getMicroIdx(['magnesium', 'mg']);
-    const phosphorusIdx = getMicroIdx(['fosfor', 'phosphorus', 'p']);
-    const zincIdx = getMicroIdx(['zink', 'zinc', 'zn']);
-    const vitaminAIdx = getMicroIdx(['vitamine a', 'vitamin a', 'vit a', 'retinol']);
-    const vitaminCIdx = getMicroIdx(['vitamine c', 'vitamin c', 'vit c']);
-    const vitaminDIdx = getMicroIdx(['vitamine d', 'vitamin d', 'vit d']);
-    const vitaminEIdx = getMicroIdx(['vitamine e', 'vitamin e', 'vit e']);
-    const vitaminB1Idx = getMicroIdx(['vitamine b1', 'vitamin b1', 'thiamine']);
-    const vitaminB2Idx = getMicroIdx(['vitamine b2', 'vitamin b2', 'riboflavin']);
-    const vitaminB3Idx = getMicroIdx(['vitamine b3', 'vitamin b3', 'niacine']);
-    const vitaminB6Idx = getMicroIdx(['vitamine b6', 'vitamin b6']);
-    const vitaminB12Idx = getMicroIdx(['vitamine b12', 'vitamin b12', 'cyanocobalamine']);
-    const folateIdx = getMicroIdx(['folaat', 'folate']);
-    const cholesterolIdx = getMicroIdx(['cholesterol']);
-    const saturatedFatIdx = getMicroIdx(['verzadigd', 'saturated']);
-    const unsaturatedFatIdx = getMicroIdx(['onverzadigd', 'unsaturated']);
-    const sugarIdx = getMicroIdx(['suiker', 'sugar']);
+    const sodiumIdx = getMicroIdx(['natrium', 'sodium', 'na', 'na (mg)']);
+    const potassiumIdx = getMicroIdx(['kalium', 'potassium', 'k', 'k (mg)']);
+    const calciumIdx = getMicroIdx(['calcium', 'ca', 'ca (mg)']);
+    const ironIdx = getMicroIdx(['ijzer', 'iron', 'fe', 'fe (mg)']);
+    const magnesiumIdx = getMicroIdx(['magnesium', 'mg', 'mg (mg)']);
+    const phosphorusIdx = getMicroIdx(['fosfor', 'phosphorus', 'p', 'p (mg)']);
+    const zincIdx = getMicroIdx(['zink', 'zinc', 'zn', 'zn (mg)']);
+    const vitaminAIdx = getMicroIdx(['vitamine a', 'vitamin a', 'vit a', 'retinol', 'vita (µg)']);
+    const vitaminCIdx = getMicroIdx(['vitamine c', 'vitamin c', 'vit c', 'vitc (mg)']);
+    const vitaminDIdx = getMicroIdx(['vitamine d', 'vitamin d', 'vit d', 'vitd (µg)']);
+    const vitaminEIdx = getMicroIdx(['vitamine e', 'vitamin e', 'vit e', 'vite (mg)']);
+    const vitaminB1Idx = getMicroIdx(['vitamine b1', 'vitamin b1', 'thiamine', 'vitb1', 'b1 (mg)']);
+    const vitaminB2Idx = getMicroIdx(['vitamine b2', 'vitamin b2', 'riboflavin', 'vitb2', 'b2 (mg)']);
+    const vitaminB3Idx = getMicroIdx(['vitamine b3', 'vitamin b3', 'niacine', 'vitb3', 'b3 (mg)']);
+    const vitaminB6Idx = getMicroIdx(['vitamine b6', 'vitamin b6', 'vitb6', 'b6 (mg)']);
+    const vitaminB12Idx = getMicroIdx(['vitamine b12', 'vitamin b12', 'cyanocobalamine', 'vitb12', 'b12 (µg)']);
+    const folateIdx = getMicroIdx(['folaat', 'folate', 'fol (µg)']);
+    const cholesterolIdx = getMicroIdx(['cholesterol', 'chol (mg)']);
+    const saturatedFatIdx = getMicroIdx(['verzadigd', 'saturated', 'vetavz', 'sat (g)']);
+    const unsaturatedFatIdx = getMicroIdx(['onverzadigd', 'unsaturated', 'vetonz', 'unsat (g)']);
+    const sugarIdx = getMicroIdx(['suiker', 'sugar', 'sug (g)']);
 
     if (nameIdx === -1 || caloriesIdx === -1 || proteinIdx === -1 || carbsIdx === -1 || fatIdx === -1) {
       return Response.json({ 
