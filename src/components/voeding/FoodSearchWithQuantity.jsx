@@ -198,7 +198,6 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
                     key={u}
                     onClick={() => {
                       setUnit(u);
-                      if (u === 'stuk' && unit !== 'stuk') setQuantity(1);
                     }}
                     className={`py-2.5 rounded-lg border font-medium text-sm transition-all ${
                       unit === u
