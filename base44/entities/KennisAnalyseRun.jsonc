@@ -1,0 +1,46 @@
+{
+  "name": "KennisAnalyseRun",
+  "type": "object",
+  "properties": {
+    "gestart_op": {
+      "type": "string",
+      "description": "Timestamp van start"
+    },
+    "afgerond_op": {
+      "type": "string",
+      "description": "Timestamp van afronden"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "bezig",
+        "afgerond",
+        "fout"
+      ],
+      "default": "bezig"
+    },
+    "aantal_artikelen": {
+      "type": "number",
+      "description": "Aantal goedgekeurde literatuurartikelen geanalyseerd"
+    },
+    "aantal_supplementen": {
+      "type": "number",
+      "description": "Aantal supplementen in kennisbank"
+    },
+    "aantal_inzichten": {
+      "type": "number",
+      "description": "Aantal nieuwe inzichten gegenereerd"
+    },
+    "fout_melding": {
+      "type": "string"
+    },
+    "samenvatting": {
+      "type": "string",
+      "description": "Korte samenvatting van de analyserun"
+    }
+  },
+  "required": [
+    "gestart_op",
+    "status"
+  ]
+}

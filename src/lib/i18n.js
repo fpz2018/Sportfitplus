@@ -20,6 +20,7 @@ export const translations = {
     receptenBeheer: 'Recepten beheer',
     supplementen: 'Supplementen',
     supplementenBeheer: 'Supplementen Beheer',
+    kennisUpdate: 'Kennis Analyse',
     upgradePremium: 'Upgrade naar Premium',
     kennissysteem: 'Kennissysteem',
 
@@ -118,6 +119,7 @@ export const translations = {
     receptenBeheer: 'Recipe Management',
     supplementen: 'Supplements',
     supplementenBeheer: 'Supplements Management',
+    kennisUpdate: 'Knowledge Analysis',
     upgradePremium: 'Upgrade to Premium',
     kennissysteem: 'Knowledge System',
 

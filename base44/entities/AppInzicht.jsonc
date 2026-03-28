@@ -1,0 +1,74 @@
+{
+  "name": "AppInzicht",
+  "type": "object",
+  "properties": {
+    "domein": {
+      "type": "string",
+      "enum": [
+        "gids",
+        "calculator",
+        "supplementen",
+        "onboarding",
+        "training",
+        "voeding",
+        "algemeen"
+      ],
+      "description": "Welk deel van de app wordt geraakt"
+    },
+    "titel": {
+      "type": "string",
+      "description": "Korte titel van het inzicht"
+    },
+    "samenvatting": {
+      "type": "string",
+      "description": "Uitleg van het inzicht"
+    },
+    "huidige_waarde": {
+      "type": "string",
+      "description": "Wat staat er nu in de app (bijv. huidige tekst of formule)"
+    },
+    "aanbevolen_wijziging": {
+      "type": "string",
+      "description": "Concreet voorstel: wat moet er veranderen"
+    },
+    "onderbouwing": {
+      "type": "string",
+      "description": "Wetenschappelijke onderbouwing uit de kennisbank of literatuur"
+    },
+    "bron_artikelen": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Titels van de literatuurartikelen waarop dit gebaseerd is"
+    },
+    "prioriteit": {
+      "type": "string",
+      "enum": [
+        "hoog",
+        "middel",
+        "laag"
+      ],
+      "default": "middel"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "nieuw",
+        "bekeken",
+        "toegepast",
+        "afgewezen"
+      ],
+      "default": "nieuw"
+    },
+    "analyse_run_id": {
+      "type": "string",
+      "description": "ID van de analyserun waarmee dit gegenereerd is"
+    }
+  },
+  "required": [
+    "domein",
+    "titel",
+    "samenvatting"
+  ]
+}
