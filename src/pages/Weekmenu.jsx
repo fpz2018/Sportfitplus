@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, ChevronRight, Loader2, ShoppingCart, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, ShoppingCart, Clock, Sparkles } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import MaaltijdSlot from '@/components/weekmenu/MaaltijdSlot';
@@ -30,6 +30,7 @@ export default function Weekmenu() {
   const [alleFoods, setAlleFoods] = useState([]);
   const [boodschappenOpen, setBoodschappenOpen] = useState(false);
   const [foodSearchType, setFoodSearchType] = useState(null); // maaltijd_type voor food search
+  const [generatingMenu, setGeneratingMenu] = useState(false);
 
   const weekDagen = getWeekDays(addDays(new Date(), weekOffset * 7));
 
@@ -131,6 +132,47 @@ export default function Weekmenu() {
     }
   }
 
+  async function genererenVolledagMenu() {
+    if (!profile) return;
+    setGeneratingMenu(true);
+    
+    try {
+      const res = await base44.functions.invoke('generateFullDayMenu', {
+        date: format(geselecteerdeDag, 'yyyy-MM-dd'),
+        targetCalories: profile.target_calories,
+        targetProtein: profile.protein_target_g,
+        targetCarbs: profile.carbs_target_g,
+        targetFat: profile.fat_target_g,
+      });
+
+      // Voeg alle recepten toe
+      const { dagMenu } = res.data;
+      const dagStr = format(geselecteerdeDag, 'yyyy-MM-dd');
+
+      for (const [mealType, recept] of Object.entries(dagMenu)) {
+        if (recept) {
+          await base44.entities.WeekMenu.create({
+            datum: dagStr,
+            maaltijd_type: mealType,
+            recept_id: recept.id,
+            recept_titel: recept.title,
+            recept_image_url: recept.image_url || null,
+            calories: recept.calories_per_serving,
+            protein_g: recept.protein_g,
+            carbs_g: recept.carbs_g,
+            fat_g: recept.fat_g,
+          });
+        }
+      }
+
+      await laadItems(user);
+    } catch (error) {
+      console.error('Menu genereren mislukt:', error);
+    } finally {
+      setGeneratingMenu(false);
+    }
+  }
+
   // Dagelijkse macrototalen
   function totalen(dag) {
     const dagItems = itemsVoorDag(dag);
@@ -204,6 +246,26 @@ export default function Weekmenu() {
           );
         })}
       </div>
+
+      {/* Knop voor volledige dag genereren (alleen als dag leeg is) */}
+      {profile && itemsVoorDag(geselecteerdeDag).length === 0 && (
+        <div className="mb-4">
+          <button onClick={genererenVolledagMenu} disabled={generatingMenu}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-primary/40 bg-primary/5 text-primary text-sm font-medium hover:bg-primary/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            {generatingMenu ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Menu samenstellen...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                AI genereert volledig dagmenu
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Macro overzicht voor geselecteerde dag */}
       {profile && (() => {

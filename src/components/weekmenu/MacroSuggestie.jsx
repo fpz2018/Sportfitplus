@@ -45,24 +45,28 @@ export default function MacroSuggestie({ resterend, recepten, voedingsmiddelen =
 
     const alles = [...receptenLijst, ...voedingLijst];
 
+    // Bereken de gewenste macro-verhouding
+    const proteinPercentage = resterend.prot > 0 ? (resterend.prot * 4) / resterend.cal : 0;
+    const carbsPercentage = resterend.carbs > 0 ? (resterend.carbs * 4) / resterend.cal : 0;
+    const fatPercentage = resterend.fat > 0 ? (resterend.fat * 9) / resterend.cal : 0;
+
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Je bent een voedingsdeskundige. Een gebruiker heeft al maaltijden gepland voor vandaag en heeft nog EXACT de volgende macro's over:
-- Calorieën: ${resterend.cal} kcal
-- Eiwit: ${resterend.prot}g
-- Koolhydraten: ${resterend.carbs}g
-- Vetten: ${resterend.fat}g
+      prompt: `Je bent een voedingsdeskundige. Een gebruiker heeft nog EXACT de volgende macro's over:
+- Calorieën: ${resterend.cal} kcal (100%)
+- Eiwit: ${resterend.prot}g (${Math.round(proteinPercentage * 100)}% van kcal)
+- Koolhydraten: ${resterend.carbs}g (${Math.round(carbsPercentage * 100)}% van kcal)
+- Vetten: ${resterend.fat}g (${Math.round(fatPercentage * 100)}% van kcal)
 
-BELANGRIJKE REGELS:
-1. Kies recepten/voedingsmiddelen die SAMEN de calorieën vullen (niet één item met 165 kcal als er 951 kcal over is)
-2. Suggereer items die samen approximately ${resterend.cal} kcal totaal zijn
-3. Focus op items die de macro tekorten vullen (grote tekorten eerst)
-4. TOP 3 items/combinaties die het meest logisch passen
-5. Geef voor elk item WHY het wordt gekozen in de huishoudse context
+KRITISCHE INSTRUCTIES:
+1. De user moet items ontvangen die SAMEN ongeveer ${resterend.cal} kcal zijn
+2. De items moeten de exacte macro-verhouding aanvullen (${Math.round(proteinPercentage * 100)}% eiwit, ${Math.round(carbsPercentage * 100)}% carbs, ${Math.round(fatPercentage * 100)}% vet)
+3. Geef TOP 3 suggesties (recepten of voedingsmiddelen apart, niet gemengd)
+4. Prioriteit: items kiezen die de GROOTSTE tekorten opvullen (eiwit=${resterend.prot}g, carbs=${resterend.carbs}g, vet=${resterend.fat}g)
+5. Voor elk item uitleggen: hoeveel kcal het is, hoe het helpt bij de macro-balance, en in welke maaltijd het past
+6. Items MOETEN uit de gegeven lijst komen, gebruik exacte id's
 
-Beschikbare items (recepten + voedingsmiddelen):
-${JSON.stringify(alles.slice(0, 300))}
-
-Geef alleen items terug die daadwerkelijk in de lijst staan. Gebruik de exacte id's en type.`,
+Beschikbare items:
+${JSON.stringify(alles.slice(0, 300))}`,
       response_json_schema: {
         type: 'object',
         properties: {
