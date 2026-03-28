@@ -8,7 +8,7 @@ import { LanguageProvider } from '@/lib/LanguageContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import Dashboard from './pages/Dashboard';
-import Onboarding from './pages/Onboarding';
+import Onboarding from './pages/Onboarding.jsx';
 import Calculator from './pages/Calculator';
 import Voortgang from './pages/Voortgang';
 import Schemas from './pages/Schemas';

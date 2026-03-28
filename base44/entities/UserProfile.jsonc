@@ -6,7 +6,8 @@
       "type": "string",
       "enum": [
         "man",
-        "vrouw"
+        "vrouw",
+        "anders"
       ]
     },
     "age": {
@@ -76,6 +77,10 @@
         "gevorderd"
       ]
     },
+    "sport_type": {
+      "type": "string",
+      "description": "Welke sport(en) beoefent de gebruiker"
+    },
     "tdee": {
       "type": "number"
     },
@@ -125,24 +130,72 @@
       "type": "boolean",
       "default": false
     },
+    "hoofd_doel": {
+      "type": "string",
+      "enum": [
+        "afslanken",
+        "spieropbouw",
+        "gezond_blijven",
+        "klachten_verminderen",
+        "prestatie_verbeteren",
+        "energie_verhogen",
+        "welzijn"
+      ],
+      "description": "Primaire doelstelling van de gebruiker"
+    },
+    "sub_doelen": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Aanvullende doelen"
+    },
     "slaap_uren": {
-      "type": "number",
-      "description": "Gemiddeld aantal uren slaap per nacht"
+      "type": "number"
+    },
+    "slaap_kwaliteit": {
+      "type": "string",
+      "enum": [
+        "slecht",
+        "matig",
+        "goed",
+        "uitstekend"
+      ],
+      "description": "Subjectieve slaapkwaliteit"
     },
     "stress_niveau": {
-      "type": "number",
-      "description": "Stressniveau 1-10"
+      "type": "number"
+    },
+    "stress_oorzaak": {
+      "type": "string",
+      "description": "Voornaamste stressbron (werk, relatie, financieel, etc.)"
+    },
+    "meditatie_of_ontspanning": {
+      "type": "boolean",
+      "default": false,
+      "description": "Doet de gebruiker al aan meditatie of ontspanningsoefeningen"
+    },
+    "ontspanning_methode": {
+      "type": "string",
+      "description": "Welke ontspanningsmethode (yoga, meditatie, wandelen, etc.)"
+    },
+    "herstel_prioriteit": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is herstel een primaire focus voor de gebruiker"
     },
     "gezondheids_doelen": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Bijv. spieropbouw, vetverlies, energie, slaap"
+      }
     },
     "blessures_klachten": {
+      "type": "string"
+    },
+    "chronische_aandoeningen": {
       "type": "string",
-      "description": "Huidige blessures of klachten"
+      "description": "Chronische aandoeningen die relevant zijn (bijv. diabetes, hypertensie)"
     },
     "voedingspatroon": {
       "type": "string",
@@ -153,23 +206,26 @@
         "pescotarisch",
         "keto",
         "anders"
-      ],
-      "description": "Eetpatroon"
+      ]
+    },
+    "allergie\u00ebn": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Voedselallergie\u00ebn of intoleranties"
     },
     "supplement_doelen": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Specifieke doelen voor supplementen"
+      }
     },
     "huidige_supplementen": {
-      "type": "string",
-      "description": "Welke supplementen gebruikt de gebruiker al"
+      "type": "string"
     },
     "supplement_advies": {
       "type": "array",
-      "description": "AI-gegenereerd persoonlijk supplementadvies op basis van profiel + kennisbank",
       "items": {
         "type": "object",
         "properties": {
@@ -192,8 +248,15 @@
       }
     },
     "supplement_advies_gegenereerd_op": {
+      "type": "string"
+    },
+    "ai_trainings_motivatie": {
       "type": "string",
-      "description": "Timestamp wanneer advies is gegenereerd"
+      "description": "AI-gegenereerde motivatie voor de trainingsmethode"
+    },
+    "ai_welzijn_advies": {
+      "type": "string",
+      "description": "AI-gegenereerd advies voor slaap, stress en herstel"
     }
   },
   "required": []
