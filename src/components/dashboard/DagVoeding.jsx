@@ -53,7 +53,7 @@ export default function DagVoeding({ profile, todayLog, today }) {
           </div>
           <div>
             <h2 className="font-semibold text-foreground">Voeding vandaag</h2>
-            <p className="text-xs text-muted-foreground">Doel: {calTarget} kcal · {protTarget}g eiwit</p>
+            <p className="text-xs text-muted-foreground">Doel: {calTarget} kcal · {protTarget}g eiwit · {profile?.carbs_target_g || 0}g koolh. · {profile?.fat_target_g || 0}g vet</p>
           </div>
         </div>
         <Link to="/weekmenu" className="text-xs text-primary flex items-center gap-1 hover:underline shrink-0">
