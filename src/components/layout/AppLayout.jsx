@@ -1,5 +1,5 @@
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload, Newspaper, CalendarDays, TrendingUp, Menu, X, Pill, Brain, HeartPulse, Bell } from 'lucide-react';
+import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload, Newspaper, CalendarDays, TrendingUp, Menu, X, Pill, Brain, HeartPulse, Bell, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -51,24 +51,39 @@ export default function AppLayout() {
 
   const isDashboard = location.pathname === '/';
 
+  // Breadcrumb
+  const getBreadcrumb = () => {
+    const allItems = [...navItemsConfig, ...adminNavItemsConfig];
+    const current = allItems.find(item => item.to === location.pathname);
+    return current ? current.label : null;
+  };
+
   return (
     <div className="min-h-screen bg-background">
 
       {/* ── Minimalistische topbalk ── */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-sm border-b border-border">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-          {/* Logo / terug naar vandaag */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <Dumbbell className="w-3.5 h-3.5 text-primary-foreground" />
-            </div>
-            {!isDashboard && (
-              <span className="font-semibold text-sm text-foreground">Sportfit Plus</span>
-            )}
-            {isDashboard && (
-              <span className="font-semibold text-sm text-foreground">Sportfit Plus</span>
-            )}
-          </Link>
+          {/* Logo / terug naar vandaag + Breadcrumb */}
+              <div className="flex items-center gap-2">
+                <Link to="/" className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+                    <Dumbbell className="w-3.5 h-3.5 text-primary-foreground" />
+                  </div>
+                  {!isDashboard && (
+                    <span className="font-semibold text-sm text-foreground">Sportfit Plus</span>
+                  )}
+                  {isDashboard && (
+                    <span className="font-semibold text-sm text-foreground">Sportfit Plus</span>
+                  )}
+                </Link>
+                {!isDashboard && getBreadcrumb() && (
+                  <>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{getBreadcrumb()}</span>
+                  </>
+                )}
+              </div>
 
           <div className="flex items-center gap-2">
             <NotificationBell />
