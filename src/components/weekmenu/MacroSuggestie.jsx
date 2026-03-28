@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Sparkles, Loader2, ChefHat, Plus, X } from 'lucide-react';
 
-export default function MacroSuggestie({ resterend, recepten, geselecteerdeDag, maaltijdTypes, onVoegToe }) {
+export default function MacroSuggestie({ resterend, recepten, voedingsmiddelen = [], geselecteerdeDag, maaltijdTypes, onVoegToe }) {
   const [loading, setLoading] = useState(false);
   const [suggesties, setSuggesties] = useState(null);
   const [open, setOpen] = useState(false);
@@ -19,6 +19,7 @@ export default function MacroSuggestie({ resterend, recepten, geselecteerdeDag, 
     const receptenLijst = recepten
       .filter(r => r.calories_per_serving || r.protein_g || r.carbs_g || r.fat_g)
       .map(r => ({
+        type: 'recept',
         id: r.id,
         titel: r.title,
         categorie: r.category,
@@ -28,6 +29,21 @@ export default function MacroSuggestie({ resterend, recepten, geselecteerdeDag, 
         vetten: r.fat_g || 0,
       }));
 
+    // Geef AI een lijst van beschikbare voedingsmiddelen met hun macro's
+    const voedingLijst = voedingsmiddelen
+      .filter(v => v.calories || v.protein_g || v.carbs_g || v.fat_g)
+      .map(v => ({
+        type: 'voedingsmiddel',
+        id: v.id,
+        titel: v.name,
+        kcal: v.calories || 0,
+        eiwit: v.protein_g || 0,
+        koolhydraten: v.carbs_g || 0,
+        vetten: v.fat_g || 0,
+      }));
+
+    const alles = [...receptenLijst, ...voedingLijst];
+
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `Je bent een voedingsdeskundige. Een gebruiker heeft al maaltijden gepland voor vandaag en heeft nog de volgende macro's over:
 - Calorieën: ${resterend.cal} kcal
@@ -35,14 +51,14 @@ export default function MacroSuggestie({ resterend, recepten, geselecteerdeDag, 
 - Koolhydraten: ${resterend.carbs}g
 - Vetten: ${resterend.fat}g
 
-Kies uit de onderstaande recepten de TOP 3 die de resterende macro's zo goed mogelijk aanvullen. Prioriteer op basis van de grootste tekorten. 
-Als iemand weinig vet over heeft maar veel eiwit, kies dan recepten met weinig vet en veel eiwit. 
-Geef voor elk recept een korte uitleg (1 zin) waarom het past.
+Kies uit de onderstaande recepten en voedingsmiddelen de TOP 3 die de resterende macro's zo goed mogelijk aanvullen, ZONDER het doel te overschrijden. 
+Prioriteer op basis van de grootste tekorten. Als iemand veel eiwit nodig heeft, prioriteer voedingsmiddelen/recepten met veel eiwit.
+Geef voor elk item een korte uitleg (1 zin) waarom het past.
 
-Beschikbare recepten (JSON):
-${JSON.stringify(receptenLijst.slice(0, 200))}
+Beschikbare items (recepten + voedingsmiddelen):
+${JSON.stringify(alles.slice(0, 300))}
 
-Geef alleen recepten terug die daadwerkelijk in de lijst staan. Gebruik de exacte id's.`,
+Geef alleen items terug die daadwerkelijk in de lijst staan. Gebruik de exacte id's en type.`,
       response_json_schema: {
         type: 'object',
         properties: {
@@ -51,7 +67,8 @@ Geef alleen recepten terug die daadwerkelijk in de lijst staan. Gebruik de exact
             items: {
               type: 'object',
               properties: {
-                recept_id: { type: 'string' },
+                type: { type: 'string', enum: ['recept', 'voedingsmiddel'] },
+                id: { type: 'string' },
                 reden: { type: 'string' },
                 maaltijd_type: { type: 'string', enum: ['ontbijt', 'lunch', 'diner', 'snack'] },
               }
@@ -61,10 +78,15 @@ Geef alleen recepten terug die daadwerkelijk in de lijst staan. Gebruik de exact
       }
     });
 
-    // Koppel de suggesties terug aan de volledige receptobjecten
+    // Koppel de suggesties terug aan de volledige objecten
     const verrijkt = (result?.suggesties || []).map(s => {
-      const recept = recepten.find(r => r.id === s.recept_id);
-      return recept ? { ...s, recept } : null;
+      if (s.type === 'recept') {
+        const recept = recepten.find(r => r.id === s.id);
+        return recept ? { ...s, recept } : null;
+      } else {
+        const item = voedingsmiddelen.find(v => v.id === s.id);
+        return item ? { ...s, voedingsmiddel: item } : null;
+      }
     }).filter(Boolean);
 
     setSuggesties(verrijkt);
@@ -105,41 +127,48 @@ Geef alleen recepten terug die daadwerkelijk in de lijst staan. Gebruik de exact
             </div>
           ) : (
             <div className="divide-y divide-border">
-              {suggesties?.map((s, i) => {
-                const r = s.recept;
-                const alGepland = maaltijdTypes.includes(s.maaltijd_type);
-                return (
-                  <div key={i} className="p-3 flex items-start gap-3">
-                    {r.image_url ? (
-                      <img src={r.image_url} alt={r.title} className="w-12 h-12 rounded-xl object-cover shrink-0" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-                        <ChefHat className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{r.title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {r.calories_per_serving && `${r.calories_per_serving} kcal · `}
-                        {r.protein_g && `${r.protein_g}g eiwit · `}
-                        {r.carbs_g && `${r.carbs_g}g koolh · `}
-                        {r.fat_g && `${r.fat_g}g vet`}
-                      </p>
-                      <p className="text-xs text-primary/80 mt-1 italic">{s.reden}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs text-muted-foreground capitalize bg-secondary px-2 py-0.5 rounded-md">{s.maaltijd_type}</span>
-                        <button
-                          onClick={() => onVoegToe(r, s.maaltijd_type)}
-                          disabled={alGepland}
-                          className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${alGepland ? 'bg-secondary text-muted-foreground cursor-not-allowed' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}>
-                          <Plus className="w-3 h-3" />
-                          {alGepland ? 'Al gepland' : 'Inplannen'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+               {suggesties?.map((s, i) => {
+                 const isRecept = s.type === 'recept';
+                 const item = isRecept ? s.recept : s.voedingsmiddel;
+                 const titel = isRecept ? item.title : item.name;
+                 const imageUrl = item.image_url;
+                 const calPerUnit = isRecept ? item.calories_per_serving : item.calories;
+                 const protPerUnit = isRecept ? item.protein_g : item.protein_g;
+                 const carbsPerUnit = isRecept ? item.carbs_g : item.carbs_g;
+                 const fatPerUnit = isRecept ? item.fat_g : item.fat_g;
+                 const alGepland = maaltijdTypes.includes(s.maaltijd_type);
+                 return (
+                   <div key={i} className="p-3 flex items-start gap-3">
+                     {imageUrl ? (
+                       <img src={imageUrl} alt={titel} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                     ) : (
+                       <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                         <ChefHat className="w-5 h-5 text-muted-foreground" />
+                       </div>
+                     )}
+                     <div className="flex-1 min-w-0">
+                       <p className="text-sm font-medium text-foreground truncate">{titel}</p>
+                       <p className="text-xs text-muted-foreground mt-0.5">
+                         {calPerUnit && `${calPerUnit} kcal · `}
+                         {protPerUnit && `${protPerUnit}g eiwit · `}
+                         {carbsPerUnit && `${carbsPerUnit}g koolh · `}
+                         {fatPerUnit && `${fatPerUnit}g vet`}
+                       </p>
+                       <p className="text-xs text-primary/80 mt-1 italic">{s.reden}</p>
+                       <div className="flex items-center gap-2 mt-2">
+                         <span className="text-xs text-muted-foreground capitalize bg-secondary px-2 py-0.5 rounded-md">{isRecept ? 'Recept' : 'Voedingsmiddel'}</span>
+                         <button
+                           onClick={() => onVoegToe(item, s.maaltijd_type, isRecept ? 'recept' : 'voedingsmiddel')}
+                           disabled={alGepland}
+                           className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${alGepland ? 'bg-secondary text-muted-foreground cursor-not-allowed' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}>
+                           <Plus className="w-3 h-3" />
+                           {alGepland ? 'Al gepland' : 'Inplannen'}
+                         </button>
+                       </div>
+                     </div>
+                   </div>
+                 );
+               })}
             </div>
           )}
 
