@@ -12,6 +12,7 @@ const navItemsConfig = [
   { to: '/schemas', icon: Dumbbell, label: 'Training' },
   { to: '/weekmenu', icon: CalendarDays, label: 'Weekmenu' },
   { to: '/voeding', icon: Utensils, label: 'Voeding' },
+  { to: '/voedingsmiddelen', icon: Utensils, label: 'Mijn Voedingsmiddelen' },
   { to: '/recepten', icon: ChefHat, label: 'Recepten' },
   { to: '/supplementen', icon: Pill, label: 'Supplementen' },
   { to: '/welzijn', icon: HeartPulse, label: 'Welzijn' },
