@@ -195,18 +195,17 @@ export default function Weekmenu() {
         if (doelen.length === 0) return null;
         return (
           <div className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Macro's vandaag</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Nog nodig vandaag</p>
             {doelen.map(({ label, gegeten, doel, kleur, unit }) => {
-              const pct = Math.min((gegeten / doel) * 100, 100);
               const resterend = Math.max(doel - gegeten, 0);
+              const pct = Math.min((gegeten / doel) * 100, 100);
               const over = gegeten > doel;
               return (
                 <div key={label}>
                   <div className="flex justify-between text-xs mb-1">
                     <span className="text-muted-foreground">{label}</span>
                     <span className={over ? 'text-destructive font-medium' : 'text-foreground'}>
-                      {gegeten > 0 ? <>{gegeten} / {doel} {unit}</> : <span className="text-muted-foreground">{resterend} {unit} resterend</span>}
-                      {over && <span className="text-destructive ml-1">(+{gegeten - doel})</span>}
+                      {over ? <>Teveel: +{Math.round(gegeten - doel)} {unit}</> : <>{Math.round(resterend)} {unit} resterend</>}
                     </span>
                   </div>
                   <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
