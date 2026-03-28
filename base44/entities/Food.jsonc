@@ -54,7 +54,8 @@
       "type": "string",
       "enum": [
         "openfoodfacts",
-        "handmatig"
+        "handmatig",
+        "nevo_rivm"
       ],
       "default": "handmatig",
       "description": "Bron van het voedingsmiddel"
