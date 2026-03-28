@@ -64,7 +64,7 @@ export default function MijnVoedingsmiddelen() {
     refetch();
   }
 
-  async function handleImport(e) {
+  function handleImport(e) {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -72,23 +72,33 @@ export default function MijnVoedingsmiddelen() {
     setImportError(null);
     setImportSuccess(null);
 
-    try {
-      const text = await file.text();
-      const res = await base44.functions.invoke('importFoods', { csv: text });
-      
-      if (res.data?.success) {
-        setImportSuccess(`${res.data.imported} voedingsmiddelen geïmporteerd!`);
-        refetch();
-        e.target.value = '';
-      } else {
-        setImportError(res.data?.error || 'Import mislukt');
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result;
+        if (!text) throw new Error('Bestand kon niet gelezen worden');
+        
+        const res = await base44.functions.invoke('importFoods', { csv: text });
+        
+        if (res.data?.success) {
+          setImportSuccess(`${res.data.imported} voedingsmiddelen geïmporteerd!`);
+          refetch();
+          e.target.value = '';
+        } else {
+          setImportError(res.data?.error || 'Import mislukt');
+        }
+      } catch (error) {
+        console.error('Import error:', error);
+        setImportError(error.message || 'Import mislukt');
+      } finally {
+        setImportLoading(false);
       }
-    } catch (error) {
-      console.error('Import error:', error);
-      setImportError(error.message || 'Import mislukt');
-    } finally {
+    };
+    reader.onerror = () => {
+      setImportError('Bestand kon niet gelezen worden');
       setImportLoading(false);
-    }
+    };
+    reader.readAsText(file);
   }
 
   function downloadTemplate() {
@@ -133,6 +143,7 @@ export default function MijnVoedingsmiddelen() {
               onChange={handleImport}
               disabled={importLoading}
               className="hidden"
+              key={importLoading ? 'reset' : 'normal'}
             />
           </label>
           <button
