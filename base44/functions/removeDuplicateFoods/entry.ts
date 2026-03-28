@@ -28,9 +28,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Delete duplicates
-    for (const id of toDelete) {
-      await base44.entities.Food.delete(id);
+    // Delete duplicates with proper rate limiting
+    for (let i = 0; i < toDelete.length; i++) {
+      await base44.entities.Food.delete(toDelete[i]);
+      // Add delay between deletes to avoid rate limiting
+      if (i < toDelete.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
     }
 
     return Response.json({ 
