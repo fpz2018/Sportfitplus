@@ -23,8 +23,13 @@ Deno.serve(async (req) => {
 
       // Delete in sequence with proper delays
       for (const food of foods) {
-        await base44.entities.Food.delete(food.id);
-        deleted++;
+        try {
+          await base44.entities.Food.delete(food.id);
+          deleted++;
+        } catch (deleteError) {
+          // Item might already be deleted, continue
+          console.log(`Could not delete ${food.id}: ${deleteError.message}`);
+        }
         // Wait 50ms between each delete
         await new Promise(resolve => setTimeout(resolve, 50));
       }
