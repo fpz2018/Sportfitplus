@@ -61,9 +61,9 @@ export default function Weekmenu() {
     return items.filter(i => i.datum === dagStr);
   }
 
-  function itemVoorType(dag, type) {
+  function itemsVoorType(dag, type) {
     const dagStr = format(dag, 'yyyy-MM-dd');
-    return items.find(i => i.datum === dagStr && i.maaltijd_type === type) || null;
+    return items.filter(i => i.datum === dagStr && i.maaltijd_type === type);
   }
 
   async function voegToe(recept, overrideType = null) {
@@ -268,7 +268,7 @@ export default function Weekmenu() {
               <MaaltijdSlot
                 key={type}
                 type={type}
-                item={itemVoorType(geselecteerdeDag, type)}
+                items={itemsVoorType(geselecteerdeDag, type)}
                 onAdd={(t) => setKiezerOpen(t)}
                 onRemove={verwijder}
                 onOpenFoodSearch={(t) => setFoodSearchType(t)}

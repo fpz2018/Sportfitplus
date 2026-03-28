@@ -43,7 +43,11 @@ export default function FoodSearch({ onSelect, onClose }) {
   }, [scannerActive]);
 
   async function handleSearch() {
-    if (!query.trim()) return;
+    if (!query.trim()) {
+      setResults([]);
+      setSearched(false);
+      return;
+    }
     setLoading(true);
     setSearched(true);
     
@@ -51,6 +55,16 @@ export default function FoodSearch({ onSelect, onClose }) {
     setResults(res.data.products || []);
     setLoading(false);
   }
+
+  // Autocomplete: search as you type
+  useEffect(() => {
+    if (query.trim().length > 1) {
+      handleSearch();
+    } else {
+      setResults([]);
+      setSearched(false);
+    }
+  }, [query]);
 
   async function handleBarcodeScan(barcode) {
     setLoading(true);
@@ -91,15 +105,13 @@ export default function FoodSearch({ onSelect, onClose }) {
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="Zoek naar voedingsmiddel..."
+                placeholder="Typ (bijv. BAN voor banaan)..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="flex-1 px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                autoFocus
               />
-              <Button onClick={handleSearch} disabled={loading} className="gap-2">
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-              </Button>
               <Button onClick={() => setScannerActive(true)} variant="outline" className="gap-2">
                 <QrCode className="w-4 h-4" />
               </Button>
