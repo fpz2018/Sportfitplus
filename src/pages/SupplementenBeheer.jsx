@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Edit2, Trash2, FlaskConical, ShoppingBag, BookOpen, Check, X, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, FlaskConical, ShoppingBag, BookOpen, Check, X, Loader2, Sparkles, FileText } from 'lucide-react';
 
 const TABS = [
   { id: 'supplementen', label: 'Kennisbank', icon: BookOpen },
   { id: 'producten', label: 'Shop Producten', icon: ShoppingBag },
   { id: 'nieuws', label: 'Nieuws', icon: FlaskConical },
+  { id: 'kennisbron', label: 'Kennisbron', icon: Sparkles },
 ];
 
 const CATEGORIES = ['eiwit', 'aminozuren', 'vitaminen', 'mineralen', 'kruiden', 'adaptogenen', 'omega', 'probiotica', 'sport_performance', 'overig'];
@@ -47,6 +48,7 @@ export default function SupplementenBeheer() {
       {activeTab === 'supplementen' && <SupplementenBeheerTab />}
       {activeTab === 'producten' && <ProductenBeheerTab />}
       {activeTab === 'nieuws' && <NieuwsBeheerTab />}
+      {activeTab === 'kennisbron' && <KennisbronVerwerker />}
     </div>
   );
 }
@@ -336,6 +338,267 @@ function ProductenBeheerTab() {
             <button onClick={() => verwijder(item.id)} className="p-2 hover:bg-destructive/10 rounded-lg"><Trash2 className="w-4 h-4 text-destructive" /></button>
           </div>
         ))
+      )}
+    </div>
+  );
+}
+
+// --- KENNISBRON VERWERKER ---
+function KennisbronVerwerker() {
+  const [tekst, setTekst] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [resultaat, setResultaat] = useState(null);
+  const [opgeslagen, setOpgeslagen] = useState([]);
+  const [bestaandeSupps, setBestaandeSupps] = useState([]);
+
+  useEffect(() => {
+    base44.entities.Supplement.list().then(setBestaandeSupps);
+  }, []);
+
+  async function verwerkBron() {
+    if (!tekst.trim()) return;
+    setLoading(true);
+    setResultaat(null);
+
+    const bestaandeNamen = bestaandeSupps.map(s => s.naam).join(', ');
+
+    const res = await base44.integrations.Core.InvokeLLM({
+      prompt: `Je bent een expert in sportvoeding en supplementen. Analyseer onderstaande kennisbron en extraheer bruikbare, concrete adviezen.
+
+KENNISBRON:
+${tekst}
+
+REEDS AANWEZIGE SUPPLEMENTEN IN DB: ${bestaandeNamen || 'geen'}
+
+Extraheer uit de tekst:
+1. Concrete supplement-inname adviezen (timing, dosering, combinaties)
+2. Nieuwe supplementen die nog NIET in de DB staan en toegevoegd kunnen worden
+3. Updates voor bestaande supplementen (bijv. betere timing/dosering info)
+4. Een kort nieuwsartikel gebaseerd op de bron
+
+Wees specifiek en praktisch. Schrijf in het Nederlands.`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          adviezen: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                supplement: { type: "string" },
+                advies: { type: "string" },
+                timing: { type: "string" },
+                dosering: { type: "string" },
+                combineer_met: { type: "string" }
+              }
+            }
+          },
+          nieuwe_supplementen: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                naam: { type: "string" },
+                categorie: { type: "string" },
+                beschrijving: { type: "string" },
+                dosering: { type: "string" },
+                timing: { type: "string" },
+                evidence_level: { type: "string" }
+              }
+            }
+          },
+          updates_bestaande: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                supplement_naam: { type: "string" },
+                veld: { type: "string" },
+                nieuwe_waarde: { type: "string" }
+              }
+            }
+          },
+          nieuwsartikel: {
+            type: "object",
+            properties: {
+              titel: { type: "string" },
+              intro: { type: "string" },
+              inhoud: { type: "string" },
+              evidence_level: { type: "string" },
+              categorie: { type: "string" }
+            }
+          }
+        }
+      }
+    });
+
+    setResultaat(res);
+    setLoading(false);
+  }
+
+  async function slaSupplementOp(supp) {
+    await base44.entities.Supplement.create({
+      ...supp,
+      status: 'concept',
+      doelen: [],
+      voordelen: []
+    });
+    setOpgeslagen(o => [...o, supp.naam]);
+    setBestaandeSupps(s => [...s, supp]);
+  }
+
+  async function slaArtikelOp() {
+    const art = resultaat.nieuwsartikel;
+    await base44.entities.SupplementNieuws.create({
+      titel: art.titel,
+      intro: art.intro,
+      inhoud: art.inhoud,
+      evidence_level: art.evidence_level,
+      categorie: art.categorie || 'overig',
+      status: 'concept',
+      gepubliceerd_op: new Date().toISOString().split('T')[0]
+    });
+    setOpgeslagen(o => [...o, '__artikel__']);
+  }
+
+  async function pasUpdateToe(update) {
+    const supp = bestaandeSupps.find(s => s.naam.toLowerCase() === update.supplement_naam.toLowerCase());
+    if (!supp) return alert('Supplement niet gevonden in DB: ' + update.supplement_naam);
+    await base44.entities.Supplement.update(supp.id, { [update.veld]: update.nieuwe_waarde });
+    setOpgeslagen(o => [...o, update.supplement_naam + '_' + update.veld]);
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Input */}
+      <div className="bg-card border border-border rounded-2xl p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center">
+            <FileText className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-foreground">Kennisbron Verwerken</h2>
+            <p className="text-xs text-muted-foreground">Plak een artikel of blogpost — AI extraheert bruikbare adviezen</p>
+          </div>
+        </div>
+
+        <textarea
+          value={tekst}
+          onChange={e => setTekst(e.target.value)}
+          placeholder="Plak hier de kennisbrontekst (blog, artikel, onderzoekssamenvatting)..."
+          className="input-field resize-none h-40 mb-4"
+        />
+
+        <button onClick={verwerkBron} disabled={loading || !tekst.trim()}
+          className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:bg-primary/90 transition-all disabled:opacity-60">
+          {loading ? (
+            <><Loader2 className="w-4 h-4 animate-spin" /> AI analyseert bron...</>
+          ) : (
+            <><Sparkles className="w-4 h-4" /> Verwerk kennisbron</>
+          )}
+        </button>
+      </div>
+
+      {/* Resultaten */}
+      {resultaat && (
+        <div className="space-y-4">
+
+          {/* Adviezen */}
+          {resultaat.adviezen?.length > 0 && (
+            <div className="bg-card border border-border rounded-2xl p-5">
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <span className="w-6 h-6 bg-primary/10 rounded-lg flex items-center justify-center text-xs text-primary font-bold">{resultaat.adviezen.length}</span>
+                Inname Adviezen
+              </h3>
+              <div className="space-y-3">
+                {resultaat.adviezen.map((a, i) => (
+                  <div key={i} className="bg-secondary/40 rounded-xl p-4">
+                    <p className="font-medium text-sm text-foreground mb-1">{a.supplement}</p>
+                    <p className="text-sm text-muted-foreground mb-2">{a.advies}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {a.timing && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">⏰ {a.timing}</span>}
+                      {a.dosering && <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">💊 {a.dosering}</span>}
+                      {a.combineer_met && <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full">🔗 + {a.combineer_met}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Nieuwe supplementen */}
+          {resultaat.nieuwe_supplementen?.length > 0 && (
+            <div className="bg-card border border-border rounded-2xl p-5">
+              <h3 className="font-semibold text-foreground mb-3">➕ Nieuwe Supplementen Toevoegen</h3>
+              <div className="space-y-3">
+                {resultaat.nieuwe_supplementen.map((s, i) => {
+                  const isOpgeslagen = opgeslagen.includes(s.naam);
+                  return (
+                    <div key={i} className="bg-secondary/40 rounded-xl p-4 flex items-start gap-3">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm text-foreground">{s.naam}</p>
+                        <p className="text-xs text-muted-foreground capitalize mb-1">{s.categorie} · Evidence {s.evidence_level}</p>
+                        <p className="text-xs text-muted-foreground">{s.beschrijving}</p>
+                        {s.timing && <p className="text-xs text-primary mt-1">⏰ {s.timing}</p>}
+                      </div>
+                      <button
+                        onClick={() => slaSupplementOp(s)}
+                        disabled={isOpgeslagen}
+                        className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${isOpgeslagen ? 'bg-primary/10 text-primary cursor-default' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}>
+                        {isOpgeslagen ? '✓ Opgeslagen' : 'Toevoegen'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Updates bestaande */}
+          {resultaat.updates_bestaande?.length > 0 && (
+            <div className="bg-card border border-border rounded-2xl p-5">
+              <h3 className="font-semibold text-foreground mb-3">✏️ Updates voor Bestaande Supplementen</h3>
+              <div className="space-y-3">
+                {resultaat.updates_bestaande.map((u, i) => {
+                  const key = u.supplement_naam + '_' + u.veld;
+                  const isOpgeslagen = opgeslagen.includes(key);
+                  return (
+                    <div key={i} className="bg-secondary/40 rounded-xl p-4 flex items-start gap-3">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm text-foreground">{u.supplement_naam}</p>
+                        <p className="text-xs text-muted-foreground mb-1">Veld: <span className="font-medium text-foreground">{u.veld}</span></p>
+                        <p className="text-xs text-muted-foreground">{u.nieuwe_waarde}</p>
+                      </div>
+                      <button
+                        onClick={() => pasUpdateToe(u)}
+                        disabled={isOpgeslagen}
+                        className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${isOpgeslagen ? 'bg-primary/10 text-primary cursor-default' : 'bg-accent/20 text-accent hover:bg-accent/30'}`}>
+                        {isOpgeslagen ? '✓ Toegepast' : 'Toepassen'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Nieuwsartikel */}
+          {resultaat.nieuwsartikel?.titel && (
+            <div className="bg-card border border-border rounded-2xl p-5">
+              <h3 className="font-semibold text-foreground mb-3">📰 Gegenereerd Nieuwsartikel</h3>
+              <div className="bg-secondary/40 rounded-xl p-4 mb-3">
+                <p className="font-semibold text-foreground text-sm mb-1">{resultaat.nieuwsartikel.titel}</p>
+                <p className="text-xs text-muted-foreground">{resultaat.nieuwsartikel.intro}</p>
+              </div>
+              <button
+                onClick={slaArtikelOp}
+                disabled={opgeslagen.includes('__artikel__')}
+                className={`w-full py-2 rounded-xl text-sm font-medium transition-all ${opgeslagen.includes('__artikel__') ? 'bg-primary/10 text-primary cursor-default' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}>
+                {opgeslagen.includes('__artikel__') ? '✓ Artikel opgeslagen als concept' : 'Opslaan als concept nieuwsartikel'}
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
