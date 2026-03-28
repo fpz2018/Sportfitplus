@@ -39,34 +39,34 @@ Deno.serve(async (req) => {
 
     // Try NEVO format if custom format not complete
     if (nameIdx === -1) {
-      const nevoNames = ['voedsmiddel', 'voedingsmiddel', 'food', 'omschrijving', 'description'];
+      const nevoNames = ['voedingsmiddelnaam', 'voedsmiddel', 'voedingsmiddel', 'food', 'omschrijving', 'description'];
       nameIdx = header.findIndex(h => nevoNames.some(n => h.includes(n)));
       isNEVO = true;
     }
 
-    // Energy in kJ (NEVO format)
+    // Energy in kJ (NEVO format) - look for ENERCC (kcal) or ENERCJ (kJ)
     if (caloriesIdx === -1) {
-      const nevoEnergy = ['energie', 'energy_kj', 'energy (kj)', 'kcal', 'calories'];
+      const nevoEnergy = ['enercc', 'enercj', 'energie', 'energy_kj', 'energy (kj)', 'kcal', 'calories'];
       energyKjIdx = header.findIndex(h => nevoEnergy.some(n => h.includes(n)));
       if (energyKjIdx !== -1) isNEVO = true;
       caloriesIdx = energyKjIdx;
     }
 
-    // Protein
+    // Protein - PROT in NEVO
     if (proteinIdx === -1) {
-      const nevoProtein = ['eiwit', 'protein', 'protein (g)'];
+      const nevoProtein = ['prot', 'eiwit', 'protein', 'protein (g)'];
       proteinIdx = header.findIndex(h => nevoProtein.some(n => h.includes(n)));
     }
 
-    // Carbs
+    // Carbs - CHO in NEVO
     if (carbsIdx === -1) {
-      const nevoCarbs = ['koolhydraten', 'carbohydrate', 'carbs', 'koolh (g)', 'carbohydrate (g)'];
+      const nevoCarbs = ['cho', 'koolhydraten', 'carbohydrate', 'carbs', 'koolh (g)', 'carbohydrate (g)'];
       carbsIdx = header.findIndex(h => nevoCarbs.some(n => h.includes(n)));
     }
 
-    // Fat
+    // Fat - FAT in NEVO
     if (fatIdx === -1) {
-      const nevoFat = ['vet', 'fat', 'lipide', 'fat (g)'];
+      const nevoFat = ['fat', 'vet', 'lipide', 'fat (g)'];
       fatIdx = header.findIndex(h => nevoFat.some(n => h.includes(n)));
     }
 
