@@ -45,7 +45,9 @@ export default function MaaltijdSlot({ type, items = [], onAdd, onRemove, onOpen
                   {item.recept_titel} {item.quantity && `(${item.quantity}${item.quantity_unit || 'g'})`}
                 </p>
                 {item.calories && (
-                  <p className="text-xs text-muted-foreground">{Math.round(item.calories)} kcal</p>
+                  <p className="text-xs text-muted-foreground">
+                    {Math.round(item.calories)} kcal · {Math.round(item.protein_g || 0)}g eiwit · {Math.round(item.carbs_g || 0)}g koolh. · {Math.round(item.fat_g || 0)}g vet
+                  </p>
                 )}
               </div>
               <button onClick={() => onRemove(item)}

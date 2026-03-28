@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { ChevronLeft, ChevronRight, Loader2, ShoppingCart, Clock } from 'lucide-react';
-import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
+import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import MaaltijdSlot from '@/components/weekmenu/MaaltijdSlot';
 import ReceptKiezer from '@/components/weekmenu/ReceptKiezer';
@@ -257,7 +258,7 @@ export default function Weekmenu() {
               {(() => {
                 const t = totalen(geselecteerdeDag);
                 return t.cal > 0 ? (
-                  <p className="text-xs text-muted-foreground">{t.cal} kcal · {t.prot}g eiwit gepland</p>
+                  <p className="text-xs text-muted-foreground">{Math.round(t.cal)} kcal · {Math.round(t.prot)}g eiwit · {Math.round(t.carbs)}g koolh. · {Math.round(t.fat)}g vet gepland</p>
                 ) : (
                   <p className="text-xs text-muted-foreground">Nog niets ingepland</p>
                 );
