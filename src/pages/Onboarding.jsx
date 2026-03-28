@@ -119,22 +119,24 @@ export default function Onboarding() {
 
     // Haal kennisbank op om advies te baseren op actuele kennis
     setFinishStatus('Kennisbank ophalen...');
-    const [supplementen, kennisartikelen] = await Promise.all([
+    const [supplementen, goedgekeurdeArtikelen] = await Promise.all([
       base44.entities.Supplement.filter({ status: 'gepubliceerd' }),
-      base44.entities.SupplementNieuws.filter({ status: 'gepubliceerd' }),
+      base44.entities.KennisArtikel.filter({ status: 'approved' }),
     ]);
 
     const suppKennis = supplementen.map(s =>
       `${s.naam} (${s.categorie}, Evidence: ${s.evidence_level || '?'}, Dosering: ${s.dosering || '?'}, Timing: ${s.timing || '?'}, Doelen: ${s.doelen?.join(', ') || '-'})`
     ).join('\n');
 
-    const nieuws = kennisartikelen.slice(0, 5).map(a => `${a.titel}: ${a.intro || ''}`).join('\n');
+    const nieuws = goedgekeurdeArtikelen.slice(0, 8).map(a =>
+      `[${a.evidence_level || '?'}] ${a.title_nl || a.title_en}${a.summary_nl ? ': ' + a.summary_nl.substring(0, 200) : ''}`
+    ).join('\n');
 
     setFinishStatus('AI analyseert jouw profiel...');
 
-    // AI bepaalt trainingsmethode + supplement advies op basis van kennisbank
+    // AI bepaalt trainingsmethode + supplement advies op basis van kennisbank + literatuur
     const aiResult = await base44.integrations.Core.InvokeLLM({
-      prompt: `Je bent een expert personal trainer en sportvoedingsdeskundige. Analyseer dit gebruikersprofiel en geef gepersonaliseerde aanbevelingen.
+      prompt: `Je bent een expert personal trainer en sportvoedingsdeskundige. Analyseer dit gebruikersprofiel en geef gepersonaliseerde aanbevelingen op basis van de supplementen-kennisbank én goedgekeurde wetenschappelijke literatuur.
 
 GEBRUIKERSPROFIEL:
 - Geslacht: ${data.gender}, Leeftijd: ${data.age} jaar, Gewicht: ${data.weight_kg} kg
@@ -143,23 +145,23 @@ GEBRUIKERSPROFIEL:
 - Trainingsfrequentie: ${data.training_frequentie}x/week, Locatie: ${data.training_locatie}
 - Slaap: ${data.slaap_uren} uur/nacht, Stressniveau: ${data.stress_niveau}/10
 - Voedingspatroon: ${data.voedingspatroon}
-- Gezondheids­doelen: ${data.gezondheids_doelen.join(', ') || 'geen'}
+- Gezondheidsdoelen: ${data.gezondheids_doelen.join(', ') || 'geen'}
 - Blessures/klachten: ${data.blessures_klachten || 'geen'}
 - Supplement doelen: ${data.supplement_doelen.join(', ') || 'geen'}
 - Huidige supplementen: ${data.huidige_supplementen || 'geen'}
 
-BESCHIKBARE SUPPLEMENTEN IN KENNISBANK:
-${suppKennis || 'Geen supplementen gevonden'}
+SUPPLEMENTEN KENNISBANK (gebruik ALLEEN deze supplementen in je advies):
+${suppKennis || 'Geen supplementen beschikbaar'}
 
-RECENTE KENNISARTIKELEN:
-${nieuws || 'Geen artikelen'}
+GOEDGEKEURDE WETENSCHAPPELIJKE LITERATUUR (gebruik dit als wetenschappelijke onderbouwing):
+${nieuws || 'Geen goedgekeurde literatuur beschikbaar'}
 
 Geef:
-1. De beste trainingsmethode (kracht/hypertrofie/hiit/tabata) met motivatie
-2. Top 3-5 supplement aanbevelingen, ALLEEN uit de kennisbank, prioritair op basis van het profiel
-3. Specifieke timing/dosering adviezen per supplement op basis van het profiel (bijv. magnesium 's avonds voor iemand met slaapproblemen)
+1. De beste trainingsmethode (kracht/hypertrofie/hiit/tabata) met motivatie gebaseerd op het profiel
+2. Top 3-5 supplement aanbevelingen uit de kennisbank, wetenschappelijk onderbouwd met de literatuur, geprioriteerd op basis van dit specifieke profiel
+3. Specifieke timing en dosering per supplement, afgestemd op het profiel (bijv. magnesium 's avonds bij slaapproblemen, creatine na training bij kracht/hypertrofie)
 
-Schrijf in het Nederlands. Wees specifiek en praktisch.`,
+Schrijf in het Nederlands. Wees specifiek, praktisch en onderbouw aanbevelingen met de wetenschappelijke literatuur waar beschikbaar.`,
       response_json_schema: {
         type: 'object',
         properties: {

@@ -332,8 +332,16 @@ function SupplementAdvies() {
     setLoading(true);
     setAdvies(null);
 
+    const [literatuur] = await Promise.all([
+      base44.entities.KennisArtikel.filter({ status: 'approved' }),
+    ]);
+
     const suppLijst = supplementen.map(s =>
       `${s.naam} (${s.categorie}, Evidence: ${s.evidence_level || '?'}, Dosering: ${s.dosering || '?'}, Timing: ${s.timing || '?'}, Doelen: ${s.doelen?.join(', ') || '-'})`
+    ).join('\n');
+
+    const literatuurTekst = literatuur.slice(0, 8).map(a =>
+      `[${a.evidence_level || '?'}] ${a.title_nl || a.title_en}${a.summary_nl ? ': ' + a.summary_nl.substring(0, 200) : ''}`
     ).join('\n');
 
     const profielInfo = profile ? `
@@ -342,22 +350,25 @@ function SupplementAdvies() {
       - Doelgroep: ${profile.goal_group}, Ervaring: ${profile.training_ervaring}
       - Slaap: ${profile.slaap_uren || '?'} uur, Stress: ${profile.stress_niveau || '?'}/10
       - Voedingspatroon: ${profile.voedingspatroon || 'omnivoor'}
-      - Gezondheids doelen: ${profile.gezondheids_doelen?.join(', ') || '-'}
+      - Gezondheidsdoelen: ${profile.gezondheids_doelen?.join(', ') || '-'}
       - Supplement doelen: ${profile.supplement_doelen?.join(', ') || '-'}
       - Huidige supplementen: ${profile.huidige_supplementen || 'geen'}
       - Extra wensen: ${extraWensen || 'geen'}
     ` : 'Geen profiel';
 
     const res = await base44.integrations.Core.InvokeLLM({
-      prompt: `Je bent een expert sportvoedingsdeskundige. Geef gepersonaliseerd supplement advies.
+      prompt: `Je bent een expert sportvoedingsdeskundige. Geef gepersonaliseerd supplement advies op basis van het profiel, de kennisbank én wetenschappelijke literatuur.
 
 PROFIEL:
 ${profielInfo}
 
-KENNISBANK SUPPLEMENTEN:
+SUPPLEMENTEN KENNISBANK (gebruik ALLEEN deze):
 ${suppLijst}
 
-Geef top 3-5 supplement aanbevelingen, ALLEEN uit de kennisbank, met prioriteit, reden, dosering en timing specifiek voor dit profiel. Schrijf in het Nederlands.`,
+GOEDGEKEURDE WETENSCHAPPELIJKE LITERATUUR:
+${literatuurTekst || 'Geen beschikbaar'}
+
+Geef top 3-5 supplement aanbevelingen, ALLEEN uit de kennisbank, wetenschappelijk onderbouwd met de literatuur. Specificeer prioriteit, reden, dosering en timing specifiek voor dit profiel. Schrijf in het Nederlands.`,
       response_json_schema: {
         type: "object",
         properties: {
