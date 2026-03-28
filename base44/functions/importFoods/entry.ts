@@ -9,14 +9,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const formData = await req.formData();
-    const file = formData.get('file');
+    const body = await req.json();
+    const text = body.csv;
 
-    if (!file) {
-      return Response.json({ error: 'No file provided' }, { status: 400 });
+    if (!text) {
+      return Response.json({ error: 'No CSV data provided' }, { status: 400 });
     }
-
-    const text = await file.text();
     const lines = text.split('\n').map(line => line.trim()).filter(line => line);
 
     if (lines.length < 2) {
