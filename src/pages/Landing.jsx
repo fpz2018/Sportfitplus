@@ -135,7 +135,7 @@ export default function Landing() {
 
         <div className="relative max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-6">
-            <Sparkles className="w-3 h-3" /> Wetenschappelijk onderbouwde gezondheids- & leefstijlcoach
+            <Sparkles className="w-3 h-3" /> Door experts ontwikkeld · AI-ondersteund
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold text-foreground leading-tight mb-6">
@@ -254,8 +254,8 @@ export default function Landing() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { step: '01', icon: '🎯', title: 'Vertel wie je bent', desc: 'Vul de slimme onboarding in: je leeftijd, klachten, doelen, eetpatroon, slaap en activiteitsniveau. Geen oordeel, geen aannames.' },
-              { step: '02', icon: '🤖', title: 'AI maakt jouw plan', desc: 'Op basis van wetenschappelijke literatuur en jouw unieke profiel krijg je direct een persoonlijk beweeg-, voedings- en welzijnsplan.' },
-              { step: '03', icon: '📈', title: 'Log, volg & verbeter', desc: 'Dagelijks bijhouden is makkelijk. De coach leert van jouw data en past het plan aan naarmate je vordert.' },
+              { step: '02', icon: '🧬', title: 'Experts + AI maken jouw plan', desc: 'Onze experts legden de wetenschappelijke basis. AI vertaalt dat naar een persoonlijk beweeg-, voedings- en welzijnsplan voor jóu.' },
+              { step: '03', icon: '📈', title: 'Log, volg & verbeter', desc: 'Dagelijks bijhouden is makkelijk. Het plan past zich aan naarmate je vordert — altijd gebaseerd op bewezen inzichten.' },
             ].map(({ step, icon, title, desc }) => (
               <div key={step} className="text-center">
                 <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
@@ -266,6 +266,37 @@ export default function Landing() {
                 <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TEAM ────────────────────────────────────────────── */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">Mensen achter het programma</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">AI is ons hulpmiddel — maar het fundament is gelegd door echte experts. Elke aanbeveling, elk plan en elke voedingstip is gebaseerd op wetenschappelijke literatuur die door ons team is beoordeeld.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-5 mb-10">
+            {[
+              { avatar: '👨‍⚕️', name: 'Voedings- & dieetexperts', desc: 'Geregistreerde diëtisten en sportersvoedingsdeskundigen die de maaltijdplannen, macro-richtlijnen en supplementadviezen onderbouwen.' },
+              { avatar: '🏋️‍♀️', name: 'Bewegings- & revalidatiespecialisten', desc: 'Fysiotherapeuten en bewegingswetenschappers die de trainingsschema\'s ontwerpen — ook voor mensen met blessures of beperkingen.' },
+              { avatar: '🔬', name: 'Wetenschappelijk redactieteam', desc: 'Wij monitoren continu nieuwe literatuur (PubMed, richtlijnen) en updaten het platform zodat adviezen altijd actueel en betrouwbaar zijn.' },
+            ].map(({ avatar, name, desc }) => (
+              <div key={name} className="bg-card border border-border rounded-2xl p-6 text-center hover:border-primary/30 transition-all">
+                <div className="text-4xl mb-4">{avatar}</div>
+                <h3 className="font-semibold text-foreground text-sm mb-2">{name}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+          {/* AI disclaimer banner */}
+          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 flex items-start gap-4">
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0 text-xl">🤖</div>
+            <div>
+              <p className="font-semibold text-foreground text-sm mb-1">AI als slimme assistent, niet als vervanging</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">Onze AI personaliseert jouw plan op basis van de expertkennis die ons team heeft opgebouwd. De AI neemt geen medische beslissingen — bij klachten adviseren we altijd een arts of specialist te raadplegen.</p>
+            </div>
           </div>
         </div>
       </section>
