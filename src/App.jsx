@@ -32,6 +32,7 @@ import KennisUpdate from './pages/KennisUpdate';
 import Welzijn from './pages/Welzijn';
 import Landing from './pages/Landing';
 import Premium from './pages/Premium';
+import MijnVoedingsmiddelen from './pages/MijnVoedingsmiddelen';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -86,6 +87,7 @@ const AuthenticatedApp = () => {
         <Route path="/supplementen-beheer" element={<SupplementenBeheer />} />
         <Route path="/kennis-update" element={<KennisUpdate />} />
         <Route path="/welzijn" element={<Welzijn />} />
+        <Route path="/voedingsmiddelen" element={<MijnVoedingsmiddelen />} />
       </Route>
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/landing" element={<Landing />} />

@@ -1,0 +1,74 @@
+{
+  "name": "Food",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Naam van het voedingsmiddel"
+    },
+    "brand": {
+      "type": "string",
+      "description": "Merk (optioneel)"
+    },
+    "calories": {
+      "type": "number",
+      "description": "Calorie\u00ebn per 100g"
+    },
+    "protein_g": {
+      "type": "number",
+      "description": "Eiwit in gram per 100g"
+    },
+    "carbs_g": {
+      "type": "number",
+      "description": "Koolhydraten in gram per 100g"
+    },
+    "fat_g": {
+      "type": "number",
+      "description": "Vetten in gram per 100g"
+    },
+    "fiber_g": {
+      "type": "number",
+      "description": "Vezels in gram per 100g"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "groenten",
+        "fruit",
+        "vlees",
+        "vis",
+        "zuivel",
+        "graan",
+        "noten",
+        "olie",
+        "sauzen",
+        "overig"
+      ],
+      "description": "Voedselcategorie"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Afbeelding URL"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "openfoodfacts",
+        "handmatig"
+      ],
+      "default": "handmatig",
+      "description": "Bron van het voedingsmiddel"
+    },
+    "external_id": {
+      "type": "string",
+      "description": "ID uit externe database (bijv. Open Food Facts)"
+    }
+  },
+  "required": [
+    "name",
+    "calories",
+    "protein_g",
+    "carbs_g",
+    "fat_g"
+  ]
+}
