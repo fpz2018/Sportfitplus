@@ -23,15 +23,8 @@ export default function MijnVoedingsmiddelen() {
 
   const { data: voedingsmiddelen = [], isLoading, refetch } = useQuery({
     queryKey: ['voedingsmiddelen'],
-    queryFn: () => base44.entities.Food.list('-created_date', 500),
+    queryFn: () => base44.entities.Food.list('-created_date', 5000),
   });
-
-  // Sync initial foods
-  useEffect(() => {
-    if (voedingsmiddelen.length === 0 && !isLoading) {
-      base44.functions.invoke('syncFoodDatabase', {}).then(() => refetch());
-    }
-  }, []);
 
   const gefilterd = voedingsmiddelen.filter(v => {
     const matchZoek = v.name.toLowerCase().includes(zoek.toLowerCase());
