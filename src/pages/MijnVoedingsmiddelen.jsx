@@ -76,17 +76,19 @@ export default function MijnVoedingsmiddelen() {
       const text = await file.text();
       const res = await base44.functions.invoke('importFoods', { csv: text });
       
-      if (res.data.success) {
+      if (res.data?.success) {
         setImportSuccess(`${res.data.imported} voedingsmiddelen geïmporteerd!`);
         refetch();
         e.target.value = '';
       } else {
-        setImportError(res.data.error);
+        setImportError(res.data?.error || 'Import mislukt');
       }
     } catch (error) {
+      console.error('Import error:', error);
       setImportError(error.message || 'Import mislukt');
+    } finally {
+      setImportLoading(false);
     }
-    setImportLoading(false);
   }
 
   function downloadTemplate() {
