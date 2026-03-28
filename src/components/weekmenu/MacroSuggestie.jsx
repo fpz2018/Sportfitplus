@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Sparkles, Loader2, ChefHat, Plus, X } from 'lucide-react';
+import { Sparkles, Loader2, ChefHat, Plus, X, ChevronDown } from 'lucide-react';
 
 export default function MacroSuggestie({ resterend, recepten, voedingsmiddelen = [], geselecteerdeDag, maaltijdTypes, onVoegToe }) {
   const [loading, setLoading] = useState(false);
   const [suggesties, setSuggesties] = useState(null);
   const [open, setOpen] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
 
   // Controleer of er zinvolle resterende macro's zijn
   const heeftRest = resterend.cal > 50 || resterend.prot > 5 || resterend.carbs > 10 || resterend.fat > 3;
@@ -45,15 +46,18 @@ export default function MacroSuggestie({ resterend, recepten, voedingsmiddelen =
     const alles = [...receptenLijst, ...voedingLijst];
 
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Je bent een voedingsdeskundige. Een gebruiker heeft al maaltijden gepland voor vandaag en heeft nog de volgende macro's over:
+      prompt: `Je bent een voedingsdeskundige. Een gebruiker heeft al maaltijden gepland voor vandaag en heeft nog EXACT de volgende macro's over:
 - Calorieën: ${resterend.cal} kcal
 - Eiwit: ${resterend.prot}g
 - Koolhydraten: ${resterend.carbs}g
 - Vetten: ${resterend.fat}g
 
-Kies uit de onderstaande recepten en voedingsmiddelen de TOP 3 die de resterende macro's zo goed mogelijk aanvullen, ZONDER het doel te overschrijden. 
-Prioriteer op basis van de grootste tekorten. Als iemand veel eiwit nodig heeft, prioriteer voedingsmiddelen/recepten met veel eiwit.
-Geef voor elk item een korte uitleg (1 zin) waarom het past.
+BELANGRIJKE REGELS:
+1. Kies recepten/voedingsmiddelen die SAMEN de calorieën vullen (niet één item met 165 kcal als er 951 kcal over is)
+2. Suggereer items die samen approximately ${resterend.cal} kcal totaal zijn
+3. Focus op items die de macro tekorten vullen (grote tekorten eerst)
+4. TOP 3 items/combinaties die het meest logisch passen
+5. Geef voor elk item WHY het wordt gekozen in de huishoudse context
 
 Beschikbare items (recepten + voedingsmiddelen):
 ${JSON.stringify(alles.slice(0, 300))}
@@ -108,7 +112,7 @@ Geef alleen items terug die daadwerkelijk in de lijst staan. Gebruik de exacte i
           <div className="flex items-center justify-between p-3 border-b border-border">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Aanbevolen recepten</span>
+              <span className="text-sm font-semibold text-foreground">Aanbevolen maaltijden</span>
             </div>
             <button onClick={() => setOpen(false)} className="p-1 text-muted-foreground hover:text-foreground transition-all">
               <X className="w-4 h-4" />
@@ -137,35 +141,60 @@ Geef alleen items terug die daadwerkelijk in de lijst staan. Gebruik de exacte i
                  const carbsPerUnit = isRecept ? item.carbs_g : item.carbs_g;
                  const fatPerUnit = isRecept ? item.fat_g : item.fat_g;
                  const alGepland = maaltijdTypes.includes(s.maaltijd_type);
+                 const isExpanded = expandedId === i;
                  return (
-                   <div key={i} className="p-3 flex items-start gap-3">
-                     {imageUrl ? (
-                       <img src={imageUrl} alt={titel} className="w-12 h-12 rounded-xl object-cover shrink-0" />
-                     ) : (
-                       <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-                         <ChefHat className="w-5 h-5 text-muted-foreground" />
-                       </div>
-                     )}
-                     <div className="flex-1 min-w-0">
-                       <p className="text-sm font-medium text-foreground truncate">{titel}</p>
-                       <p className="text-xs text-muted-foreground mt-0.5">
-                         {calPerUnit && `${calPerUnit} kcal · `}
-                         {protPerUnit && `${protPerUnit}g eiwit · `}
-                         {carbsPerUnit && `${carbsPerUnit}g koolh · `}
-                         {fatPerUnit && `${fatPerUnit}g vet`}
-                       </p>
-                       <p className="text-xs text-primary/80 mt-1 italic">{s.reden}</p>
-                       <div className="flex items-center gap-2 mt-2">
-                         <span className="text-xs text-muted-foreground capitalize bg-secondary px-2 py-0.5 rounded-md">{isRecept ? 'Recept' : 'Voedingsmiddel'}</span>
-                         <button
-                           onClick={() => onVoegToe(item, s.maaltijd_type, isRecept ? 'recept' : 'voedingsmiddel')}
-                           disabled={alGepland}
-                           className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${alGepland ? 'bg-secondary text-muted-foreground cursor-not-allowed' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}>
-                           <Plus className="w-3 h-3" />
-                           {alGepland ? 'Al gepland' : 'Inplannen'}
-                         </button>
+                   <div key={i} className="flex flex-col">
+                     <div className="p-3 flex items-start gap-3">
+                       {imageUrl ? (
+                         <img src={imageUrl} alt={titel} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                       ) : (
+                         <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                           <ChefHat className="w-5 h-5 text-muted-foreground" />
+                         </div>
+                       )}
+                       <div className="flex-1 min-w-0">
+                         <div className="flex items-start justify-between gap-2 mb-1">
+                           <p className="text-sm font-medium text-foreground truncate">{titel}</p>
+                           {isRecept && (
+                             <button
+                               onClick={() => setExpandedId(isExpanded ? null : i)}
+                               className="p-1 text-muted-foreground hover:text-foreground transition-all shrink-0"
+                             >
+                               <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                             </button>
+                           )}
+                         </div>
+                         <p className="text-xs text-muted-foreground mt-0.5">
+                           {calPerUnit && `${calPerUnit} kcal · `}
+                           {protPerUnit && `${protPerUnit}g eiwit · `}
+                           {carbsPerUnit && `${carbsPerUnit}g koolh · `}
+                           {fatPerUnit && `${fatPerUnit}g vet`}
+                         </p>
+                         <p className="text-xs text-primary/80 mt-1 italic">{s.reden}</p>
+                         <div className="flex items-center gap-2 mt-2">
+                           <span className="text-xs text-muted-foreground capitalize bg-secondary px-2 py-0.5 rounded-md">{isRecept ? 'Recept' : 'Voedingsmiddel'}</span>
+                           <button
+                             onClick={() => onVoegToe(item, s.maaltijd_type, isRecept ? 'recept' : 'voedingsmiddel')}
+                             disabled={alGepland}
+                             className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${alGepland ? 'bg-secondary text-muted-foreground cursor-not-allowed' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}>
+                             <Plus className="w-3 h-3" />
+                             {alGepland ? 'Al gepland' : 'Inplannen'}
+                           </button>
+                         </div>
                        </div>
                      </div>
+                     {isExpanded && isRecept && item.ingredients && (
+                       <div className="px-3 pb-3 pt-0 border-t border-border/50">
+                         <p className="text-xs font-semibold text-muted-foreground mb-2">Ingrediënten:</p>
+                         <ul className="space-y-1">
+                           {item.ingredients.map((ing, idx) => (
+                             <li key={idx} className="text-xs text-muted-foreground">
+                               • {ing.name} {ing.amount && `(${ing.amount}${ing.unit || ''})`}
+                             </li>
+                           ))}
+                         </ul>
+                       </div>
+                     )}
                    </div>
                  );
                })}
