@@ -12,9 +12,15 @@ Deno.serve(async (req) => {
     // Get all foods for this user
     const foods = await base44.entities.Food.list('-created_date', 10000);
 
-    // Delete all
-    for (const food of foods) {
-      await base44.entities.Food.delete(food.id);
+    // Delete in batches with delay
+    let deleted = 0;
+    for (let i = 0; i < foods.length; i++) {
+      await base44.entities.Food.delete(foods[i].id);
+      deleted++;
+      // Add small delay every 10 deletes to avoid rate limits
+      if (deleted % 10 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
     }
 
     return Response.json({ success: true, deleted: foods.length });
