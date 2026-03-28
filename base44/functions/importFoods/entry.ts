@@ -191,19 +191,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No valid foods to import', details: errors }, { status: 400 });
     }
 
-    // Bulk create in batches of 500 to avoid limits
-    const batchSize = 500;
-    for (let i = 0; i < foods.length; i += batchSize) {
-      const batch = foods.slice(i, i + batchSize);
-      await base44.entities.Food.bulkCreate(batch);
-      // Small delay between batches
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
+    // Bulk create
+    await base44.entities.Food.bulkCreate(foods);
 
     return Response.json({ 
       success: true,
       imported: foods.length,
-      errors: errors.length > 0 ? errors : null
+      total_rows: lines.length - 1,
+      errors: errors.length > 0 ? errors.slice(0, 10) : null
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
