@@ -51,7 +51,7 @@ alter table public.user_profiles enable row level security;
 create policy "Gebruiker ziet eigen profiel"    on public.user_profiles for select using (auth.uid() = id);
 create policy "Gebruiker past eigen profiel aan" on public.user_profiles for update using (auth.uid() = id);
 create policy "Profiel aanmaken bij registratie" on public.user_profiles for insert with check (auth.uid() = id);
-create policy "Admin ziet alle profielen"        on public.user_profiles for select using (is_admin());
+create policy "Admin ziet alle profielen"        on public.user_profiles for select using (public.is_admin());
 
 -- Trigger: maak profiel automatisch aan bij nieuwe gebruiker
 create or replace function public.handle_new_user()
@@ -111,8 +111,8 @@ create table if not exists public.food (
 alter table public.food enable row level security;
 create policy "Iedereen kan voedingsmiddelen lezen"     on public.food for select to authenticated using (true);
 create policy "Gebruiker kan eigen voedingsmiddel aanmaken" on public.food for insert to authenticated with check (auth.uid() = created_by);
-create policy "Gebruiker past eigen voedingsmiddel aan"    on public.food for update using (auth.uid() = created_by or is_admin());
-create policy "Admin of eigenaar kan voedingsmiddel verwijderen" on public.food for delete using (auth.uid() = created_by or is_admin());
+create policy "Gebruiker past eigen voedingsmiddel aan"    on public.food for update using (auth.uid() = created_by or public.is_admin());
+create policy "Admin of eigenaar kan voedingsmiddel verwijderen" on public.food for delete using (auth.uid() = created_by or public.is_admin());
 
 -- ============================================================
 -- 3. FOOD_LOGS
@@ -172,10 +172,10 @@ create table if not exists public.recipes (
 );
 
 alter table public.recipes enable row level security;
-create policy "Gepubliceerde recepten zichtbaar voor iedereen" on public.recipes for select to authenticated using (status = 'gepubliceerd' or auth.uid() = created_by or is_admin());
+create policy "Gepubliceerde recepten zichtbaar voor iedereen" on public.recipes for select to authenticated using (status = 'gepubliceerd' or auth.uid() = created_by or public.is_admin());
 create policy "Gebruiker maakt eigen recept"    on public.recipes for insert to authenticated with check (auth.uid() = created_by);
-create policy "Eigenaar of admin past recept aan" on public.recipes for update using (auth.uid() = created_by or is_admin());
-create policy "Eigenaar of admin verwijdert recept" on public.recipes for delete using (auth.uid() = created_by or is_admin());
+create policy "Eigenaar of admin past recept aan" on public.recipes for update using (auth.uid() = created_by or public.is_admin());
+create policy "Eigenaar of admin verwijdert recept" on public.recipes for delete using (auth.uid() = created_by or public.is_admin());
 
 create trigger set_recipes_updated_at
   before update on public.recipes
@@ -287,7 +287,7 @@ create table if not exists public.supplements (
 
 alter table public.supplements enable row level security;
 create policy "Iedereen ziet supplementen"      on public.supplements for select to authenticated using (true);
-create policy "Alleen admin beheert supplementen" on public.supplements for all using (is_admin());
+create policy "Alleen admin beheert supplementen" on public.supplements for all using (public.is_admin());
 
 create trigger set_supplements_updated_at
   before update on public.supplements
@@ -315,8 +315,8 @@ create table if not exists public.supplement_nieuws (
 );
 
 alter table public.supplement_nieuws enable row level security;
-create policy "Gepubliceerd nieuws voor iedereen"   on public.supplement_nieuws for select to authenticated using (status = 'gepubliceerd' or is_admin());
-create policy "Alleen admin beheert supplement nieuws" on public.supplement_nieuws for all using (is_admin());
+create policy "Gepubliceerd nieuws voor iedereen"   on public.supplement_nieuws for select to authenticated using (status = 'gepubliceerd' or public.is_admin());
+create policy "Alleen admin beheert supplement nieuws" on public.supplement_nieuws for all using (public.is_admin());
 
 -- ============================================================
 -- 10. SUPPLEMENT_PRODUCTEN
@@ -340,8 +340,8 @@ create table if not exists public.supplement_producten (
 );
 
 alter table public.supplement_producten enable row level security;
-create policy "Actieve producten zichtbaar"    on public.supplement_producten for select to authenticated using (status = 'actief' or is_admin());
-create policy "Alleen admin beheert producten" on public.supplement_producten for all using (is_admin());
+create policy "Actieve producten zichtbaar"    on public.supplement_producten for select to authenticated using (status = 'actief' or public.is_admin());
+create policy "Alleen admin beheert producten" on public.supplement_producten for all using (public.is_admin());
 
 -- ============================================================
 -- 11. KENNIS_ARTIKELEN
@@ -373,8 +373,8 @@ create table if not exists public.kennis_artikelen (
 );
 
 alter table public.kennis_artikelen enable row level security;
-create policy "Goedgekeurde artikelen voor iedereen" on public.kennis_artikelen for select to authenticated using (status = 'approved' or is_admin());
-create policy "Alleen admin beheert artikelen"        on public.kennis_artikelen for all using (is_admin());
+create policy "Goedgekeurde artikelen voor iedereen" on public.kennis_artikelen for select to authenticated using (status = 'approved' or public.is_admin());
+create policy "Alleen admin beheert artikelen"        on public.kennis_artikelen for all using (public.is_admin());
 
 -- ============================================================
 -- 12. KENNIS_ANALYSE_RUNS
@@ -393,7 +393,7 @@ create table if not exists public.kennis_analyse_runs (
 );
 
 alter table public.kennis_analyse_runs enable row level security;
-create policy "Alleen admin ziet analyse runs" on public.kennis_analyse_runs for all using (is_admin());
+create policy "Alleen admin ziet analyse runs" on public.kennis_analyse_runs for all using (public.is_admin());
 
 -- ============================================================
 -- 13. WIJZIGINGS_VOORSTELLEN
@@ -419,7 +419,7 @@ create table if not exists public.wijzigings_voorstellen (
 );
 
 alter table public.wijzigings_voorstellen enable row level security;
-create policy "Alleen admin beheert voorstellen" on public.wijzigings_voorstellen for all using (is_admin());
+create policy "Alleen admin beheert voorstellen" on public.wijzigings_voorstellen for all using (public.is_admin());
 
 -- ============================================================
 -- 14. BRON_BESTANDEN
@@ -437,7 +437,7 @@ create table if not exists public.bron_bestanden (
 );
 
 alter table public.bron_bestanden enable row level security;
-create policy "Alleen admin beheert bronbestanden" on public.bron_bestanden for all using (is_admin());
+create policy "Alleen admin beheert bronbestanden" on public.bron_bestanden for all using (public.is_admin());
 
 -- ============================================================
 -- 15. APP_INZICHTEN
@@ -458,7 +458,7 @@ create table if not exists public.app_inzichten (
 );
 
 alter table public.app_inzichten enable row level security;
-create policy "Alleen admin beheert inzichten" on public.app_inzichten for all using (is_admin());
+create policy "Alleen admin beheert inzichten" on public.app_inzichten for all using (public.is_admin());
 
 -- ============================================================
 -- 16. AUDIT_LOGS
@@ -478,7 +478,7 @@ create table if not exists public.audit_logs (
 );
 
 alter table public.audit_logs enable row level security;
-create policy "Alleen admin ziet auditlog" on public.audit_logs for all using (is_admin());
+create policy "Alleen admin ziet auditlog" on public.audit_logs for all using (public.is_admin());
 
 -- ============================================================
 -- 17. CODE_TAKEN
@@ -500,7 +500,7 @@ create table if not exists public.code_taken (
 );
 
 alter table public.code_taken enable row level security;
-create policy "Alleen admin beheert codetaken" on public.code_taken for all using (is_admin());
+create policy "Alleen admin beheert codetaken" on public.code_taken for all using (public.is_admin());
 
 -- ============================================================
 -- 18. NOTIFICATIONS
@@ -546,8 +546,8 @@ create table if not exists public.nieuwsberichten (
 );
 
 alter table public.nieuwsberichten enable row level security;
-create policy "Gepubliceerde berichten voor iedereen" on public.nieuwsberichten for select to authenticated using (status = 'gepubliceerd' or is_admin());
-create policy "Alleen admin beheert nieuwsberichten"  on public.nieuwsberichten for all using (is_admin());
+create policy "Gepubliceerde berichten voor iedereen" on public.nieuwsberichten for select to authenticated using (status = 'gepubliceerd' or public.is_admin());
+create policy "Alleen admin beheert nieuwsberichten"  on public.nieuwsberichten for all using (public.is_admin());
 
 -- ============================================================
 -- INDEXES voor performance
