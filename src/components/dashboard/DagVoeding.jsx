@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { WeekMenu } from '@/api/entities';
 import { Link } from 'react-router-dom';
 import { Utensils, ChevronRight, CheckCircle2 } from 'lucide-react';
 
@@ -27,20 +27,19 @@ export default function DagVoeding({ profile, todayLog, today }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.auth.me().then(u =>
-      base44.entities.WeekMenu.filter({ created_by: u.email, datum: today }).then(data => {
-        data.sort((a, b) => TYPE_ORDER.indexOf(a.maaltijd_type) - TYPE_ORDER.indexOf(b.maaltijd_type));
-        setMaaltijden(data);
-        setLoading(false);
-      })
-    );
+    WeekMenu.getByDate(today).then(data => {
+      const arr = Array.isArray(data) ? data : (data ? [data] : []);
+      arr.sort((a, b) => TYPE_ORDER.indexOf(a.maaltijd_type) - TYPE_ORDER.indexOf(b.maaltijd_type));
+      setMaaltijden(arr);
+      setLoading(false);
+    });
   }, [today]);
 
   const calTarget = profile?.target_calories || 0;
   const protTarget = profile?.protein_target_g || 0;
   const carbTarget = profile?.carbs_target_g || 0;
   const fatTarget = profile?.fat_target_g || 0;
-  
+
   const calEaten = todayLog?.calories_eaten || 0;
   const protEaten = todayLog?.protein_g || 0;
   const carbsEaten = todayLog?.carbs_g || 0;
@@ -50,7 +49,7 @@ export default function DagVoeding({ profile, todayLog, today }) {
   const geplandProt = maaltijden.reduce((s, m) => s + (m.protein_g || 0), 0);
   const geplandCarbs = maaltijden.reduce((s, m) => s + (m.carbs_g || 0), 0);
   const geplandFat = maaltijden.reduce((s, m) => s + (m.fat_g || 0), 0);
-  
+
   const resterendCal = Math.max(calTarget - calEaten - geplandCal, 0);
   const resterendProt = Math.max(protTarget - protEaten - geplandProt, 0);
   const resterendCarbs = Math.max(carbTarget - carbsEaten - geplandCarbs, 0);

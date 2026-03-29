@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { WorkoutLog } from '@/api/entities';
 import { format } from 'date-fns';
 import { TrendingUp, Dumbbell, ChevronDown } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -14,8 +14,7 @@ export default function KrachtVoortgang() {
   }, []);
 
   async function loadLogs() {
-    const u = await base44.auth.me();
-    const logs = await base44.entities.WorkoutLog.filter({ created_by: u.email }, '-log_date', 60);
+    const logs = await WorkoutLog.list(60);
     setWorkoutLogs(logs);
     setLoading(false);
 

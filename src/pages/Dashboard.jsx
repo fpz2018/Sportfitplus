@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { DailyLog } from '@/api/entities';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -11,35 +12,25 @@ import DagHeader from '@/components/dashboard/DagHeader';
 import { Zap, ArrowRight } from 'lucide-react';
 
 export default function Dashboard() {
-  const [profile, setProfile] = useState(null);
-  const [user, setUser] = useState(null);
+  const { user, profile } = useAuth();
   const [todayLog, setTodayLog] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user) loadData();
+  }, [user]);
 
   async function loadData() {
-    const u = await base44.auth.me();
-    setUser(u);
-    const [profiles, logs] = await Promise.all([
-      base44.entities.UserProfile.filter({ created_by: u.email }),
-      base44.entities.DailyLog.filter({ created_by: u.email, log_date: today }),
-    ]);
-    if (profiles.length > 0) setProfile(profiles[0]);
-    if (logs.length > 0) setTodayLog(logs[0]);
+    const log = await DailyLog.getByDate(today);
+    setTodayLog(log);
     setLoading(false);
   }
 
-  function refreshLog() {
-    base44.auth.me().then(u =>
-      base44.entities.DailyLog.filter({ created_by: u.email, log_date: today }).then(logs => {
-        if (logs.length > 0) setTodayLog(logs[0]);
-      })
-    );
+  async function refreshLog() {
+    const log = await DailyLog.getByDate(today);
+    setTodayLog(log);
   }
 
   // Onboarding nog niet gedaan

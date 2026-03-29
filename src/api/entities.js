@@ -29,6 +29,12 @@ export const UserProfile = {
       await supabase.from('user_profiles').select('*').eq('id', userId).single()
     );
   },
+  async listAll() {
+    // Admin-only via RLS
+    return unwrap(
+      await supabase.from('user_profiles').select('*').order('created_at', { ascending: false })
+    );
+  },
   async update(data) {
     const userId = await uid();
     return unwrap(
@@ -78,6 +84,17 @@ export const DailyLog = {
         .single()
     );
   },
+  async create(data) {
+    const userId = await uid();
+    return unwrap(
+      await supabase.from('daily_logs').insert({ ...data, user_id: userId }).select().single()
+    );
+  },
+  async update(id, data) {
+    return unwrap(
+      await supabase.from('daily_logs').update(data).eq('id', id).select().single()
+    );
+  },
   async delete(id) {
     return unwrap(await supabase.from('daily_logs').delete().eq('id', id));
   },
@@ -107,6 +124,17 @@ export const FoodLog = {
       .maybeSingle();
     if (error) throw new Error(error.message);
     return data;
+  },
+  async create(data) {
+    const userId = await uid();
+    return unwrap(
+      await supabase.from('food_logs').insert({ ...data, user_id: userId }).select().single()
+    );
+  },
+  async update(id, data) {
+    return unwrap(
+      await supabase.from('food_logs').update(data).eq('id', id).select().single()
+    );
   },
   async upsert(date, data) {
     const userId = await uid();
@@ -212,6 +240,26 @@ export const WeekMenu = {
         .order('datum')
     );
   },
+  async listAll() {
+    const userId = await uid();
+    return unwrap(
+      await supabase
+        .from('week_menus')
+        .select('*')
+        .eq('user_id', userId)
+        .order('datum', { ascending: false })
+    );
+  },
+  async getByDate(date) {
+    const userId = await uid();
+    return unwrap(
+      await supabase
+        .from('week_menus')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('datum', date)
+    );
+  },
   async create(data) {
     const userId = await uid();
     return unwrap(
@@ -236,6 +284,17 @@ export const HRVLog = {
         .order('log_date', { ascending: false })
         .limit(limit)
     );
+  },
+  async getByDate(date) {
+    const userId = await uid();
+    const { data, error } = await supabase
+      .from('hrv_logs')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('log_date', date)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data;
   },
   async create(data) {
     const userId = await uid();
@@ -286,6 +345,14 @@ export const SupplementNieuws = {
         .select('*')
         .eq('status', status)
         .order('gepubliceerd_op', { ascending: false })
+    );
+  },
+  async listAll() {
+    return unwrap(
+      await supabase
+        .from('supplement_nieuws')
+        .select('*')
+        .order('created_at', { ascending: false })
     );
   },
   async create(data) {
@@ -529,6 +596,12 @@ export const Notification = {
         .eq('read', false)
     );
   },
+  async create(data) {
+    const userId = await uid();
+    return unwrap(
+      await supabase.from('notifications').insert({ ...data, user_id: userId }).select().single()
+    );
+  },
   async delete(id) {
     return unwrap(await supabase.from('notifications').delete().eq('id', id));
   },
@@ -566,5 +639,85 @@ export const Nieuwsbericht = {
   },
   async delete(id) {
     return unwrap(await supabase.from('nieuwsberichten').delete().eq('id', id));
+  },
+};
+
+// ─── CustomSchema ────────────────────────────────────────────────────────────
+
+export const CustomSchema = {
+  async list() {
+    const userId = await uid();
+    return unwrap(
+      await supabase
+        .from('custom_schemas')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+    );
+  },
+  async create(data) {
+    const userId = await uid();
+    return unwrap(
+      await supabase.from('custom_schemas').insert({ ...data, user_id: userId }).select().single()
+    );
+  },
+  async update(id, data) {
+    return unwrap(
+      await supabase.from('custom_schemas').update(data).eq('id', id).select().single()
+    );
+  },
+  async delete(id) {
+    return unwrap(await supabase.from('custom_schemas').delete().eq('id', id));
+  },
+};
+
+// ─── WorkoutLog ──────────────────────────────────────────────────────────────
+
+export const WorkoutLog = {
+  async list(limit = 60) {
+    const userId = await uid();
+    return unwrap(
+      await supabase
+        .from('workout_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .order('log_date', { ascending: false })
+        .limit(limit)
+    );
+  },
+  async listByDay(dagNaam, limit = 5) {
+    const userId = await uid();
+    return unwrap(
+      await supabase
+        .from('workout_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('dag_naam', dagNaam)
+        .order('log_date', { ascending: false })
+        .limit(limit)
+    );
+  },
+  async getByDateAndDay(date, dagNaam) {
+    const userId = await uid();
+    const { data, error } = await supabase
+      .from('workout_logs')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('log_date', date)
+      .eq('dag_naam', dagNaam)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data;
+  },
+  async create(data) {
+    const userId = await uid();
+    return unwrap(
+      await supabase.from('workout_logs').insert({ ...data, user_id: userId }).select().single()
+    );
+  },
+  async update(id, data) {
+    return unwrap(
+      await supabase.from('workout_logs').update(data).eq('id', id).select().single()
+    );
   },
 };

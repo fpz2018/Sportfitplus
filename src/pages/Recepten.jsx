@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { Recipe } from '@/api/entities';
 import { Plus, Search, Heart, Grid, List, ChefHat } from 'lucide-react';
 import RecipeCard from '@/components/recepten/RecipeCard';
 import RecipeDetail from '@/components/recepten/RecipeDetail';
@@ -42,17 +42,16 @@ export default function Recepten() {
 
   async function loadRecipes() {
     setLoading(true);
-    const u = await base44.auth.me();
-    const data = await base44.entities.Recipe.filter({ status: 'gepubliceerd' }, '-created_date');
+    const data = await Recipe.list('gepubliceerd');
     setRecipes(data);
     setLoading(false);
   }
 
   async function handleSave(data) {
     if (editingRecipe) {
-      await base44.entities.Recipe.update(editingRecipe.id, data);
+      await Recipe.update(editingRecipe.id, data);
     } else {
-      await base44.entities.Recipe.create(data);
+      await Recipe.create(data);
     }
     setShowForm(false);
     setEditingRecipe(null);
@@ -61,13 +60,13 @@ export default function Recepten() {
 
   async function handleDelete(recipe) {
     if (!confirm(`"${recipe.title}" verwijderen?`)) return;
-    await base44.entities.Recipe.delete(recipe.id);
+    await Recipe.delete(recipe.id);
     setSelectedRecipe(null);
     loadRecipes();
   }
 
   async function handleToggleFavorite(recipe) {
-    await base44.entities.Recipe.update(recipe.id, { is_favorite: !recipe.is_favorite });
+    await Recipe.update(recipe.id, { is_favorite: !recipe.is_favorite });
     setRecipes(prev => prev.map(r => r.id === recipe.id ? { ...r, is_favorite: !r.is_favorite } : r));
     if (selectedRecipe?.id === recipe.id) {
       setSelectedRecipe(r => ({ ...r, is_favorite: !r.is_favorite }));

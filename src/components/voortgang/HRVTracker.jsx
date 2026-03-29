@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { HRVLog } from '@/api/entities';
 import { format } from 'date-fns';
 import { Heart, Zap, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
@@ -24,9 +24,8 @@ export default function HRVTracker({ onHRVLogged }) {
   }, []);
 
   async function laadVandaag() {
-    const u = await base44.auth.me();
-    const logs = await base44.entities.HRVLog.filter({ created_by: u.email, log_date: today });
-    if (logs.length > 0) setVandaagLog(logs[0]);
+    const log = await HRVLog.getByDate(today);
+    if (log) setVandaagLog(log);
   }
 
   function berekenEnergiescore(hrv, slaapUren, stressNiveau, herstelGevoel) {
@@ -53,7 +52,7 @@ export default function HRVTracker({ onHRVLogged }) {
   async function opslaan(hrv, energiescore, trainingReady, bron, extra = {}) {
    setLoading(true);
    try {
-     await base44.entities.HRVLog.create({
+     await HRVLog.create({
        log_date: today,
        hrv_waarde: Number(hrv),
        energiescore: Number(energiescore),

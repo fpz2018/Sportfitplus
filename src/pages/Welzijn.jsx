@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { HRVLog, UserProfile } from '@/api/entities';
+import { callFunction } from '@/api/netlifyClient';
 import { format, subDays } from 'date-fns';
 import { Heart, Moon, Zap, Brain, Sparkles, Loader2, CheckCircle2, AlertCircle, TrendingUp, RefreshCw } from 'lucide-react';
 
@@ -19,13 +21,12 @@ function HRVSectie({ onLogged }) {
   useEffect(() => { laad(); }, []);
 
   async function laad() {
-    const u = await base44.auth.me();
-    const [logs, hist] = await Promise.all([
-      base44.entities.HRVLog.filter({ created_by: u.email, log_date: today }),
-      base44.entities.HRVLog.list('-log_date', 14),
+    const [log, hist] = await Promise.all([
+      HRVLog.getByDate(today),
+      HRVLog.list(14),
     ]);
-    if (logs.length > 0) setVandaagLog(logs[0]);
-    setHistory(hist.filter(l => l.created_by === u.email));
+    if (log) setVandaagLog(log);
+    setHistory(hist);
   }
 
   function berekenEnergiescore(hrv, slaapUren, stressNiveau, herstelGevoel) {
@@ -38,7 +39,7 @@ function HRVSectie({ onLogged }) {
 
   async function opslaan(hrv, energiescore, trainingReady, bron, extra = {}) {
     setLoading(true);
-    await base44.entities.HRVLog.create({
+    await HRVLog.create({
       log_date: today, hrv_waarde: Number(hrv), energiescore: Number(energiescore),
       training_ready: trainingReady, bron, ...extra,
     });
@@ -193,6 +194,7 @@ function HRVSectie({ onLogged }) {
 
 // ─── Welzijn Check-in ──────────────────────────────────────────────────────────
 function WelzijnCheckIn() {
+  const { profile: authProfile } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [aiAdvies, setAiAdvies] = useState(null);
@@ -203,25 +205,18 @@ function WelzijnCheckIn() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    async function load() {
-      const u = await base44.auth.me();
-      const profiles = await base44.entities.UserProfile.filter({ created_by: u.email });
-      if (profiles.length > 0) {
-        const p = profiles[0];
-        setProfile(p);
-        setSlaap(p.slaap_uren || 7);
-        setSlaapKwaliteit(p.slaap_kwaliteit || 'goed');
-        setStress(p.stress_niveau || 5);
-        if (p.ai_welzijn_advies) setAiAdvies(p.ai_welzijn_advies);
-      }
+    if (authProfile) {
+      setProfile(authProfile);
+      setSlaap(authProfile.slaap_uren || 7);
+      setSlaapKwaliteit(authProfile.slaap_kwaliteit || 'goed');
+      setStress(authProfile.stress_niveau || 5);
+      if (authProfile.ai_welzijn_advies) setAiAdvies(authProfile.ai_welzijn_advies);
       setLoading(false);
     }
-    load();
-  }, []);
+  }, [authProfile]);
 
   async function opslaanCheckIn() {
-    if (!profile) return;
-    await base44.entities.UserProfile.update(profile.id, {
+    await UserProfile.update({
       slaap_uren: slaap, slaap_kwaliteit: slaapKwaliteit, stress_niveau: stress,
     });
     setSaved(true);
@@ -230,7 +225,7 @@ function WelzijnCheckIn() {
 
   async function genereerAdvies() {
     setLoadingAdvies(true);
-    const res = await base44.integrations.Core.InvokeLLM({
+    const res = await callFunction('invokeLLM', {
       prompt: `Je bent een welzijns- en herstelcoach. Geef gepersonaliseerd advies voor slaap, stress en herstel op basis van:
 - Slaap: ${slaap} uur per nacht (kwaliteit: ${slaapKwaliteit})
 - Stressniveau: ${stress}/10
@@ -242,7 +237,7 @@ Geef 3-4 concrete, praktische tips specifiek voor dit profiel. Schrijf in het Ne
     });
     if (res && profile) {
       setAiAdvies(res);
-      await base44.entities.UserProfile.update(profile.id, { ai_welzijn_advies: res });
+      await UserProfile.update({ ai_welzijn_advies: res });
     }
     setLoadingAdvies(false);
   }

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { callFunction } from '@/api/netlifyClient';
 import { MessageCircle, Send, X, Loader2, Leaf, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
@@ -41,12 +41,12 @@ export default function OrthoChat() {
     setBerichten(nieuweBerichten);
     setLaden(true);
 
-    const res = await base44.functions.invoke('voedingsChat', {
+    const res = await callFunction('voedingsChat', {
       vraag,
       geschiedenis: berichten.slice(-6),
     });
 
-    setBerichten([...nieuweBerichten, { role: 'assistant', content: res.data.antwoord }]);
+    setBerichten([...nieuweBerichten, { role: 'assistant', content: res?.antwoord }]);
     setLaden(false);
   }
 

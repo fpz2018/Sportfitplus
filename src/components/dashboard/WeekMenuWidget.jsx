@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { WeekMenu } from '@/api/entities';
 import { Link } from 'react-router-dom';
 import { ChefHat, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
@@ -15,11 +15,11 @@ export default function WeekMenuWidget() {
 
   useEffect(() => {
     async function laad() {
-      const u = await base44.auth.me();
-      const data = await base44.entities.WeekMenu.filter({ created_by: u.email, datum: vandaag });
+      const data = await WeekMenu.getByDate(vandaag);
+      const arr = Array.isArray(data) ? data : (data ? [data] : []);
       // Sorteer op type volgorde
-      data.sort((a, b) => TYPE_ORDER.indexOf(a.maaltijd_type) - TYPE_ORDER.indexOf(b.maaltijd_type));
-      setItems(data);
+      arr.sort((a, b) => TYPE_ORDER.indexOf(a.maaltijd_type) - TYPE_ORDER.indexOf(b.maaltijd_type));
+      setItems(arr);
       setLoading(false);
     }
     laad();

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { Supplement, SupplementProduct, SupplementNieuws } from '@/api/entities';
+import { callFunction } from '@/api/netlifyClient';
 import { Plus, Edit2, Trash2, FlaskConical, ShoppingBag, BookOpen, Check, X, Loader2, Sparkles, FileText } from 'lucide-react';
 
 const TABS = [
@@ -14,11 +16,8 @@ const DOELEN = ['spieropbouw', 'vetverlies', 'herstel', 'energie', 'focus', 'sla
 
 export default function SupplementenBeheer() {
   const [activeTab, setActiveTab] = useState('supplementen');
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    base44.auth.me().then(u => setIsAdmin(u?.role === 'admin'));
-  }, []);
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
 
   if (!isAdmin) return (
     <div className="p-6 text-center text-muted-foreground">
@@ -65,7 +64,7 @@ function SupplementenBeheerTab() {
 
   async function laadItems() {
     setLoading(true);
-    const data = await base44.entities.Supplement.list('-created_date');
+    const data = await Supplement.list();
     setItems(data);
     setLoading(false);
   }
@@ -83,9 +82,9 @@ function SupplementenBeheerTab() {
   async function opslaan() {
     setSaving(true);
     if (editing === 'nieuw') {
-      await base44.entities.Supplement.create(form);
+      await Supplement.create(form);
     } else {
-      await base44.entities.Supplement.update(editing, form);
+      await Supplement.update(editing, form);
     }
     await laadItems();
     setEditing(null);
@@ -94,7 +93,7 @@ function SupplementenBeheerTab() {
 
   async function verwijder(id) {
     if (!confirm('Verwijder dit supplement?')) return;
-    await base44.entities.Supplement.delete(id);
+    await Supplement.delete(id);
     laadItems();
   }
 
@@ -236,7 +235,7 @@ function ProductenBeheerTab() {
   useEffect(() => { laadItems(); }, []);
   async function laadItems() {
     setLoading(true);
-    setItems(await base44.entities.SupplementProduct.list('-created_date'));
+    setItems(await SupplementProduct.list());
     setLoading(false);
   }
 
@@ -248,9 +247,9 @@ function ProductenBeheerTab() {
   async function opslaan() {
     setSaving(true);
     if (editing === 'nieuw') {
-      await base44.entities.SupplementProduct.create({ ...form, prijs: form.prijs ? Number(form.prijs) : undefined });
+      await SupplementProduct.create({ ...form, prijs: form.prijs ? Number(form.prijs) : undefined });
     } else {
-      await base44.entities.SupplementProduct.update(editing, { ...form, prijs: form.prijs ? Number(form.prijs) : undefined });
+      await SupplementProduct.update(editing, { ...form, prijs: form.prijs ? Number(form.prijs) : undefined });
     }
     await laadItems();
     setEditing(null);
@@ -259,7 +258,7 @@ function ProductenBeheerTab() {
 
   async function verwijder(id) {
     if (!confirm('Verwijder dit product?')) return;
-    await base44.entities.SupplementProduct.delete(id);
+    await SupplementProduct.delete(id);
     laadItems();
   }
 
@@ -352,7 +351,7 @@ function KennisbronVerwerker() {
   const [bestaandeSupps, setBestaandeSupps] = useState([]);
 
   useEffect(() => {
-    base44.entities.Supplement.list().then(setBestaandeSupps);
+    Supplement.list().then(setBestaandeSupps);
   }, []);
 
   async function verwerkBron() {
@@ -362,7 +361,7 @@ function KennisbronVerwerker() {
 
     const bestaandeNamen = bestaandeSupps.map(s => s.naam).join(', ');
 
-    const res = await base44.integrations.Core.InvokeLLM({
+    const res = await callFunction('invokeLLM', {
       prompt: `Je bent een expert in sportvoeding en supplementen. Analyseer onderstaande kennisbron en extraheer bruikbare, concrete adviezen.
 
 KENNISBRON:
@@ -437,7 +436,7 @@ Wees specifiek en praktisch. Schrijf in het Nederlands.`,
   }
 
   async function slaSupplementOp(supp) {
-    await base44.entities.Supplement.create({
+    await Supplement.create({
       ...supp,
       status: 'concept',
       doelen: [],
@@ -449,7 +448,7 @@ Wees specifiek en praktisch. Schrijf in het Nederlands.`,
 
   async function slaArtikelOp() {
     const art = resultaat.nieuwsartikel;
-    await base44.entities.SupplementNieuws.create({
+    await SupplementNieuws.create({
       titel: art.titel,
       intro: art.intro,
       inhoud: art.inhoud,
@@ -464,7 +463,7 @@ Wees specifiek en praktisch. Schrijf in het Nederlands.`,
   async function pasUpdateToe(update) {
     const supp = bestaandeSupps.find(s => s.naam.toLowerCase() === update.supplement_naam.toLowerCase());
     if (!supp) return alert('Supplement niet gevonden in DB: ' + update.supplement_naam);
-    await base44.entities.Supplement.update(supp.id, { [update.veld]: update.nieuwe_waarde });
+    await Supplement.update(supp.id, { [update.veld]: update.nieuwe_waarde });
     setOpgeslagen(o => [...o, update.supplement_naam + '_' + update.veld]);
   }
 
@@ -615,16 +614,16 @@ function NieuwsBeheerTab() {
   useEffect(() => { laadItems(); }, []);
   async function laadItems() {
     setLoading(true);
-    setItems(await base44.entities.SupplementNieuws.list('-created_date'));
+    setItems(await SupplementNieuws.listAll());
     setLoading(false);
   }
 
   async function opslaan() {
     setSaving(true);
     if (editing === 'nieuw') {
-      await base44.entities.SupplementNieuws.create(form);
+      await SupplementNieuws.create(form);
     } else {
-      await base44.entities.SupplementNieuws.update(editing, form);
+      await SupplementNieuws.update(editing, form);
     }
     await laadItems();
     setEditing(null);
@@ -633,14 +632,14 @@ function NieuwsBeheerTab() {
 
   async function verwijder(id) {
     if (!confirm('Verwijder dit artikel?')) return;
-    await base44.entities.SupplementNieuws.delete(id);
+    await SupplementNieuws.delete(id);
     laadItems();
   }
 
   async function toggleStatus(item) {
     const nieuw = item.status === 'gepubliceerd' ? 'concept' : 'gepubliceerd';
     const extra = nieuw === 'gepubliceerd' ? { gepubliceerd_op: new Date().toISOString().split('T')[0] } : {};
-    await base44.entities.SupplementNieuws.update(item.id, { status: nieuw, ...extra });
+    await SupplementNieuws.update(item.id, { status: nieuw, ...extra });
     laadItems();
   }
 

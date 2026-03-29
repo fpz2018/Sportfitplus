@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Link, Loader2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { callFunction } from '@/api/netlifyClient';
 
 const CATEGORIES = [
   { value: 'ontbijt', label: '🌅 Ontbijt' },
@@ -40,11 +40,11 @@ export default function RecipeForm({ recipe, onSave, onClose, initialImportUrl =
     setImportError('');
 
     // Step 1: Fetch raw page source to extract image URL and HTML content
-    const pageData = await base44.functions.invoke('fetchPageSource', { url: importUrl });
-    const { html, imageUrl } = pageData.data || {};
+    const pageData = await callFunction('fetchPageSource', { url: importUrl });
+    const { html, imageUrl } = pageData || {};
 
     // Step 2: Let AI extract recipe info from the raw HTML
-    const result = await base44.integrations.Core.InvokeLLM({
+    const result = await callFunction('invokeLLM', {
       prompt: `Extraheer alle receptinformatie uit de onderstaande HTML van een receptpagina.
 De afbeelding URL is al gevonden: "${imageUrl || 'niet gevonden'}" — gebruik deze als image_url tenzij hij leeg is.
 Als voedingswaarden niet in de HTML staan, schat ze op basis van de ingrediënten.

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { UserProfile } from '@/api/entities';
 import { Calculator as CalcIcon, Save, Info } from 'lucide-react';
 
 const ACTIVITY_OPTIONS = [
@@ -11,6 +12,7 @@ const ACTIVITY_OPTIONS = [
 ];
 
 export default function CalculatorPage() {
+  const { profile } = useAuth();
   const [form, setForm] = useState({ gender: 'man', age: '', weight: '', height: '', activity: 'matig_actief' });
   const [manualTdee, setManualTdee] = useState('');
   const [mode, setMode] = useState('berekend');
@@ -37,8 +39,6 @@ export default function CalculatorPage() {
 
   async function saveToProfile() {
     if (!tdee) return;
-    const u = await base44.auth.me();
-    const profiles = await base44.entities.UserProfile.filter({ created_by: u.email });
     const target = Math.round(tdee * 0.8);
     const p = Math.round(parseFloat(form.weight) * 2.0);
     const fatCals = Math.round(target * 0.25);
@@ -46,10 +46,10 @@ export default function CalculatorPage() {
     const carbCals = target - (p * 4) - fatCals;
     const carbs = Math.round(carbCals / 4);
     const profileData = { tdee, target_calories: target, protein_target_g: p, carbs_target_g: carbs, fat_target_g: fat, tdee_source: mode };
-    if (profiles.length > 0) {
-      await base44.entities.UserProfile.update(profiles[0].id, profileData);
+    if (profile) {
+      await UserProfile.update(profileData);
     } else {
-      await base44.entities.UserProfile.create({ ...profileData, onboarding_done: false });
+      await UserProfile.upsert({ ...profileData, onboarding_done: false });
     }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);

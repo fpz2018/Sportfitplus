@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { WeekMenu } from '@/api/entities';
+import { callFunction } from '@/api/netlifyClient';
 import { ShoppingCart, Loader2, X, Check, ChevronDown, ChevronUp, Sparkles, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -32,7 +33,7 @@ export default function Boodschappenlijst({ alleRecepten, onSluit }) {
 
   // Haal weekmenu items op voor de geselecteerde datumrange
   async function laadItems() {
-    const allItems = await base44.entities.WeekMenu.list('-datum', 1000);
+    const allItems = await WeekMenu.listAll();
     return allItems.filter(i => i.datum >= datumVan && i.datum <= datumTot);
   }
 
@@ -64,7 +65,7 @@ export default function Boodschappenlijst({ alleRecepten, onSluit }) {
     }
 
     const rangeLabel = datumVan === datumTot ? datumVan : `${datumVan} t/m ${datumTot}`;
-    const result = await base44.integrations.Core.InvokeLLM({
+    const result = await callFunction('invokeLLM', {
       prompt: `Je bent een boodschappenassistent. Hieronder staan de ingrediënten van alle geplande recepten voor ${rangeLabel}.
 
 Combineer ingrediënten die hetzelfde zijn (bijv. "2 eieren" + "3 eieren" = "5 eieren").

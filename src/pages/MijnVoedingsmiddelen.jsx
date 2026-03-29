@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useState } from 'react';
+import { Food } from '@/api/entities';
+import { callFunction, uploadFile } from '@/api/netlifyClient';
 import { Search, Plus, Edit2, Trash2, Loader2, Save, X, Upload, Download, Copy } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
@@ -25,7 +26,7 @@ export default function MijnVoedingsmiddelen() {
 
   const { data: voedingsmiddelen = [], isLoading, refetch } = useQuery({
     queryKey: ['voedingsmiddelen'],
-    queryFn: () => base44.entities.Food.list('-created_date', 5000),
+    queryFn: () => Food.list(5000),
   });
 
   const gefilterd = voedingsmiddelen.filter(v => {
@@ -36,7 +37,7 @@ export default function MijnVoedingsmiddelen() {
 
   async function verwijder(id) {
     try {
-      await base44.entities.Food.delete(id);
+      await Food.delete(id);
       refetch();
     } catch (error) {
       setImportError('Voedingsmiddel kon niet worden verwijderd');
@@ -45,7 +46,7 @@ export default function MijnVoedingsmiddelen() {
   }
 
   async function updateItem(id) {
-    await base44.entities.Food.update(id, editData);
+    await Food.update(id, editData);
     setEditId(null);
     refetch();
   }
@@ -58,7 +59,7 @@ export default function MijnVoedingsmiddelen() {
       carbs_g: parseFloat(nieuwItem.carbs_g),
       fat_g: parseFloat(nieuwItem.fat_g),
     };
-    await base44.entities.Food.create(data);
+    await Food.create(data);
     setNieuwItem({ name: '', calories: '', protein_g: '', carbs_g: '', fat_g: '', category: 'overig' });
     setToevoegForm(false);
     refetch();
@@ -69,15 +70,15 @@ export default function MijnVoedingsmiddelen() {
     setImportError(null);
     setImportSuccess(null);
     setRemovalProgress({ removed: 0, total: voedingsmiddelen.length });
-    
+
     try {
-      const res = await base44.functions.invoke('removeDuplicateFoods', {});
-      if (res.data?.success) {
-        setRemovalProgress({ removed: res.data.duplicates_removed, total: voedingsmiddelen.length });
-        setImportSuccess(`${res.data.duplicates_removed} dubbelen verwijderd. ${res.data.remaining} items over.`);
+      const res = await callFunction('removeDuplicateFoods', {});
+      if (res?.success) {
+        setRemovalProgress({ removed: res.duplicates_removed, total: voedingsmiddelen.length });
+        setImportSuccess(`${res.duplicates_removed} dubbelen verwijderd. ${res.remaining} items over.`);
         setTimeout(() => refetch(), 500);
       } else {
-        setImportError(res.data?.error || 'Verwijderen mislukt');
+        setImportError(res?.error || 'Verwijderen mislukt');
       }
     } catch (error) {
       setImportError(error.message || 'Verwijderen mislukt');
@@ -96,18 +97,17 @@ export default function MijnVoedingsmiddelen() {
 
     try {
       // Upload file to get URL
-      const uploadRes = await base44.integrations.Core.UploadFile({ file });
-      const fileUrl = uploadRes.file_url;
+      const publicUrl = await uploadFile(file);
 
       // Call import function with file URL instead of raw content
-      const res = await base44.functions.invoke('importFoods', { file_url: fileUrl });
-      
-      if (res.data?.success) {
-        setImportSuccess(`${res.data.imported} voedingsmiddelen geïmporteerd!`);
+      const res = await callFunction('importFoods', { file_url: publicUrl });
+
+      if (res?.success) {
+        setImportSuccess(`${res.imported} voedingsmiddelen geïmporteerd!`);
         refetch();
         e.target.value = '';
       } else {
-        setImportError(res.data?.error || 'Import mislukt');
+        setImportError(res?.error || 'Import mislukt');
       }
     } catch (error) {
       console.error('Import error:', error);
@@ -157,7 +157,7 @@ export default function MijnVoedingsmiddelen() {
                 setImportLoading(true);
                 setImportSuccess(null);
                 try {
-                  await base44.functions.invoke('clearFoods', {});
+                  await callFunction('clearFoods', {});
                   setImportSuccess('Alle voedingsmiddelen verwijderd!');
                   // Refresh after short delay to ensure server is updated
                   setTimeout(() => refetch(), 1000);
@@ -207,8 +207,8 @@ export default function MijnVoedingsmiddelen() {
         <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-4">
           <p className="text-sm text-blue-600 mb-2 font-medium">Dubbelen verwijderen...</p>
           <div className="w-full bg-blue-500/20 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all" 
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all"
               style={{ width: `${(removalProgress.removed / removalProgress.total) * 100}%` }}
             />
           </div>

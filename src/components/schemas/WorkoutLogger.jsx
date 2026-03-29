@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { WorkoutLog } from '@/api/entities';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { Check, Plus, Minus, Save, X, History, ChevronDown, ChevronUp, Timer } from 'lucide-react';
@@ -27,17 +27,15 @@ export default function WorkoutLogger({ schemaName, dag, oefeningen, onClose }) 
   }, []);
 
   async function loadHistory() {
-    const u = await base44.auth.me();
-    const logs = await base44.entities.WorkoutLog.filter({ created_by: u.email, dag_naam: dag }, '-log_date', 5);
+    const logs = await WorkoutLog.listByDay(dag, 5);
     setHistory(logs);
   }
 
   async function loadTodayLog() {
-    const u = await base44.auth.me();
-    const existing = await base44.entities.WorkoutLog.filter({ created_by: u.email, log_date: today, dag_naam: dag });
-    if (existing.length > 0 && existing[0].exercises) {
-      setExercises(existing[0].exercises);
-      setNotes(existing[0].notes || '');
+    const existing = await WorkoutLog.getByDateAndDay(today, dag);
+    if (existing && existing.exercises) {
+      setExercises(existing.exercises);
+      setNotes(existing.notes || '');
     }
   }
 
@@ -73,13 +71,12 @@ export default function WorkoutLogger({ schemaName, dag, oefeningen, onClose }) 
 
   async function saveLog() {
     const duration = Math.round((Date.now() - startTime) / 60000);
-    const u = await base44.auth.me();
-    const existing = await base44.entities.WorkoutLog.filter({ created_by: u.email, log_date: today, dag_naam: dag });
+    const existing = await WorkoutLog.getByDateAndDay(today, dag);
     const data = { log_date: today, schema_name: schemaName, dag_naam: dag, exercises, notes, duration_min: duration };
-    if (existing.length > 0) {
-      await base44.entities.WorkoutLog.update(existing[0].id, data);
+    if (existing) {
+      await WorkoutLog.update(existing.id, data);
     } else {
-      await base44.entities.WorkoutLog.create(data);
+      await WorkoutLog.create(data);
     }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);

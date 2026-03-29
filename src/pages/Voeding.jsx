@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useState } from 'react';
+import { useAuth } from '@/lib/AuthContext';
 import { Utensils, Lock, ChevronDown, ChevronUp, Apple, Beef, Droplets } from 'lucide-react';
 import AiMenuGenerator from '@/components/voeding/AiMenuGenerator';
 import OrthoChat from '@/components/voeding/OrthoChat';
@@ -83,20 +83,11 @@ const TOP_EIWITTEN = [
 ];
 
 export default function Voeding() {
-  const [profile, setProfile] = useState(null);
+  const { profile } = useAuth();
   const [openPlan, setOpenPlan] = useState(0);
   const [openMeal, setOpenMeal] = useState(null);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  async function loadProfile() {
-    const u = await base44.auth.me();
-    const profiles = await base44.entities.UserProfile.filter({ created_by: u.email });
-    if (profiles.length > 0) setProfile(profiles[0]);
-  }
-
+  // Need useState for openPlan/openMeal
   return (
     <div className="p-6 pb-24 md:pb-8 max-w-4xl mx-auto">
       <div className="mb-8">

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { callFunction } from '@/api/netlifyClient';
+import { CustomSchema } from '@/api/entities';
 import { Sparkles, ChevronDown, ChevronUp, Loader2, Dumbbell, Moon, RefreshCw, Save, CheckCircle } from 'lucide-react';
 
 const FREQ_OPTIES = [
@@ -106,7 +107,7 @@ Rustdagen mogen actief herstel bevatten (wandelen, stretchen).
 
 Geef ook een korte uitleg van de opbouw en waarom deze structuur werkt.`;
 
-    const response = await base44.integrations.Core.InvokeLLM({
+    const response = await callFunction('invokeLLM', {
       prompt,
       response_json_schema: {
         type: 'object',
@@ -148,7 +149,7 @@ Geef ook een korte uitleg van de opbouw en waarom deze structuur werkt.`;
   async function slaOp() {
     if (!result) return;
     setSaving(true);
-    await base44.entities.CustomSchema.create({
+    await CustomSchema.create({
       name: result.schema_naam,
       description: result.uitleg,
       days: result.dagen?.map(dag => ({

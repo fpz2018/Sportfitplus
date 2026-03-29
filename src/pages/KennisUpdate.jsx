@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { AppInzicht, KennisAnalyseRun, WijzigingsVoorstel, CodeTaak } from '@/api/entities';
+import { callFunction } from '@/api/netlifyClient';
 import { Brain, Loader2, ChevronDown, ChevronUp, CheckCircle, XCircle, Zap, Clock, BookOpen, FlaskConical, Dumbbell, Utensils, Calculator, User, Sparkles, ArrowRight, FileText, Code, Square, CheckSquare } from 'lucide-react';
 
 const DOMEIN_ICONEN = {
@@ -23,7 +25,8 @@ const STATUS_STIJL = {
 };
 
 export default function KennisUpdate() {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
   const [inzichten, setInzichten] = useState([]);
   const [voorstellen, setVoorstellen] = useState([]);
   const [runs, setRuns] = useState([]);
@@ -38,37 +41,35 @@ export default function KennisUpdate() {
   const [verwerkBezig, setVerwerkBezig] = useState({}); // { [voorstel_id]: boolean }
 
   useEffect(() => {
-    base44.auth.me().then(u => {
-      setIsAdmin(u?.role === 'admin');
-      if (u?.role === 'admin') laadData();
-    });
-  }, []);
+    if (isAdmin) laadData();
+    else setLoading(false);
+  }, [isAdmin]);
 
   async function laadData() {
     setLoading(true);
-    const [ins, rs, vs, taken] = await Promise.all([
-      base44.entities.AppInzicht.list('-created_date', 100),
-      base44.entities.KennisAnalyseRun.list('-created_date', 10),
-      base44.entities.WijzigingsVoorstel.filter({ bron_type: 'pubmed' }, '-created_date', 50),
-      base44.entities.CodeTaak.list('-created_date', 100),
+    const [ins, rs, allVoorstellen, taken] = await Promise.all([
+      AppInzicht.list(),
+      KennisAnalyseRun.list(),
+      WijzigingsVoorstel.list(),
+      CodeTaak.list(),
     ]);
     setInzichten(ins);
     setRuns(rs);
-    setVoorstellen(vs);
+    setVoorstellen(allVoorstellen.filter(v => v.bron_type === 'pubmed'));
     setCodeTaken(taken);
     setLoading(false);
   }
 
   async function startAnalyse() {
     setAnalyseren(true);
-    await base44.functions.invoke('kennisAnalyse', {});
+    await callFunction('kennisAnalyse', {});
     await laadData();
     setAnalyseren(false);
   }
 
   async function genereerVoorstel(inzicht) {
     setBezig(prev => ({ ...prev, [inzicht.id]: true }));
-    const res = await base44.functions.invoke('verwerkInzicht', {
+    const res = await callFunction('verwerkInzicht', {
       actie: 'genereer_voorstel',
       inzicht_id: inzicht.id,
     });
@@ -76,24 +77,24 @@ export default function KennisUpdate() {
     setBezig(prev => ({ ...prev, [inzicht.id]: false }));
     // Schakel naar voorstellen-tab en toon het nieuwe voorstel
     setActiefTab('voorstellen');
-    setExpanded(res.data?.voorstel_id || null);
+    setExpanded(res?.voorstel_id || null);
   }
 
   async function afwijzenInzicht(inzicht) {
-    await base44.entities.AppInzicht.update(inzicht.id, { status: 'afgewezen' });
+    await AppInzicht.update(inzicht.id, { status: 'afgewezen' });
     setInzichten(prev => prev.map(i => i.id === inzicht.id ? { ...i, status: 'afgewezen' } : i));
   }
 
   async function toepassenVoorstel(voorstel) {
     setVerwerkBezig(prev => ({ ...prev, [voorstel.id]: 'toepassen' }));
-    await base44.functions.invoke('verwerkInzicht', { actie: 'toepassen', voorstel_id: voorstel.id });
+    await callFunction('verwerkInzicht', { actie: 'toepassen', voorstel_id: voorstel.id });
     await laadData();
     setVerwerkBezig(prev => ({ ...prev, [voorstel.id]: null }));
   }
 
   async function afwijzenVoorstel(voorstel) {
     setVerwerkBezig(prev => ({ ...prev, [voorstel.id]: 'afwijzen' }));
-    await base44.functions.invoke('verwerkInzicht', { actie: 'afwijzen', voorstel_id: voorstel.id });
+    await callFunction('verwerkInzicht', { actie: 'afwijzen', voorstel_id: voorstel.id });
     await laadData();
     setVerwerkBezig(prev => ({ ...prev, [voorstel.id]: null }));
   }
@@ -111,7 +112,7 @@ export default function KennisUpdate() {
 
   async function vinkAfTaak(taak) {
     const nieuweStatus = taak.status === 'open' ? 'gedaan' : 'open';
-    await base44.entities.CodeTaak.update(taak.id, {
+    await CodeTaak.update(taak.id, {
       status: nieuweStatus,
       gedaan_op: nieuweStatus === 'gedaan' ? new Date().toISOString() : null,
     });

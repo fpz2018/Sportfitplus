@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { Notification } from '@/api/entities';
 import { Bell, Check, Trash2, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -21,32 +22,27 @@ const typeLabels = {
 export default function NotificationBell() {
   const [notificaties, setNotificaties] = useState([]);
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
+    if (!user) return;
     loadNotificaties();
     const interval = setInterval(loadNotificaties, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   async function loadNotificaties() {
-    if (!user) return;
-    const notifs = await base44.entities.Notification.filter(
-      { created_by: user.email, read: false },
-      '-created_date',
-      10
-    );
+    const notifs = await Notification.list(true);
     setNotificaties(notifs);
   }
 
   async function markAsRead(notifId) {
-    await base44.entities.Notification.update(notifId, { read: true });
+    await Notification.markRead(notifId);
     setNotificaties(prev => prev.filter(n => n.id !== notifId));
   }
 
   async function deleteNotif(notifId) {
-    await base44.entities.Notification.delete(notifId);
+    await Notification.delete(notifId);
     setNotificaties(prev => prev.filter(n => n.id !== notifId));
   }
 

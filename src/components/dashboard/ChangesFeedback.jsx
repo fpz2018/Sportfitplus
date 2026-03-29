@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { WijzigingsVoorstel } from '@/api/entities';
 import { ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,7 @@ export default function ChangesFeedback({ change, isExpanded, onToggle }) {
     setLoading(true);
     try {
       // Store feedback as a custom field on the change record
-      await base44.entities.WijzigingsVoorstel.update(change.id, {
+      await WijzigingsVoorstel.update(change.id, {
         user_feedback: feedback,
         user_feedback_rating: rating,
         user_feedback_date: new Date().toISOString()

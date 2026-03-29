@@ -1,47 +1,46 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { UserProfile, DailyLog, HRVLog } from '@/api/entities';
 import { Loader2, TrendingUp, Activity, Moon, Zap } from 'lucide-react';
 import CorrelationMatrix from '@/components/analytics/CorrelationMatrix';
 import MultiAxisChart from '@/components/analytics/MultiAxisChart';
 import CorrelationStats from '@/components/analytics/CorrelationStats';
 
 export default function CoachAnalytics() {
-  const [user, setUser] = useState(null);
+  const { user, profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [dailyLogs, setDailyLogs] = useState([]);
   const [hrvLogs, setHrvLogs] = useState([]);
   const [correlations, setCorrelations] = useState({});
-  const [selectedUser, setSelectedUser] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
 
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      const me = await base44.auth.me();
-      setUser(me);
 
       // Only admins can access
-      if (me?.role !== 'admin') {
+      if (profile?.role !== 'admin') {
         setLoading(false);
         return;
       }
 
       // Load all users for selection
-      const users = await base44.entities.User.list('-created_date', 100);
+      const users = await UserProfile.listAll();
       setAllUsers(users);
 
       // Load current user's data by default
-      await loadUserAnalytics(me.email);
+      await loadOwnAnalytics();
       setLoading(false);
     }
 
-    loadData();
-  }, []);
+    if (profile !== undefined) loadData();
+  }, [profile]);
 
-  async function loadUserAnalytics(userEmail) {
-    const logs = await base44.entities.DailyLog.filter({ created_by: userEmail }, '-log_date', 100);
-    const hrv = await base44.entities.HRVLog.filter({ created_by: userEmail }, '-log_date', 100);
-    
+  async function loadOwnAnalytics() {
+    const [logs, hrv] = await Promise.all([
+      DailyLog.list(100),
+      HRVLog.list(100),
+    ]);
     setDailyLogs(logs);
     setHrvLogs(hrv);
     calculateCorrelations(logs, hrv);
@@ -108,7 +107,7 @@ export default function CoachAnalytics() {
     );
   }
 
-  if (user?.role !== 'admin') {
+  if (profile?.role !== 'admin') {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-6 text-center">
@@ -133,16 +132,13 @@ export default function CoachAnalytics() {
       <div className="mb-6">
         <label className="block text-sm font-medium text-foreground mb-2">Analyseer gebruiker</label>
         <select
-          value={selectedUser || user?.email}
-          onChange={e => {
-            setSelectedUser(e.target.value);
-            loadUserAnalytics(e.target.value);
-          }}
+          defaultValue={user?.email}
+          onChange={() => {}} // RLS restricts data to own user only
           className="w-full max-w-sm bg-card border border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <option value={user?.email}>{user?.full_name} (jij)</option>
-          {allUsers.map(u => (
-            <option key={u.id} value={u.email}>{u.full_name}</option>
+          <option value={user?.email}>{profile?.full_name || user?.email} (jij)</option>
+          {allUsers.filter(u => u.id !== user?.id).map(u => (
+            <option key={u.id} value={u.email}>{u.full_name || u.email}</option>
           ))}
         </select>
       </div>

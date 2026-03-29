@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { FoodLog, Notification } from '@/api/entities';
 import { Plus, Trash2, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FoodSearch from '@/components/voeding/FoodSearch';
@@ -27,15 +27,11 @@ export default function DayFoodLogEditor({ date, weekMenuItems, profile, onSaved
 
   async function loadFoodLog() {
     setLoading(true);
-    const user = await base44.auth.me();
-    const logs = await base44.entities.FoodLog.filter({ 
-      created_by: user.email,
-      log_date: dateStr 
-    });
-    
-    if (logs.length > 0) {
-      setFoodLog(logs[0]);
-      setNotes(logs[0].notes || '');
+    const log = await FoodLog.getByDate(dateStr);
+
+    if (log) {
+      setFoodLog(log);
+      setNotes(log.notes || '');
     } else {
       // Maak nieuwe FoodLog aan met WeekMenu items
       const newLog = {
@@ -122,8 +118,6 @@ export default function DayFoodLogEditor({ date, weekMenuItems, profile, onSaved
 
   async function submitDay() {
     setSubmitting(true);
-    const user = await base44.auth.me();
-    
     const logData = {
       ...foodLog,
       notes,
@@ -132,13 +126,13 @@ export default function DayFoodLogEditor({ date, weekMenuItems, profile, onSaved
     };
 
     if (foodLog.id) {
-      await base44.entities.FoodLog.update(foodLog.id, logData);
+      await FoodLog.update(foodLog.id, logData);
     } else {
-      await base44.entities.FoodLog.create(logData);
+      await FoodLog.create(logData);
     }
 
     // Notificatie aanmaken
-    await base44.entities.Notification.create({
+    await Notification.create({
       type: 'nutrition_update',
       title: 'Voeding ingediend',
       message: `Je voeding van ${dateStr} is ingediend. Totaal: ${logData.total_calories} kcal`,

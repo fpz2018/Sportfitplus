@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { callFunction } from '@/api/netlifyClient';
 import { Sparkles, ChevronDown, ChevronUp, Loader2, Utensils, RefreshCw } from 'lucide-react';
 
 const DIEET_OPTIES = [
@@ -60,7 +60,7 @@ REGELS:
 
 Geef ook 2-3 praktische tips specifiek voor dit profiel.`;
 
-    const response = await base44.integrations.Core.InvokeLLM({
+    const response = await callFunction('invokeLLM', {
       prompt,
       response_json_schema: {
         type: 'object',

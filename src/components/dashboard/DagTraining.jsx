@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { CustomSchema, DailyLog } from '@/api/entities';
 import { Link } from 'react-router-dom';
 import { Dumbbell, CheckCircle2, Circle, ChevronRight, ArrowRight } from 'lucide-react';
 
@@ -47,22 +47,19 @@ export default function DagTraining({ profile, todayLog, onLogUpdate }) {
 
   useEffect(() => {
     // Laad eigen schema als die bestaat
-    base44.auth.me().then(u =>
-      base44.entities.CustomSchema.filter({ created_by: u.email }, '-created_date', 1).then(schemas => {
-        if (schemas.length > 0) setSchema(schemas[0]);
-      })
-    );
+    CustomSchema.list().then(schemas => {
+      if (schemas.length > 0) setSchema(schemas[0]);
+    });
   }, []);
 
   async function markeerVoltooid() {
     setMarking(true);
-    const u = await base44.auth.me();
     const today = new Date().toISOString().split('T')[0];
-    const logs = await base44.entities.DailyLog.filter({ created_by: u.email, log_date: today });
-    if (logs.length > 0) {
-      await base44.entities.DailyLog.update(logs[0].id, { training_done: true, training_type: profile?.training_methode === 'hiit' || profile?.training_methode === 'tabata' ? 'cardio_hiit' : 'kracht' });
+    const existing = await DailyLog.getByDate(today);
+    if (existing) {
+      await DailyLog.update(existing.id, { training_done: true, training_type: profile?.training_methode === 'hiit' || profile?.training_methode === 'tabata' ? 'cardio_hiit' : 'kracht' });
     } else {
-      await base44.entities.DailyLog.create({ log_date: today, training_done: true, training_type: 'kracht', created_by: u.email });
+      await DailyLog.create({ log_date: today, training_done: true, training_type: 'kracht' });
     }
     onLogUpdate();
     setMarking(false);

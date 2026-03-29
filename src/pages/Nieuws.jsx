@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { Nieuwsbericht } from '@/api/entities';
 import { Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -26,7 +26,7 @@ export default function Nieuws() {
 
   async function laadBerichten() {
     setLoading(true);
-    const alle = await base44.entities.Nieuwsbericht.filter({ status: 'gepubliceerd' }, '-gepubliceerd_op', 100);
+    const alle = await Nieuwsbericht.list('gepubliceerd');
     setBerichten(alle);
     setLoading(false);
   }

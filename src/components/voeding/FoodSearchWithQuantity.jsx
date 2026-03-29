@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { callFunction } from '@/api/netlifyClient';
 import { X, QrCode, ChevronLeft, Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Html5QrcodeScanner } from 'html5-qrcode';
@@ -79,8 +79,8 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
     setLoading(true);
     setSearched(true);
     
-    const res = await base44.functions.invoke('searchOpenFoodFacts', { query });
-    setResults(res.data.products || []);
+    const res = await callFunction('searchOpenFoodFacts', { query });
+    setResults(res?.products || []);
     setLoading(false);
   }
 
@@ -88,8 +88,8 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
     setLoading(true);
     setSearched(true);
     
-    const res = await base44.functions.invoke('searchOpenFoodFacts', { barcode });
-    setResults(res.data.products || []);
+    const res = await callFunction('searchOpenFoodFacts', { barcode });
+    setResults(res?.products || []);
     setLoading(false);
   }
 

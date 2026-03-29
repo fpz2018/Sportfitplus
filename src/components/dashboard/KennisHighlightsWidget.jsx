@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { Nieuwsbericht, KennisArtikel, WijzigingsVoorstel } from '@/api/entities';
 import { Link } from 'react-router-dom';
 import { FlaskConical, Sparkles, ChevronRight, TrendingUp, ArrowRight, Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,23 +34,24 @@ export default function KennisHighlightsWidget({ isAdmin }) {
   async function loadData() {
     setLoading(true);
 
-    const [gepubliceerd, kennisArtikelen, voorstellen] = await Promise.all([
-      base44.entities.Nieuwsbericht.filter({ status: 'gepubliceerd' }, '-gepubliceerd_op', 3),
-      base44.entities.KennisArtikel.filter({ status: 'approved' }, '-created_date', 3),
-      isAdmin ? base44.entities.WijzigingsVoorstel.filter({ entity_naam: 'SEO', status: 'pending' }, '-created_date', 5) : Promise.resolve([]),
+    const [gepubliceerd, kennisArtikelen, alleVoorstellen] = await Promise.all([
+      Nieuwsbericht.list('gepubliceerd'),
+      KennisArtikel.list('approved'),
+      isAdmin ? WijzigingsVoorstel.list('pending') : Promise.resolve([]),
     ]);
 
-    setNieuws(gepubliceerd);
+    const topNieuws = gepubliceerd.slice(0, 3);
+    const voorstellen = alleVoorstellen.filter(v => v.entity_naam === 'SEO').slice(0, 5);
     setSeoSuggesties(voorstellen);
 
     if (isAdmin) {
-      const pending = await base44.entities.KennisArtikel.filter({ status: 'pending' });
-      setPendingCount(pending.length);
+      const pendingArtikelen = await KennisArtikel.list('pending');
+      setPendingCount(pendingArtikelen.length);
     }
 
     // Use approved articles as highlights if no published news yet
-    if (gepubliceerd.length === 0) {
-      setNieuws(kennisArtikelen.map(a => ({
+    if (topNieuws.length === 0) {
+      setNieuws(kennisArtikelen.slice(0, 3).map(a => ({
         id: a.id,
         titel: a.title_nl || a.title_en,
         intro: a.summary_nl,
@@ -59,6 +60,8 @@ export default function KennisHighlightsWidget({ isAdmin }) {
         relevance_score: a.relevance_score,
         _isKennisArtikel: true,
       })));
+    } else {
+      setNieuws(topNieuws);
     }
 
     setLoading(false);
@@ -67,7 +70,7 @@ export default function KennisHighlightsWidget({ isAdmin }) {
   async function handleApplySeo(voorstel) {
     setGeneratingSeo(true);
     // Apply to index.html meta tags via update proposal
-    await base44.entities.WijzigingsVoorstel.update(voorstel.id, {
+    await WijzigingsVoorstel.update(voorstel.id, {
       status: 'applied',
       applied_at: new Date().toISOString(),
     });

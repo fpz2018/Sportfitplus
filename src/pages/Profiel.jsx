@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { UserProfile } from '@/api/entities';
 import { User, Scale, Ruler, Dumbbell, Target, Edit2, Check, X, LogOut } from 'lucide-react';
 
 const METHODE_OPTIES = [
@@ -26,33 +27,30 @@ const GOAL_LABELS = {
 };
 
 export default function Profiel() {
-  const [user, setUser] = useState(null);
+  const { user, profile: authProfile, logout } = useAuth();
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => { loadData(); }, []);
-
-  async function loadData() {
-    const u = await base44.auth.me();
-    setUser(u);
-    const profiles = await base44.entities.UserProfile.filter({ created_by: u.email });
-    if (profiles.length > 0) {
-      setProfile(profiles[0]);
-      setForm(profiles[0]);
+  useEffect(() => {
+    if (authProfile) {
+      setProfile(authProfile);
+      setForm(authProfile);
     }
-  }
+  }, [authProfile]);
 
   async function save() {
     if (profile) {
-      await base44.entities.UserProfile.update(profile.id, form);
+      await UserProfile.update(form);
     } else {
-      await base44.entities.UserProfile.create(form);
+      await UserProfile.upsert(form);
     }
     setSaved(true);
     setEditing(false);
-    loadData();
+    const updated = await UserProfile.get();
+    setProfile(updated);
+    setForm(updated);
     setTimeout(() => setSaved(false), 3000);
   }
 
@@ -75,7 +73,7 @@ export default function Profiel() {
           <User className="w-7 h-7 text-primary" />
         </div>
         <div>
-          <p className="font-bold text-foreground text-lg">{user.full_name}</p>
+          <p className="font-bold text-foreground text-lg">{user.full_name || user.email}</p>
           <p className="text-sm text-muted-foreground">{user.email}</p>
         </div>
       </div>
@@ -283,7 +281,7 @@ export default function Profiel() {
       {/* Logout button */}
       <div className="mt-8 pt-8 border-t border-border">
         <button
-          onClick={() => base44.auth.logout()}
+          onClick={logout}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-destructive/30 text-sm font-medium text-destructive hover:bg-destructive/10 transition-all"
         >
           <LogOut className="w-4 h-4" /> Afmelden

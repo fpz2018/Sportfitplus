@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { DailyLog } from '@/api/entities';
 import { useLanguage } from '@/lib/LanguageContext';
 import { format } from 'date-fns';
 import { nl, enUS } from 'date-fns/locale';
@@ -10,8 +11,8 @@ import HRVTracker from '@/components/voortgang/HRVTracker';
 
 export default function Voortgang() {
   const { t, language } = useLanguage();
+  const { profile } = useAuth();
   const [logs, setLogs] = useState([]);
-  const [profile, setProfile] = useState(null);
   const [today] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [todayLog, setTodayLog] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -21,14 +22,11 @@ export default function Voortgang() {
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-    const u = await base44.auth.me();
-    const [profiles, allLogs] = await Promise.all([
-      base44.entities.UserProfile.filter({ created_by: u.email }),
-      base44.entities.DailyLog.filter({ created_by: u.email }, '-log_date', 30),
+    const [allLogs, tl] = await Promise.all([
+      DailyLog.list(30),
+      DailyLog.getByDate(today),
     ]);
-    if (profiles.length > 0) setProfile(profiles[0]);
     setLogs(allLogs);
-    const tl = allLogs.find(l => l.log_date === today);
     if (tl) { setTodayLog(tl); setForm({ ...tl }); }
   }
 
@@ -44,9 +42,9 @@ export default function Voortgang() {
       steps: parseInt(form.steps) || null,
     };
     if (todayLog) {
-      await base44.entities.DailyLog.update(todayLog.id, data);
+      await DailyLog.update(todayLog.id, data);
     } else {
-      await base44.entities.DailyLog.create(data);
+      await DailyLog.create(data);
     }
     setSaved(true);
     setShowForm(false);

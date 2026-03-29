@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { DailyLog } from '@/api/entities';
 import { Link } from 'react-router-dom';
 import { HeartPulse, ChevronRight, CheckCircle2, Moon, Zap } from 'lucide-react';
 
@@ -12,13 +12,12 @@ export default function DagWelzijn({ profile, todayLog, onLogUpdate }) {
 
   async function slaWelzijnOp(nieuweData) {
     setSaving(true);
-    const u = await base44.auth.me();
     const today = new Date().toISOString().split('T')[0];
-    const logs = await base44.entities.DailyLog.filter({ created_by: u.email, log_date: today });
-    if (logs.length > 0) {
-      await base44.entities.DailyLog.update(logs[0].id, nieuweData);
+    const existing = await DailyLog.getByDate(today);
+    if (existing) {
+      await DailyLog.update(existing.id, nieuweData);
     } else {
-      await base44.entities.DailyLog.create({ log_date: today, created_by: u.email, ...nieuweData });
+      await DailyLog.create({ log_date: today, ...nieuweData });
     }
     onLogUpdate();
     setSaving(false);

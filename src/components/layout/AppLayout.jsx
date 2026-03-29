@@ -2,7 +2,7 @@ import { Link, useLocation, Outlet } from 'react-router-dom';
 import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload, Newspaper, CalendarDays, TrendingUp, Menu, X, Pill, Brain, HeartPulse, Bell, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { useLanguage } from '@/lib/LanguageContext';
 import NotificationBell from '../NotificationBell';
 import LanguageSwitcher from '../LanguageSwitcher';
@@ -38,12 +38,9 @@ const adminNavItemsConfig = [
 export default function AppLayout() {
   const location = useLocation();
   const { t } = useLanguage();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    base44.auth.me().then(u => setIsAdmin(u?.role === 'admin'));
-  }, []);
 
   // Sluit menu bij navigatie
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { DailyLog, WijzigingsVoorstel } from '@/api/entities';
 import { TrendingUp, MessageSquare, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,8 +8,7 @@ import ProgressChart from '@/components/dashboard/ProgressChart';
 import ChangesFeedback from '@/components/dashboard/ChangesFeedback';
 
 export default function MijnVoortgang() {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const { profile } = useAuth();
   const [dailyLogs, setDailyLogs] = useState([]);
   const [appliedChanges, setAppliedChanges] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,23 +17,12 @@ export default function MijnVoortgang() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      const me = await base44.auth.me();
-      setUser(me);
 
-      // Load profile
-      const profiles = await base44.entities.UserProfile.filter({ created_by: me.email }, '-created_date', 1);
-      if (profiles.length > 0) {
-        setProfile(profiles[0]);
-      }
-
-      // Load recent daily logs (last 30 days)
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const logs = await base44.entities.DailyLog.filter({ created_by: me.email }, '-log_date', 100);
+      const [logs, changes] = await Promise.all([
+        DailyLog.list(100),
+        WijzigingsVoorstel.list('applied'),
+      ]);
       setDailyLogs(logs);
-
-      // Load applied changes from current user
-      const changes = await base44.entities.WijzigingsVoorstel.filter({ status: 'applied', created_by: me.email }, '-applied_at', 50);
       setAppliedChanges(changes);
 
       setLoading(false);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { Recipe } from '@/api/entities';
 import { Search, X, ChefHat } from 'lucide-react';
 
 const CATEGORIES = ['ontbijt', 'lunch', 'diner', 'snack', 'dessert', 'smoothie'];
@@ -10,7 +10,7 @@ export default function ReceptKiezer({ maaltijdType, onKies, onSluit }) {
   const [catFilter, setCatFilter] = useState(maaltijdType || 'all');
 
   useEffect(() => {
-    base44.entities.Recipe.list('-created_date', 500).then(setRecepten);
+    Recipe.list('gepubliceerd', 500).then(setRecepten);
   }, []);
 
   const filtered = recepten.filter(r => {

@@ -1,45 +1,46 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { KennisArtikel, AuditLog } from '@/api/entities';
+import { callFunction } from '@/api/netlifyClient';
 import { BookOpen, CheckCircle, XCircle, ChevronDown, ChevronUp, RefreshCw, ExternalLink, Loader2, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 const EVIDENCE_COLORS = { A: 'bg-green-500/20 text-green-400', B: 'bg-blue-500/20 text-blue-400', C: 'bg-yellow-500/20 text-yellow-400', D: 'bg-red-500/20 text-red-400' };
-const EVIDENCE_LABELS = { 
-  A: 'RCT / Meta-analyse (sterke evidence)', 
-  B: 'Cohort onderzoek', 
-  C: 'Case studies', 
-  D: 'Expertopinieën' 
+const EVIDENCE_LABELS = {
+  A: 'RCT / Meta-analyse (sterke evidence)',
+  B: 'Cohort onderzoek',
+  C: 'Case studies',
+  D: 'Expertopinieën'
 };
 const STATUS_LABELS = { pending: 'In behandeling', approved: 'Goedgekeurd', rejected: 'Afgewezen' };
 
 export default function KennisMonitor() {
+  const { user } = useAuth();
   const [artikelen, setArtikelen] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const [filterStatus, setFilterStatus] = useState('pending');
   const [filterCat, setFilterCat] = useState('all');
-  const [user, setUser] = useState(null);
   const [generatingId, setGeneratingId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
     loadArtikelen();
   }, []);
 
   async function loadArtikelen() {
     setLoading(true);
-    const data = await base44.entities.KennisArtikel.list('-created_date', 100);
+    const data = await KennisArtikel.listAll(100);
     setArtikelen(data);
     setLoading(false);
   }
 
   async function handleFetchPubMed() {
     setFetching(true);
-    await base44.functions.invoke('pubmedFetch', { 
-      customQueries: searchQuery ? searchQuery.split(',').map(q => q.trim()).filter(q => q) : null 
+    await callFunction('pubmedFetch', {
+      customQueries: searchQuery ? searchQuery.split(',').map(q => q.trim()).filter(q => q) : null
     });
     await loadArtikelen();
     setFetching(false);
@@ -47,13 +48,13 @@ export default function KennisMonitor() {
   }
 
   async function handleReview(artikel, status, notes = '') {
-    await base44.entities.KennisArtikel.update(artikel.id, {
+    await KennisArtikel.update(artikel.id, {
       status,
       reviewed_by: user?.email,
       reviewed_at: new Date().toISOString(),
       review_notes: notes
     });
-    await base44.entities.AuditLog.create({
+    await AuditLog.create({
       actie: status === 'approved' ? 'artikel_goedgekeurd' : 'artikel_afgewezen',
       gebruiker: user?.email,
       entity_naam: 'KennisArtikel',
@@ -65,7 +66,7 @@ export default function KennisMonitor() {
 
   async function handleGenereer(artikel) {
     setGeneratingId(artikel.id);
-    await base44.functions.invoke('genereerNieuwsEnVoorstel', { artikel_id: artikel.id });
+    await callFunction('genereerNieuwsEnVoorstel', { artikel_id: artikel.id });
     setGeneratingId(null);
     alert('Nieuwsbericht en wijzigingsvoorstel gegenereerd! Ga naar Nieuwsbeheer om te publiceren.');
   }
@@ -99,7 +100,7 @@ export default function KennisMonitor() {
         </div>
         <div className="bg-card border border-border rounded-lg p-4">
           <p className="text-xs font-medium text-muted-foreground mb-2">Zoekwoorden (gescheiden door komma's)</p>
-          <input 
+          <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

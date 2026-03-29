@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { WijzigingsVoorstel, AuditLog } from '@/api/entities';
+import { callFunction } from '@/api/netlifyClient';
 import { Lightbulb, CheckCircle, XCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -33,33 +35,32 @@ function DiffWeergave({ huidig, nieuw }) {
 }
 
 export default function InhoudsVoorstellen() {
+  const { user } = useAuth();
   const [voorstellen, setVoorstellen] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(null);
   const [filterStatus, setFilterStatus] = useState('pending');
   const [notes, setNotes] = useState({});
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
     loadVoorstellen();
   }, []);
 
   async function loadVoorstellen() {
     setLoading(true);
-    const data = await base44.entities.WijzigingsVoorstel.list('-created_date', 100);
+    const data = await WijzigingsVoorstel.list();
     setVoorstellen(data);
     setLoading(false);
   }
 
   async function handleReview(voorstel, status) {
-    await base44.entities.WijzigingsVoorstel.update(voorstel.id, {
+    await WijzigingsVoorstel.update(voorstel.id, {
       status: status === 'approve' ? 'approved' : 'rejected',
       reviewed_by: user?.email,
       reviewed_at: new Date().toISOString(),
       review_notes: notes[voorstel.id] || ''
     });
-    await base44.entities.AuditLog.create({
+    await AuditLog.create({
       actie: status === 'approve' ? 'voorstel_goedgekeurd' : 'voorstel_afgewezen',
       gebruiker: user?.email,
       entity_naam: 'WijzigingsVoorstel',
@@ -71,11 +72,11 @@ export default function InhoudsVoorstellen() {
 
   async function handleApply(voorstel) {
     // Mark as applied + log
-    await base44.entities.WijzigingsVoorstel.update(voorstel.id, {
+    await WijzigingsVoorstel.update(voorstel.id, {
       status: 'applied',
       applied_at: new Date().toISOString()
     });
-    await base44.entities.AuditLog.create({
+    await AuditLog.create({
       actie: 'voorstel_toegepast',
       gebruiker: user?.email,
       entity_naam: voorstel.entity_naam,
@@ -83,7 +84,7 @@ export default function InhoudsVoorstellen() {
       details: `Veld "${voorstel.veld_naam}" bijgewerkt: ${voorstel.voorgestelde_waarde?.substring(0, 100)}`
     });
     // Stuur notificaties naar alle users
-    await base44.functions.invoke('notifyOnProposalApplied', { voorstel_id: voorstel.id });
+    await callFunction('notifyOnProposalApplied', { voorstel_id: voorstel.id });
     loadVoorstellen();
   }
 

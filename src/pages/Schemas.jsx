@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useState } from 'react';
+import { useAuth } from '@/lib/AuthContext';
 import { Dumbbell, Clock, BarChart2, ChevronDown, ChevronUp, Lock, PlayCircle, User } from 'lucide-react';
 import WorkoutLogger from '@/components/schemas/WorkoutLogger';
 import AiSchemaGenerator from '@/components/schemas/AiSchemaGenerator';
@@ -137,16 +137,8 @@ export default function Schemas() {
   const [selected, setSelected] = useState('beginner');
   const [openDag, setOpenDag] = useState(0);
   const [loggerDag, setLoggerDag] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const { profile } = useAuth();
   const schema = SCHEMAS[selected];
-
-  useEffect(() => {
-    base44.auth.me().then(u =>
-      base44.entities.UserProfile.filter({ created_by: u.email }).then(p => {
-        if (p.length > 0) setProfile(p[0]);
-      })
-    );
-  }, []);
 
   return (
     <div className="p-6 pb-24 md:pb-8 max-w-4xl mx-auto">

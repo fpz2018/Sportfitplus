@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { DailyLog } from '@/api/entities';
 import { format } from 'date-fns';
 import { Droplets, Plus, Minus } from 'lucide-react';
 
@@ -17,20 +17,19 @@ export default function WaterTracker() {
   }, []);
 
   async function laadVandaag() {
-    const u = await base44.auth.me();
-    const logs = await base44.entities.DailyLog.filter({ created_by: u.email, log_date: today });
-    if (logs.length > 0) {
-      setWaterMl(logs[0].water_ml || 0);
-      setLogId(logs[0].id);
+    const log = await DailyLog.getByDate(today);
+    if (log) {
+      setWaterMl(log.water_ml || 0);
+      setLogId(log.id);
     }
   }
 
   async function slaOp(nieuweWaarde) {
     setSaving(true);
     if (logId) {
-      await base44.entities.DailyLog.update(logId, { water_ml: nieuweWaarde });
+      await DailyLog.update(logId, { water_ml: nieuweWaarde });
     } else {
-      const nieuw = await base44.entities.DailyLog.create({ log_date: today, water_ml: nieuweWaarde });
+      const nieuw = await DailyLog.create({ log_date: today, water_ml: nieuweWaarde });
       setLogId(nieuw.id);
     }
     setSaving(false);

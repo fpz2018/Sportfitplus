@@ -550,6 +550,53 @@ create policy "Gepubliceerde berichten voor iedereen" on public.nieuwsberichten 
 create policy "Alleen admin beheert nieuwsberichten"  on public.nieuwsberichten for all using (public.is_admin());
 
 -- ============================================================
+-- CUSTOM SCHEMAS (trainingsschema's per gebruiker)
+-- ============================================================
+create table if not exists public.custom_schemas (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  naam        text not null,
+  methode     text,
+  days        jsonb default '[]'::jsonb,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+alter table public.custom_schemas enable row level security;
+create policy "Gebruiker ziet eigen schema's"  on public.custom_schemas for select using (auth.uid() = user_id);
+create policy "Gebruiker maakt eigen schema"   on public.custom_schemas for insert with check (auth.uid() = user_id);
+create policy "Gebruiker past eigen schema aan" on public.custom_schemas for update using (auth.uid() = user_id);
+create policy "Gebruiker verwijdert eigen schema" on public.custom_schemas for delete using (auth.uid() = user_id);
+
+create trigger set_custom_schemas_updated_at
+  before update on public.custom_schemas
+  for each row execute function public.set_updated_at();
+
+-- ============================================================
+-- WORKOUT LOGS (trainingsresultaten per dag)
+-- ============================================================
+create table if not exists public.workout_logs (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  log_date    date not null default current_date,
+  dag_naam    text,
+  oefeningen  jsonb default '[]'::jsonb,
+  notities    text,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+alter table public.workout_logs enable row level security;
+create policy "Gebruiker ziet eigen workout logs"     on public.workout_logs for select using (auth.uid() = user_id);
+create policy "Gebruiker maakt eigen workout log"     on public.workout_logs for insert with check (auth.uid() = user_id);
+create policy "Gebruiker past eigen workout log aan"  on public.workout_logs for update using (auth.uid() = user_id);
+create policy "Gebruiker verwijdert eigen workout log" on public.workout_logs for delete using (auth.uid() = user_id);
+
+create trigger set_workout_logs_updated_at
+  before update on public.workout_logs
+  for each row execute function public.set_updated_at();
+
+-- ============================================================
 -- INDEXES voor performance
 -- ============================================================
 create index if not exists idx_daily_logs_user_date    on public.daily_logs (user_id, log_date desc);

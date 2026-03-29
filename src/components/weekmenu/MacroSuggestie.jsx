@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { callFunction } from '@/api/netlifyClient';
 import { Sparkles, Loader2, ChefHat, Plus, X, ChevronDown } from 'lucide-react';
 
 export default function MacroSuggestie({ resterend, recepten, voedingsmiddelen = [], geselecteerdeDag, maaltijdTypes, onVoegToe }) {
@@ -50,7 +50,7 @@ export default function MacroSuggestie({ resterend, recepten, voedingsmiddelen =
     const carbsPercentage = resterend.carbs > 0 ? (resterend.carbs * 4) / resterend.cal : 0;
     const fatPercentage = resterend.fat > 0 ? (resterend.fat * 9) / resterend.cal : 0;
 
-    const result = await base44.integrations.Core.InvokeLLM({
+    const result = await callFunction('invokeLLM', {
       prompt: `Je bent een voedingsdeskundige. Een gebruiker heeft nog EXACT de volgende macro's over:
 - Calorieën: ${resterend.cal} kcal (100%)
 - Eiwit: ${resterend.prot}g (${Math.round(proteinPercentage * 100)}% van kcal)

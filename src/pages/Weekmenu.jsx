@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { WeekMenu, Recipe } from '@/api/entities';
+import { callFunction } from '@/api/netlifyClient';
 import { ChevronLeft, ChevronRight, Loader2, ShoppingCart, Clock, Sparkles } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -24,8 +26,7 @@ export default function Weekmenu() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [kiezerOpen, setKiezerOpen] = useState(null); // maaltijd_type string
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const { profile } = useAuth();
   const [alleRecepten, setAlleRecepten] = useState([]);
   const [alleFoods, setAlleFoods] = useState([]);
   const [boodschappenOpen, setBoodschappenOpen] = useState(false);
@@ -35,28 +36,24 @@ export default function Weekmenu() {
   const weekDagen = getWeekDays(addDays(new Date(), weekOffset * 7));
 
   useEffect(() => {
-    base44.auth.me().then(async u => {
-      setUser(u);
-      laadItems(u);
-      const [profielen, recepten, foodsRes] = await Promise.all([
-        base44.entities.UserProfile.filter({ created_by: u.email }),
-        base44.entities.Recipe.list('-created_date', 500),
-        base44.functions.invoke('getCommonFoodsForSuggestions', {}),
+    async function init() {
+      laadItems();
+      const [recepten, foodsRes] = await Promise.all([
+        Recipe.list('gepubliceerd', 500),
+        callFunction('getCommonFoodsForSuggestions', {}),
       ]);
-      if (profielen.length > 0) setProfile(profielen[0]);
       setAlleRecepten(recepten);
-      setAlleFoods(foodsRes.data?.foods || []);
-    });
+      setAlleFoods(foodsRes?.foods || []);
+    }
+    init();
   }, [weekOffset]);
 
-  async function laadItems(u) {
+  async function laadItems() {
     setLoading(true);
     const start = format(weekDagen[0], 'yyyy-MM-dd');
     const end = format(weekDagen[6], 'yyyy-MM-dd');
-    const data = await base44.entities.WeekMenu.filter({ created_by: (u || user)?.email });
-    // Filter op week
-    const weekItems = data.filter(i => i.datum >= start && i.datum <= end);
-    setItems(weekItems);
+    const data = await WeekMenu.listByWeek(start, end);
+    setItems(data);
     setLoading(false);
   }
 
@@ -74,7 +71,7 @@ export default function Weekmenu() {
     const type = overrideType || kiezerOpen;
     if (!type) return;
     const dagStr = format(geselecteerdeDag, 'yyyy-MM-dd');
-    const nieuw = await base44.entities.WeekMenu.create({
+    const nieuw = await WeekMenu.create({
       datum: dagStr,
       maaltijd_type: type,
       recept_id: recept.id,
@@ -90,14 +87,14 @@ export default function Weekmenu() {
   }
 
   async function verwijder(item) {
-    await base44.entities.WeekMenu.delete(item.id);
+    await WeekMenu.delete(item.id);
     setItems(prev => prev.filter(i => i.id !== item.id));
   }
 
   async function voegVoedingsmiddelToe(voedingsmiddel) {
     if (!foodSearchType) return;
     const dagStr = format(geselecteerdeDag, 'yyyy-MM-dd');
-    const nieuw = await base44.entities.WeekMenu.create({
+    const nieuw = await WeekMenu.create({
       datum: dagStr,
       maaltijd_type: foodSearchType,
       recept_titel: voedingsmiddel.name,
@@ -118,7 +115,7 @@ export default function Weekmenu() {
     if (type === 'recept') {
       await voegToe(item, maaltijdType);
     } else {
-      const nieuw = await base44.entities.WeekMenu.create({
+      const nieuw = await WeekMenu.create({
         datum: dagStr,
         maaltijd_type: maaltijdType,
         recept_titel: item.name,
@@ -137,7 +134,7 @@ export default function Weekmenu() {
     setGeneratingMenu(true);
     
     try {
-      const res = await base44.functions.invoke('generateFullDayMenu', {
+      const res = await callFunction('generateFullDayMenu', {
         date: format(geselecteerdeDag, 'yyyy-MM-dd'),
         targetCalories: profile.target_calories,
         targetProtein: profile.protein_target_g,
@@ -146,12 +143,12 @@ export default function Weekmenu() {
       });
 
       // Voeg alle recepten toe
-      const { dagMenu } = res.data;
+      const { dagMenu } = res;
       const dagStr = format(geselecteerdeDag, 'yyyy-MM-dd');
 
-      for (const [mealType, recept] of Object.entries(dagMenu)) {
+      for (const [mealType, recept] of Object.entries(dagMenu || {})) {
         if (recept) {
-          await base44.entities.WeekMenu.create({
+          await WeekMenu.create({
             datum: dagStr,
             maaltijd_type: mealType,
             recept_id: recept.id,
@@ -165,7 +162,7 @@ export default function Weekmenu() {
         }
       }
 
-      await laadItems(user);
+      await laadItems();
     } catch (error) {
       console.error('Menu genereren mislukt:', error);
     } finally {
@@ -387,7 +384,7 @@ export default function Weekmenu() {
             date={geselecteerdeDag}
             weekMenuItems={itemsVoorDag(geselecteerdeDag)}
             profile={profile}
-            onSaved={() => laadItems(user)}
+            onSaved={() => laadItems()}
           />
         </div>
       )}

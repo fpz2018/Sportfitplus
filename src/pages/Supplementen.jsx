@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { Supplement, SupplementProduct, SupplementNieuws, KennisArtikel, UserProfile } from '@/api/entities';
+import { callFunction } from '@/api/netlifyClient';
 import { Link } from 'react-router-dom';
 import { FlaskConical, ShoppingBag, BookOpen, Sparkles, ChevronRight } from 'lucide-react';
 
@@ -62,7 +64,7 @@ function SupplementenKennisbank() {
   const CATS = ['alle', 'eiwit', 'aminozuren', 'vitaminen', 'mineralen', 'kruiden', 'adaptogenen', 'omega', 'probiotica', 'sport_performance'];
 
   useEffect(() => {
-    base44.entities.Supplement.list().then(s => {
+    Supplement.list().then(s => {
       setSupplementen(s.filter(x => x.status === 'gepubliceerd'));
       setLoading(false);
     });
@@ -212,7 +214,7 @@ function SupplementenShop() {
   const CATS = ['alle', 'eiwit', 'vitaminen', 'mineralen', 'kruiden', 'sport_performance'];
 
   useEffect(() => {
-    base44.entities.SupplementProduct.list().then(p => {
+    SupplementProduct.list().then(p => {
       setProducten(p.filter(x => x.status === 'actief'));
       setLoading(false);
     });
@@ -303,6 +305,7 @@ function ProductCard({ product }) {
 
 // --- AI ADVIES ---
 function SupplementAdvies() {
+  const { profile: authProfile } = useAuth();
   const [profile, setProfile] = useState(null);
   const [advies, setAdvies] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -313,17 +316,16 @@ function SupplementAdvies() {
 
   useEffect(() => {
     async function load() {
-      const user = await base44.auth.me();
-      const [profiles, supps] = await Promise.all([
-        base44.entities.UserProfile.filter({ created_by: user.email }),
-        base44.entities.Supplement.list()
-      ]);
-      if (profiles.length > 0) setProfile(profiles[0]);
+      const supps = await Supplement.list();
       setSupplementen(supps.filter(s => s.status === 'gepubliceerd'));
       setLoadingProfile(false);
     }
     load();
   }, []);
+
+  useEffect(() => {
+    if (authProfile) setProfile(authProfile);
+  }, [authProfile]);
 
   const opgeslaanAdvies = profile?.supplement_advies;
   const heeftOpgeslaanAdvies = opgeslaanAdvies?.length > 0;
@@ -332,9 +334,7 @@ function SupplementAdvies() {
     setLoading(true);
     setAdvies(null);
 
-    const [literatuur] = await Promise.all([
-      base44.entities.KennisArtikel.filter({ status: 'approved' }),
-    ]);
+    const literatuur = await KennisArtikel.list('approved');
 
     const suppLijst = supplementen.map(s =>
       `${s.naam} (${s.categorie}, Evidence: ${s.evidence_level || '?'}, Dosering: ${s.dosering || '?'}, Timing: ${s.timing || '?'}, Doelen: ${s.doelen?.join(', ') || '-'})`
@@ -356,7 +356,7 @@ function SupplementAdvies() {
       - Extra wensen: ${extraWensen || 'geen'}
     ` : 'Geen profiel';
 
-    const res = await base44.integrations.Core.InvokeLLM({
+    const res = await callFunction('invokeLLM', {
       prompt: `Je bent een expert sportvoedingsdeskundige. Geef gepersonaliseerd supplement advies op basis van het profiel, de kennisbank én wetenschappelijke literatuur.
 
 PROFIEL:
@@ -510,8 +510,8 @@ function SupplementenNieuws() {
   const CATS = ['alle', 'eiwit', 'vitaminen', 'mineralen', 'kruiden', 'sport_performance'];
 
   useEffect(() => {
-    base44.entities.SupplementNieuws.list('-gepubliceerd_op').then(a => {
-      setArtikelen(a.filter(x => x.status === 'gepubliceerd'));
+    SupplementNieuws.list('gepubliceerd').then(a => {
+      setArtikelen(a);
       setLoading(false);
     });
   }, []);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { CustomSchema } from '@/api/entities';
 import { Plus, Pencil, Trash2, Dumbbell, ChevronDown, ChevronUp, PlayCircle } from 'lucide-react';
 import CustomSchemaEditor from './CustomSchemaEditor';
 import WorkoutLogger from './WorkoutLogger';
@@ -16,17 +16,16 @@ export default function CustomSchemaList() {
   useEffect(() => { loadSchemas(); }, []);
 
   async function loadSchemas() {
-    const u = await base44.auth.me();
-    const data = await base44.entities.CustomSchema.filter({ created_by: u.email }, '-created_date');
+    const data = await CustomSchema.list();
     setSchemas(data);
     setLoading(false);
   }
 
   async function handleSave(data) {
     if (editingSchema) {
-      await base44.entities.CustomSchema.update(editingSchema.id, data);
+      await CustomSchema.update(editingSchema.id, data);
     } else {
-      await base44.entities.CustomSchema.create(data);
+      await CustomSchema.create(data);
     }
     setShowEditor(false);
     setEditingSchema(null);
@@ -35,7 +34,7 @@ export default function CustomSchemaList() {
 
   async function handleDelete(schema) {
     if (!confirm(`Schema "${schema.name}" verwijderen?`)) return;
-    await base44.entities.CustomSchema.delete(schema.id);
+    await CustomSchema.delete(schema.id);
     loadSchemas();
   }
 
