@@ -1,37 +1,68 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { Check, X, ExternalLink, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Check, X, ExternalLink, ChevronDown, ChevronUp, Loader2, ShieldAlert } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useAuth } from '@/lib/AuthContext';
+import { Recipe } from '@/api/entities';
 
 const CATEGORIE_KLEUREN = {
-  ontbijt: 'bg-yellow-500/10 text-yellow-400',
-  lunch: 'bg-green-500/10 text-green-400',
-  diner: 'bg-blue-500/10 text-blue-400',
-  snack: 'bg-purple-500/10 text-purple-400',
-  dessert: 'bg-pink-500/10 text-pink-400',
+  ontbijt:  'bg-yellow-500/10 text-yellow-400',
+  lunch:    'bg-green-500/10 text-green-400',
+  diner:    'bg-blue-500/10 text-blue-400',
+  snack:    'bg-purple-500/10 text-purple-400',
+  dessert:  'bg-pink-500/10 text-pink-400',
   smoothie: 'bg-teal-500/10 text-teal-400',
 };
 
 export default function ReceptenBeheer() {
-  const [recepten, setRecepten] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('concept');
-  const [openId, setOpenId] = useState(null);
-  const [bezig, setBezig] = useState({});
+  const { profile, isLoadingAuth } = useAuth();
+  const [recepten, setRecepten]   = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [filter, setFilter]       = useState('concept');
+  const [openId, setOpenId]       = useState(null);
+  const [bezig, setBezig]         = useState({});
+
+  // ── Admin guard ──────────────────────────────────────────────────────────
+  if (!isLoadingAuth && profile?.role !== 'admin') {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-3 text-center">
+        <ShieldAlert className="w-12 h-12 text-destructive" />
+        <p className="text-xl font-semibold">Geen toegang</p>
+        <p className="text-muted-foreground">Deze pagina is alleen beschikbaar voor beheerders.</p>
+      </div>
+    );
+  }
 
   useEffect(() => { laadRecepten(); }, [filter]);
 
   async function laadRecepten() {
     setLoading(true);
-    const data = await base44.entities.Recipe.filter({ status: filter }, '-created_date', 50);
+    const data = await Recipe.list(filter, 50);
     setRecepten(data);
     setLoading(false);
   }
 
   async function setStatus(recept, nieuweStatus) {
     setBezig(b => ({ ...b, [recept.id]: true }));
-    await base44.entities.Recipe.update(recept.id, { status: nieuweStatus });
+    await Recipe.update(recept.id, { status: nieuweStatus });
     setRecepten(r => r.filter(x => x.id !== recept.id));
     setBezig(b => ({ ...b, [recept.id]: false }));
+  }
+
+  async function verwijder(id) {
+    setBezig(b => ({ ...b, [id]: true }));
+    await Recipe.delete(id);
+    setRecepten(r => r.filter(x => x.id !== id));
+    setBezig(b => ({ ...b, [id]: false }));
   }
 
   return (
@@ -44,11 +75,15 @@ export default function ReceptenBeheer() {
       {/* Filter tabs */}
       <div className="flex gap-2 mb-6">
         {[
-          { v: 'concept', l: '⏳ Concept' },
+          { v: 'concept',      l: '⏳ Concept' },
           { v: 'gepubliceerd', l: '✅ Gepubliceerd' },
         ].map(({ v, l }) => (
           <button key={v} onClick={() => setFilter(v)}
-            className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all ${filter === v ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/40'}`}>
+            className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
+              filter === v
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border text-muted-foreground hover:border-primary/40'
+            }`}>
             {l}
           </button>
         ))}
@@ -102,6 +137,7 @@ export default function ReceptenBeheer() {
                     className="p-2 rounded-xl border border-border text-muted-foreground hover:text-foreground transition-all">
                     {openId === recept.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
+
                   {filter === 'concept' ? (
                     <>
                       <button onClick={() => setStatus(recept, 'gepubliceerd')} disabled={bezig[recept.id]}
@@ -109,10 +145,32 @@ export default function ReceptenBeheer() {
                         {bezig[recept.id] ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                         Publiceer
                       </button>
-                      <button onClick={() => setStatus(recept, 'afgewezen')} disabled={bezig[recept.id]}
-                        className="p-2 rounded-xl border border-destructive/30 text-destructive text-xs hover:bg-destructive/10 transition-all disabled:opacity-50">
-                        <X className="w-4 h-4" />
-                      </button>
+
+                      {/* Bevestigingsdialoog voor afwijzen */}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <button disabled={bezig[recept.id]}
+                            className="p-2 rounded-xl border border-destructive/30 text-destructive text-xs hover:bg-destructive/10 transition-all disabled:opacity-50">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Recept afwijzen?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Wil je "{recept.title}" permanent verwijderen? Dit kan niet ongedaan worden gemaakt.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={() => verwijder(recept.id)}>
+                              Verwijderen
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </>
                   ) : (
                     <button onClick={() => setStatus(recept, 'concept')} disabled={bezig[recept.id]}
@@ -135,7 +193,7 @@ export default function ReceptenBeheer() {
                       <div className="grid grid-cols-2 gap-1">
                         {recept.ingredients.map((ing, i) => (
                           <p key={i} className="text-xs text-muted-foreground">
-                            • {ing.amount} {ing.unit} {ing.name}
+                            • {typeof ing === 'string' ? ing : `${ing.amount || ''} ${ing.unit || ''} ${ing.name || ''}`}
                           </p>
                         ))}
                       </div>
@@ -147,7 +205,8 @@ export default function ReceptenBeheer() {
                       <ol className="space-y-1">
                         {recept.instructions.map((stap, i) => (
                           <li key={i} className="text-xs text-muted-foreground flex gap-2">
-                            <span className="text-primary shrink-0">{i + 1}.</span>{stap}
+                            <span className="text-primary shrink-0">{i + 1}.</span>
+                            {stap}
                           </li>
                         ))}
                       </ol>

@@ -1,9 +1,39 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 import { ChevronRight, ChevronLeft, Loader2, Sparkles, Dumbbell } from 'lucide-react';
 import { StepHeader, OptionCard, ToggleChip, SliderField, NumberInput } from '@/components/onboarding/OnboardingStep';
 import { useLanguage } from '@/lib/LanguageContext';
+import { UserProfile, Supplement, KennisArtikel } from '@/api/entities';
+import { supabase } from '@/api/supabaseClient';
+
+// ─── Validatieschema's per stap ───────────────────────────────────────────────
+
+const stepSchemas = {
+  doel: z.object({
+    hoofd_doel: z.string({ required_error: 'Selecteer een hoofddoel' }).min(1, 'Selecteer een hoofddoel'),
+  }),
+  profiel: z.object({
+    gender:     z.string({ required_error: 'Selecteer een geslacht' }).min(1, 'Selecteer een geslacht'),
+    age:        z.coerce.number({ required_error: 'Leeftijd verplicht' }).int().min(10, 'Min. 10 jaar').max(120, 'Max. 120 jaar'),
+    weight_kg:  z.coerce.number({ required_error: 'Gewicht verplicht' }).min(20, 'Min. 20 kg').max(500, 'Max. 500 kg'),
+    height_cm:  z.coerce.number({ required_error: 'Lengte verplicht' }).min(50, 'Min. 50 cm').max(280, 'Max. 280 cm'),
+  }),
+  leefstijl: z.object({
+    activity_level: z.string().min(1, 'Selecteer een activiteitsniveau'),
+  }),
+  training: z.object({
+    training_frequentie: z.coerce.number().min(1, 'Minimaal 1x per week').max(14, 'Maximaal 14x per week'),
+  }),
+  welzijn: z.object({
+    slaap_uren:    z.coerce.number().min(1, 'Min. 1 uur').max(24, 'Max. 24 uur'),
+    stress_niveau: z.coerce.number().min(1, 'Min. 1').max(10, 'Max. 10'),
+  }),
+  voeding: z.object({
+    voedingspatroon: z.string().min(1, 'Selecteer een voedingspatroon'),
+  }),
+  tdee: z.object({}), // TDEE stap heeft geen verplichte velden
+};
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -117,6 +147,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [finishing, setFinishing] = useState(false);
   const [finishStatus, setFinishStatus] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
 
   const [data, setData] = useState({
     // Doel
@@ -161,6 +192,8 @@ export default function Onboarding() {
 
   function up(key, val) {
     setData(p => ({ ...p, [key]: val }));
+    // Verwijder validatiefout zodra gebruiker het veld aanpast
+    setValidationErrors(e => { const next = { ...e }; delete next[key]; return next; });
   }
 
   function toggleArr(key, val) {
@@ -168,6 +201,27 @@ export default function Onboarding() {
       const arr = p[key] || [];
       return { ...p, [key]: arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val] };
     });
+  }
+
+  function validateCurrentStep() {
+    const schema = stepSchemas[currentStepId];
+    if (!schema) return true;
+    const result = schema.safeParse(data);
+    if (!result.success) {
+      const errors = {};
+      result.error.errors.forEach(err => {
+        errors[err.path[0]] = err.message;
+      });
+      setValidationErrors(errors);
+      return false;
+    }
+    setValidationErrors({});
+    return true;
+  }
+
+  function handleNext() {
+    if (!validateCurrentStep()) return;
+    setStep(s => Math.min(s + 1, totalSteps - 1));
   }
 
   // Which steps to show (adaptive)
@@ -206,119 +260,88 @@ export default function Onboarding() {
   };
 
   async function finish() {
+    if (!validateCurrentStep()) return;
     setFinishing(true);
     setFinishStatus(lang === 'nl' ? 'Kennisbank ophalen...' : 'Loading knowledge base...');
 
-    const [supplementen, goedgekeurdeArtikelen] = await Promise.all([
-      base44.entities.Supplement.filter({ status: 'gepubliceerd' }),
-      base44.entities.KennisArtikel.filter({ status: 'approved' }),
-    ]);
+    try {
+      const [supplementen, goedgekeurdeArtikelen] = await Promise.all([
+        Supplement.list(),
+        KennisArtikel.list('approved', 8),
+      ]);
 
-    const suppKennis = supplementen.map(s =>
-      `${s.naam} (${s.categorie}, Evidence: ${s.evidence_level || '?'}, Dosering: ${s.dosering || '?'}, Timing: ${s.timing || '?'}, Doelen: ${s.doelen?.join(', ') || '-'})`
-    ).join('\n');
+      const suppKennis = (supplementen || []).map(s =>
+        `${s.naam} (${s.categorie}, Evidence: ${s.evidence_level || '?'}, Dosering: ${s.dosering || '?'}, Timing: ${s.timing || '?'}, Doelen: ${s.doelen?.join(', ') || '-'})`
+      ).join('\n');
 
-    const nieuws = goedgekeurdeArtikelen.slice(0, 8).map(a =>
-      `[${a.evidence_level || '?'}] ${a.title_en}${a.summary_en ? ': ' + a.summary_en.substring(0, 200) : ''}`
-    ).join('\n');
+      const nieuws = (goedgekeurdeArtikelen || []).slice(0, 8).map(a =>
+        `[${a.evidence_level || '?'}] ${a.title_en}${a.summary_nl ? ': ' + a.summary_nl.substring(0, 200) : ''}`
+      ).join('\n');
 
-    setFinishStatus(lang === 'nl' ? 'AI analyseert jouw profiel...' : 'AI analysing your profile...');
+      setFinishStatus(lang === 'nl' ? 'AI analyseert jouw profiel...' : 'AI analysing your profile...');
 
-    const aiResult = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are an expert personal trainer, sports nutritionist and wellbeing coach. Analyse this user profile and give personalised recommendations in ${lang === 'nl' ? 'Dutch' : 'English'}.
-
-USER PROFILE:
-- Gender: ${data.gender}, Age: ${data.age}, Weight: ${data.weight_kg} kg, Height: ${data.height_cm} cm
-- Activity: ${data.activity_level}, Lifestyle: ${data.lifestyle}
-- Main goal: ${data.hoofd_doel}, Sub goals: ${data.sub_doelen.join(', ') || 'none'}
-- Training experience: ${data.training_ervaring}, Frequency: ${data.training_frequentie}x/week, Location: ${data.training_locatie}
-- Sleep: ${data.slaap_uren}h/night (quality: ${data.slaap_kwaliteit}), Stress: ${data.stress_niveau}/10
-- Relaxation practice: ${data.meditatie_of_ontspanning ? data.ontspanning_methode || 'yes' : 'none'}
-- Recovery priority: ${data.herstel_prioriteit}
-- Nutrition: ${data.voedingspatroon}, Allergies: ${data.allergieën.join(', ') || 'none'}
-- Injuries/complaints: ${data.blessures_klachten || 'none'}
-- Chronic conditions: ${data.chronische_aandoeningen || 'none'}
-- Supplement goals: ${data.supplement_doelen.join(', ') || 'none'}
-- Current supplements: ${data.huidige_supplementen || 'none'}
-
-SUPPLEMENT KNOWLEDGE BASE:
-${suppKennis || 'Not available'}
-
-APPROVED SCIENTIFIC LITERATURE:
-${nieuws || 'Not available'}
-
-Provide:
-1. Best training method (kracht/hypertrofie/hiit/tabata) with motivation based on goals + experience
-2. Top 3-5 supplement recommendations from the knowledge base only, with evidence-based reasoning, prioritised for this profile
-3. Specific timing and dosage per supplement tailored to the profile
-4. A short wellbeing/recovery advice (sleep, stress, relaxation) based on their current situation
-
-Be specific and practical.`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          trainings_methode: { type: 'string', enum: ['kracht', 'hypertrofie', 'hiit', 'tabata'] },
-          trainings_motivatie: { type: 'string' },
-          supplement_advies: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                naam: { type: 'string' },
-                prioriteit: { type: 'number' },
-                reden: { type: 'string' },
-                dosering: { type: 'string' },
-                timing: { type: 'string' },
-              },
-            },
+      // Roep de AI aan via Netlify Function
+      const { data: { session } } = await supabase.auth.getSession();
+      let aiResult = null;
+      try {
+        const res = await fetch('/api/generateOnboardingAdvice', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
           },
-          welzijn_advies: { type: 'string' },
-        },
-      },
-    });
+          body: JSON.stringify({ profile: data, suppKennis, nieuws, lang }),
+        });
+        if (res.ok) aiResult = await res.json();
+      } catch (aiErr) {
+        console.warn('AI advies ophalen mislukt, doorgaan zonder:', aiErr);
+      }
 
-    setFinishStatus(lang === 'nl' ? 'Profiel opslaan...' : 'Saving profile...');
+      setFinishStatus(lang === 'nl' ? 'Profiel opslaan...' : 'Saving profile...');
 
-    const tdee = data.tdee_source === 'berekend' ? tdeeCalc : parseInt(data.tdee);
-    const target = data.hoofd_doel === 'afslanken' ? Math.round(tdee * 0.8) : data.hoofd_doel === 'spieropbouw' ? Math.round(tdee * 1.1) : tdee;
-    const protein = Math.round(parseFloat(data.weight_kg) * 2.0);
-    const fatCals = Math.round(target * 0.25);
-    const fat = Math.round(fatCals / 9);
-    const carbCals = target - (protein * 4) - fatCals;
-    const carbs = Math.round(carbCals / 4);
+      const tdee = data.tdee_source === 'berekend' ? tdeeCalc : parseInt(data.tdee) || tdeeCalc;
+      const target = data.hoofd_doel === 'afslanken'
+        ? Math.round(tdee * 0.8)
+        : data.hoofd_doel === 'spieropbouw'
+          ? Math.round(tdee * 1.1)
+          : tdee;
+      const protein  = Math.round(parseFloat(data.weight_kg) * 2.0);
+      const fatCals  = Math.round(target * 0.25);
+      const fat      = Math.round(fatCals / 9);
+      const carbCals = target - (protein * 4) - fatCals;
+      const carbs    = Math.round(carbCals / 4);
 
-    const u = await base44.auth.me();
-    const existing = await base44.entities.UserProfile.filter({ created_by: u.email });
+      const profileData = {
+        gender:          data.gender,
+        age:             parseInt(data.age),
+        weight_kg:       parseFloat(data.weight_kg),
+        height_cm:       parseFloat(data.height_cm),
+        activity_level:  data.activity_level,
+        slaap_uren:      parseFloat(data.slaap_uren),
+        stress_niveau:   parseInt(data.stress_niveau),
+        tdee,
+        target_calories:  target,
+        protein_target_g: protein,
+        carbs_target_g:   carbs,
+        fat_target_g:     fat,
+        onboarding_complete: true,
+        ai_welzijn_advies: aiResult?.welzijn_advies || '',
+        goal_group: data.gender === 'vrouw'
+          ? 'vrouw'
+          : parseInt(data.age) >= 50
+            ? '50plus'
+            : data.training_ervaring === 'gevorderd'
+              ? 'gevorderd'
+              : 'beginner',
+      };
 
-    const profileData = {
-      ...data,
-      tdee,
-      target_calories: target,
-      protein_target_g: protein,
-      carbs_target_g: carbs,
-      fat_target_g: fat,
-      age: parseInt(data.age),
-      weight_kg: parseFloat(data.weight_kg),
-      height_cm: parseFloat(data.height_cm),
-      slaap_uren: parseFloat(data.slaap_uren),
-      stress_niveau: parseInt(data.stress_niveau),
-      cut_start_date: new Date().toISOString().split('T')[0],
-      onboarding_done: true,
-      training_methode: aiResult?.trainings_methode || 'kracht',
-      ai_trainings_motivatie: aiResult?.trainings_motivatie || '',
-      supplement_advies: aiResult?.supplement_advies || [],
-      supplement_advies_gegenereerd_op: new Date().toISOString(),
-      ai_welzijn_advies: aiResult?.welzijn_advies || '',
-      // Map goal_group from hoofd_doel
-      goal_group: data.gender === 'vrouw' ? 'vrouw' : parseInt(data.age) >= 50 ? '50plus' : data.training_ervaring === 'gevorderd' ? 'gevorderd' : 'beginner',
-    };
-
-    if (existing.length > 0) {
-      await base44.entities.UserProfile.update(existing[0].id, profileData);
-    } else {
-      await base44.entities.UserProfile.create(profileData);
+      await UserProfile.upsert(profileData);
+      navigate('/');
+    } catch (err) {
+      console.error('Onboarding afronden mislukt:', err);
+      setFinishStatus(lang === 'nl' ? 'Er ging iets mis. Probeer opnieuw.' : 'Something went wrong. Please try again.');
+      setFinishing(false);
     }
-    navigate('/');
   }
 
   return (
@@ -763,18 +786,26 @@ Be specific and practical.`,
             </div>
           )}
 
+          {/* ── Validatiefouten ──────────────────────────────────── */}
+          {Object.keys(validationErrors).length > 0 && (
+            <div className="mt-4 rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 space-y-1">
+              {Object.values(validationErrors).map((msg, i) => (
+                <p key={i} className="text-sm text-destructive">{msg}</p>
+              ))}
+            </div>
+          )}
+
           {/* ── Navigation ───────────────────────────────────────── */}
-          <div className="flex gap-3 mt-8">
+          <div className="flex gap-3 mt-6">
             {step > 0 && !finishing && (
-              <button onClick={() => setStep(s => s - 1)}
+              <button onClick={() => { setValidationErrors({}); setStep(s => s - 1); }}
                 className="flex items-center gap-2 px-5 py-3 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all text-sm font-medium">
                 <ChevronLeft className="w-4 h-4" /> {T.back}
               </button>
             )}
             {step < totalSteps - 1 ? (
-              <button onClick={() => setStep(s => s + 1)}
-                disabled={currentStepId === 'doel' && !data.hoofd_doel}
-                className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-all disabled:opacity-40">
+              <button onClick={handleNext}
+                className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-all">
                 {T.next} <ChevronRight className="w-4 h-4" />
               </button>
             ) : (

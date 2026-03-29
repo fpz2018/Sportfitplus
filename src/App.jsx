@@ -5,8 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-// Add page imports here
+import ErrorBoundary from '@/components/ErrorBoundary';
 import Dashboard from './pages/Dashboard';
 import Onboarding from './pages/Onboarding.jsx';
 import Calculator from './pages/Calculator';
@@ -35,71 +34,61 @@ import Premium from './pages/Premium';
 import MijnVoedingsmiddelen from './pages/MijnVoedingsmiddelen';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isAuthenticated, isLoadingAuth } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  if (isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
       </div>
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Show landing page for unauthenticated visitors
-      return (
-        <Routes>
-          <Route path="*" element={<Landing />} />
-          <Route path="/landing" element={<Landing />} />
-          <Route path="/premium" element={<Premium />} />
-        </Routes>
-      );
-    }
+  if (!isAuthenticated) {
+    return (
+      <Routes>
+        <Route path="*"        element={<Landing />} />
+        <Route path="/landing" element={<Landing />} />
+        <Route path="/premium" element={<Premium />} />
+      </Routes>
+    );
   }
 
-  // Render the main app
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/calculator" element={<Calculator />} />
-        <Route path="/voortgang" element={<Voortgang />} />
-        <Route path="/schemas" element={<Schemas />} />
-        <Route path="/voeding" element={<Voeding />} />
-        <Route path="/gids" element={<Gids />} />
-        <Route path="/profiel" element={<Profiel />} />
-        <Route path="/recepten" element={<Recepten />} />
-        <Route path="/kennis" element={<KennisMonitor />} />
-        <Route path="/voorstellen" element={<InhoudsVoorstellen />} />
-        <Route path="/bronnen" element={<BronBeheer />} />
-        <Route path="/recepten-beheer" element={<ReceptenBeheer />} />
-        <Route path="/weekmenu" element={<Weekmenu />} />
-        <Route path="/nieuws" element={<Nieuws />} />
-        <Route path="/mijn-voortgang" element={<MijnVoortgang />} />
-        <Route path="/coach-analytics" element={<CoachAnalytics />} />
-        <Route path="/nieuwsbeheer" element={<Nieuwsbeheer />} />
-        <Route path="/supplementen" element={<Supplementen />} />
-        <Route path="/supplementen-beheer" element={<SupplementenBeheer />} />
-        <Route path="/kennis-update" element={<KennisUpdate />} />
-        <Route path="/welzijn" element={<Welzijn />} />
-        <Route path="/voedingsmiddelen" element={<MijnVoedingsmiddelen />} />
+        <Route path="/"                  element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+        <Route path="/calculator"        element={<ErrorBoundary><Calculator /></ErrorBoundary>} />
+        <Route path="/voortgang"         element={<ErrorBoundary><Voortgang /></ErrorBoundary>} />
+        <Route path="/schemas"           element={<ErrorBoundary><Schemas /></ErrorBoundary>} />
+        <Route path="/voeding"           element={<ErrorBoundary><Voeding /></ErrorBoundary>} />
+        <Route path="/gids"              element={<ErrorBoundary><Gids /></ErrorBoundary>} />
+        <Route path="/profiel"           element={<ErrorBoundary><Profiel /></ErrorBoundary>} />
+        <Route path="/recepten"          element={<ErrorBoundary><Recepten /></ErrorBoundary>} />
+        <Route path="/kennis"            element={<ErrorBoundary><KennisMonitor /></ErrorBoundary>} />
+        <Route path="/voorstellen"       element={<ErrorBoundary><InhoudsVoorstellen /></ErrorBoundary>} />
+        <Route path="/bronnen"           element={<ErrorBoundary><BronBeheer /></ErrorBoundary>} />
+        <Route path="/recepten-beheer"   element={<ErrorBoundary><ReceptenBeheer /></ErrorBoundary>} />
+        <Route path="/weekmenu"          element={<ErrorBoundary><Weekmenu /></ErrorBoundary>} />
+        <Route path="/nieuws"            element={<ErrorBoundary><Nieuws /></ErrorBoundary>} />
+        <Route path="/mijn-voortgang"    element={<ErrorBoundary><MijnVoortgang /></ErrorBoundary>} />
+        <Route path="/coach-analytics"   element={<ErrorBoundary><CoachAnalytics /></ErrorBoundary>} />
+        <Route path="/nieuwsbeheer"      element={<ErrorBoundary><Nieuwsbeheer /></ErrorBoundary>} />
+        <Route path="/supplementen"      element={<ErrorBoundary><Supplementen /></ErrorBoundary>} />
+        <Route path="/supplementen-beheer" element={<ErrorBoundary><SupplementenBeheer /></ErrorBoundary>} />
+        <Route path="/kennis-update"     element={<ErrorBoundary><KennisUpdate /></ErrorBoundary>} />
+        <Route path="/welzijn"           element={<ErrorBoundary><Welzijn /></ErrorBoundary>} />
+        <Route path="/voedingsmiddelen"  element={<ErrorBoundary><MijnVoedingsmiddelen /></ErrorBoundary>} />
       </Route>
-      <Route path="/onboarding" element={<Onboarding />} />
-      <Route path="/landing" element={<Landing />} />
-      <Route path="/premium" element={<Premium />} />
-      <Route path="*" element={<PageNotFound />} />
+      <Route path="/onboarding" element={<ErrorBoundary><Onboarding /></ErrorBoundary>} />
+      <Route path="/landing"    element={<Landing />} />
+      <Route path="/premium"    element={<Premium />} />
+      <Route path="*"           element={<PageNotFound />} />
     </Routes>
   );
 };
 
-
 function App() {
-
   return (
     <AuthProvider>
       <LanguageProvider>
@@ -111,7 +100,7 @@ function App() {
         </QueryClientProvider>
       </LanguageProvider>
     </AuthProvider>
-  )
+  );
 }
 
-export default App
+export default App;
