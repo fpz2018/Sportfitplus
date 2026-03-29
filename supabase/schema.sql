@@ -3,19 +3,6 @@
 -- Voer dit uit in de Supabase SQL Editor (Database > SQL Editor)
 -- ============================================================
 
--- Helper: controleer of huidige gebruiker admin is
-create or replace function is_admin()
-returns boolean
-language sql
-security definer
-stable
-as $$
-  select coalesce(
-    (select role = 'admin' from public.user_profiles where id = auth.uid()),
-    false
-  );
-$$;
-
 -- ============================================================
 -- 1. USER_PROFILES
 -- ============================================================
@@ -79,6 +66,20 @@ $$;
 create trigger set_user_profiles_updated_at
   before update on public.user_profiles
   for each row execute procedure public.set_updated_at();
+
+-- Helper: controleer of huidige gebruiker admin is
+-- (aangemaakt NA user_profiles zodat de tabelreferentie geldig is)
+create or replace function is_admin()
+returns boolean
+language sql
+security definer
+stable
+as $$
+  select coalesce(
+    (select role = 'admin' from public.user_profiles where id = auth.uid()),
+    false
+  );
+$$;
 
 -- ============================================================
 -- 2. FOOD
