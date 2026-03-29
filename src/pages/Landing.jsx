@@ -118,7 +118,7 @@ export default function Landing() {
           </div>
           <div className="flex items-center gap-3">
             <a href="#prijzen" className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-all">Prijzen</a>
-            <Link to="/dashboard" className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground border border-border hover:border-primary/40 transition-all">
+            <Link to="/login" className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground border border-border hover:border-primary/40 transition-all">
               Inloggen
             </Link>
             <Link to="/onboarding" className="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all">

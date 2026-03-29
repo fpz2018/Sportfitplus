@@ -30,6 +30,7 @@ import SupplementenBeheer from './pages/SupplementenBeheer';
 import KennisUpdate from './pages/KennisUpdate';
 import Welzijn from './pages/Welzijn';
 import Landing from './pages/Landing';
+import Login from './pages/Login';
 import Premium from './pages/Premium';
 import MijnVoedingsmiddelen from './pages/MijnVoedingsmiddelen';
 
@@ -49,6 +50,7 @@ const AuthenticatedApp = () => {
       <Routes>
         <Route path="*"        element={<Landing />} />
         <Route path="/landing" element={<Landing />} />
+        <Route path="/login"   element={<Login />} />
         <Route path="/premium" element={<Premium />} />
       </Routes>
     );
