@@ -6,16 +6,16 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# SPA: alle routes terugsturen naar index.html
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-# API-proxy naar Netlify Functions
+# API-proxy naar Netlify Functions (moet vóór de SPA-catch-all staan)
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA: alle overige routes terugsturen naar index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
   status = 200
 
 [functions]
