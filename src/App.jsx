@@ -86,11 +86,12 @@ const AuthenticatedApp = () => {
         <Route path="/welzijn"           element={<ErrorBoundary><Welzijn /></ErrorBoundary>} />
         <Route path="/voedingsmiddelen"  element={<ErrorBoundary><MijnVoedingsmiddelen /></ErrorBoundary>} />
       </Route>
-      <Route path="/onboarding" element={<ErrorBoundary><Onboarding /></ErrorBoundary>} />
-      <Route path="/admin"      element={<Admin />} />
-      <Route path="/landing"    element={<Landing />} />
-      <Route path="/premium"    element={<Premium />} />
-      <Route path="*"           element={<PageNotFound />} />
+      <Route path="/onboarding"     element={<ErrorBoundary><Onboarding /></ErrorBoundary>} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/admin"          element={<Admin />} />
+      <Route path="/landing"        element={<Landing />} />
+      <Route path="/premium"        element={<Premium />} />
+      <Route path="*"               element={<PageNotFound />} />
     </Routes>
   );
 };
