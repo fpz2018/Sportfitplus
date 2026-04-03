@@ -33,6 +33,7 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Premium from './pages/Premium';
 import MijnVoedingsmiddelen from './pages/MijnVoedingsmiddelen';
+import Admin from './pages/Admin';
 
 const AuthenticatedApp = () => {
   const { isAuthenticated, isLoadingAuth } = useAuth();
@@ -81,6 +82,7 @@ const AuthenticatedApp = () => {
         <Route path="/kennis-update"     element={<ErrorBoundary><KennisUpdate /></ErrorBoundary>} />
         <Route path="/welzijn"           element={<ErrorBoundary><Welzijn /></ErrorBoundary>} />
         <Route path="/voedingsmiddelen"  element={<ErrorBoundary><MijnVoedingsmiddelen /></ErrorBoundary>} />
+        <Route path="/admin"             element={<ErrorBoundary><Admin /></ErrorBoundary>} />
       </Route>
       <Route path="/onboarding" element={<ErrorBoundary><Onboarding /></ErrorBoundary>} />
       <Route path="/landing"    element={<Landing />} />

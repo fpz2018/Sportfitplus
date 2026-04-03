@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Dumbbell, Brain, Utensils, BarChart2, FlaskConical, HeartPulse, ChefHat, Zap, Check, Star, Lock, ArrowRight, Sparkles, Shield, Trophy, Users } from 'lucide-react';
+import { Dumbbell, Brain, Utensils, BarChart2, FlaskConical, HeartPulse, ChefHat, Zap, Check, Star, Lock, ArrowRight, Sparkles, Shield, Trophy, Users, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 
 const FEATURES = [
   {
@@ -83,13 +84,13 @@ const TESTIMONIALS = [
 ];
 
 const PLAN_FREE = [
-  'TDEE calculator',
+  'Bereken je dagelijkse caloriebehoefte',
   'Trainingsschema\'s (1 voorbeeld)',
   'Supplement kennisbank bekijken',
   'Recepten bladeren',
   'Dagelijkse gewicht logging',
-  'HRV energiescore (basis)',
-  'Droogtrainen gids',
+  'Dagelijkse energie & herstelcheck',
+  'Complete gids voor gezond afvallen',
 ];
 
 const PLAN_PREMIUM = [
@@ -102,6 +103,49 @@ const PLAN_PREMIUM = [
   'AI welzijn & hersteladvies',
   'Prioriteit klantenservice',
 ];
+
+const FAQ = [
+  {
+    q: 'Werkt dit ook als ik ouder ben of beperkingen heb?',
+    a: 'Ja. De onboarding vraagt naar je leeftijd, mogelijkheden en eventuele klachten. Het plan past zich daar volledig op aan — ook voor 60+, mensen in revalidatie of met chronische klachten.',
+  },
+  {
+    q: 'Ik heb darmklachten of voedselintoleranties. Houdt de app daar rekening mee?',
+    a: 'Absoluut. Tijdens de onboarding geef je aan welke intoleranties of klachten je hebt. Weekmenu\'s en recepten worden daar automatisch op aangepast.',
+  },
+  {
+    q: 'Wat is het verschil tussen gratis en premium?',
+    a: 'De gratis versie geeft je toegang tot de kennisbank, één trainingsschema, je caloriebehoefte en dagelijkse logging. Premium ontgrendelt alle AI-functies: onbeperkt trainingsschema\'s op maat, weekmenu generator, supplement advies en geavanceerde analytics.',
+  },
+  {
+    q: 'Kan ik op elk moment opzeggen?',
+    a: 'Ja, je kunt maandelijks opzeggen zonder gedoe. Geen verborgen kosten, geen minimum looptijd.',
+  },
+  {
+    q: 'Is mijn data veilig?',
+    a: 'Ja. We slaan geen gegevens op bij derden en verkopen je data nooit. Privacy-first is geen marketingterm bij ons — het is hoe de app gebouwd is.',
+  },
+];
+
+function FaqItem({ q, a }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-border rounded-xl overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-card/60 transition-all"
+      >
+        <span className="font-medium text-foreground text-sm">{q}</span>
+        <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed">
+          {a}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Landing() {
   return (
@@ -139,18 +183,17 @@ export default function Landing() {
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold text-foreground leading-tight mb-6">
-            Jouw persoonlijke{' '}
-            <span className="text-primary">totaalcoach</span>{' '}
-            —<br />
-            voor iedereen
+            Eindelijk een plan dat past bij{' '}
+            <span className="text-primary">jóuw</span>{' '}
+            leeftijd, klachten en doelen
           </h1>
 
           <p className="text-lg text-muted-foreground mb-6 max-w-2xl mx-auto leading-relaxed">
-            Sportfit Plus is geen fitness-app. Het is een slimme gezondheidscoach die zich aanpast aan <em>jou</em> — of je nu 25 of 70 bent, wilt afslanken, last hebt van je darmen, meer energie wilt of gewoon gezonder wilt leven.
+            Geen generiek trainingsschema. Geen onrealistisch dieet. Wel een slimme coach die zich aanpast aan <em>jou</em> — of je nu 25 of 70 bent, last hebt van je darmen, meer energie wilt of gewoon gezonder wilt leven.
           </p>
 
           {/* Voor wie */}
-          <div className="flex flex-wrap justify-center gap-2 mb-10">
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
             {['60+ & vitaal blijven', 'Darmklachten', 'Meer energie', 'Afvallen', 'Stress & slaap', 'Beginners', 'Sporters', 'Chronische klachten'].map(tag => (
               <span key={tag} className="px-3 py-1 rounded-full bg-secondary border border-border text-xs text-muted-foreground">
                 {tag}
@@ -158,32 +201,51 @@ export default function Landing() {
             ))}
           </div>
 
+          {/* Stats row — boven de CTA */}
+          <div className="max-w-2xl mx-auto mb-8 grid grid-cols-3 gap-4">
+            {[
+              { n: '10.000+', l: 'Actieve gebruikers' },
+              { n: 'Alle leeftijden', l: 'Van 18 tot 80+' },
+              { n: '4.9 ⭐', l: 'Gemiddelde beoordeling' },
+            ].map(({ n, l }) => (
+              <div key={l} className="bg-card border border-border rounded-2xl p-4 text-center">
+                <p className="text-2xl font-bold text-primary">{n}</p>
+                <p className="text-xs text-muted-foreground mt-1">{l}</p>
+              </div>
+            ))}
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Link to="/onboarding"
               className="flex items-center gap-2 px-7 py-4 bg-primary text-primary-foreground rounded-2xl font-semibold text-base hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
-              Gratis beginnen <ArrowRight className="w-5 h-5" />
+              Maak mijn gratis plan <ArrowRight className="w-5 h-5" />
             </Link>
             <a href="#features"
-              className="flex items-center gap-2 px-7 py-4 border border-border text-foreground rounded-2xl font-medium text-base hover:border-primary/40 transition-all">
-              Bekijk features
+              className="text-sm text-muted-foreground hover:text-foreground transition-all underline underline-offset-4">
+              Bekijk alle features
             </a>
           </div>
 
           <p className="text-xs text-muted-foreground mt-4">Geen creditcard nodig • Altijd gratis basisversie</p>
         </div>
+      </section>
 
-        {/* Stats row */}
-        <div className="relative max-w-2xl mx-auto mt-16 grid grid-cols-3 gap-4">
-          {[
-            { n: '10.000+', l: 'Actieve gebruikers' },
-            { n: 'Alle leeftijden', l: 'Van 18 tot 80+' },
-            { n: '4.9 ⭐', l: 'Gemiddelde beoordeling' },
-          ].map(({ n, l }) => (
-            <div key={l} className="bg-card border border-border rounded-2xl p-4 text-center">
-              <p className="text-2xl font-bold text-primary">{n}</p>
-              <p className="text-xs text-muted-foreground mt-1">{l}</p>
+      {/* ── UITGELICHTE TESTIMONIAL ─────────────────────────── */}
+      <section className="px-4 pb-12">
+        <div className="max-w-2xl mx-auto bg-card border border-border rounded-2xl p-6 flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-2xl shrink-0">🌿</div>
+          <div>
+            <div className="flex items-center gap-1 mb-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className="w-4 h-4 fill-accent text-accent" />
+              ))}
             </div>
-          ))}
+            <p className="text-sm text-foreground italic leading-relaxed mb-3">
+              "Ik dacht dat dit soort apps alleen voor jonge sporters was. Maar Sportfit Plus stelde een beweeg- en voedingsplan op dat écht bij mij past. In 10 weken voel ik me fitter dan in jaren."
+            </p>
+            <p className="text-xs font-semibold text-foreground">Ria de Vries</p>
+            <p className="text-xs text-muted-foreground">67 jaar, meer energie & minder gewrichtsklachten</p>
+          </div>
         </div>
       </section>
 
@@ -302,11 +364,11 @@ export default function Landing() {
       </section>
 
       {/* ── TESTIMONIALS ────────────────────────────────────── */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 bg-card/50 border-y border-border">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-3xl font-bold text-foreground mb-3">Wat gebruikers zeggen</h2>
-            <p className="text-muted-foreground">Duizenden mensen behaalden al hun doel</p>
+            <p className="text-muted-foreground">10.000+ mensen behaalden al hun doel</p>
           </div>
           <div className="grid md:grid-cols-3 gap-5">
             {TESTIMONIALS.map(t => (
@@ -332,12 +394,27 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── FAQ ─────────────────────────────────────────────── */}
+      <section className="py-20 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">Veelgestelde vragen</h2>
+            <p className="text-muted-foreground">Geen gedoe, geen verrassingen.</p>
+          </div>
+          <div className="space-y-3">
+            {FAQ.map(item => (
+              <FaqItem key={item.q} q={item.q} a={item.a} />
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── PRIJZEN ─────────────────────────────────────────── */}
       <section id="prijzen" className="py-20 px-4 bg-card/50 border-y border-border">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-3xl font-bold text-foreground mb-3">Simpele, eerlijke prijzen</h2>
-            <p className="text-muted-foreground">Begin gratis. Upgrade wanneer je klaar bent voor meer. Voor minder dan een kop koffie per week.</p>
+            <p className="text-muted-foreground">Gratis starten, upgraden als je meer wilt. Geen verrassingen.</p>
           </div>
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
 
@@ -382,7 +459,7 @@ export default function Landing() {
               </ul>
               <Link to="/onboarding"
                 className="block w-full py-3 rounded-xl bg-primary text-primary-foreground text-center font-semibold text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
-                Premium proberen →
+                Gratis starten, dan upgraden →
               </Link>
               <p className="text-xs text-muted-foreground text-center mt-3">14 dagen gratis proberen · Minder dan €0,17/dag</p>
             </div>
@@ -400,7 +477,7 @@ export default function Landing() {
           <p className="text-muted-foreground mb-8 text-lg">Vul in 2 minuten de onboarding in en krijg direct jouw persoonlijk gezondheids- en leefstijlplan — volledig op maat.</p>
           <Link to="/onboarding"
             className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-semibold text-base hover:bg-primary/90 transition-all shadow-lg shadow-primary/25">
-            Gratis beginnen <ArrowRight className="w-5 h-5" />
+            Maak mijn gratis plan <ArrowRight className="w-5 h-5" />
           </Link>
           <p className="text-xs text-muted-foreground mt-4">Geen creditcard • Altijd gratis basisversie</p>
         </div>
