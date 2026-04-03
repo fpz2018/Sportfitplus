@@ -49,6 +49,7 @@ const AuthenticatedApp = () => {
   if (!isAuthenticated) {
     return (
       <Routes>
+        <Route path="/admin"   element={<Admin />} />
         <Route path="*"        element={<Landing />} />
         <Route path="/landing" element={<Landing />} />
         <Route path="/login"   element={<Login />} />
@@ -82,9 +83,9 @@ const AuthenticatedApp = () => {
         <Route path="/kennis-update"     element={<ErrorBoundary><KennisUpdate /></ErrorBoundary>} />
         <Route path="/welzijn"           element={<ErrorBoundary><Welzijn /></ErrorBoundary>} />
         <Route path="/voedingsmiddelen"  element={<ErrorBoundary><MijnVoedingsmiddelen /></ErrorBoundary>} />
-        <Route path="/admin"             element={<ErrorBoundary><Admin /></ErrorBoundary>} />
       </Route>
       <Route path="/onboarding" element={<ErrorBoundary><Onboarding /></ErrorBoundary>} />
+      <Route path="/admin"      element={<Admin />} />
       <Route path="/landing"    element={<Landing />} />
       <Route path="/premium"    element={<Premium />} />
       <Route path="*"           element={<PageNotFound />} />
