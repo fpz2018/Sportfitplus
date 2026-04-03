@@ -11,6 +11,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [magicSent, setMagicSent] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [mode, setMode] = useState('password'); // 'password' | 'magic'
 
   async function handleLogin(e) {
@@ -44,6 +45,39 @@ export default function Login() {
     setLoading(false);
     if (err) { setError(err.message); return; }
     setMagicSent(true);
+  }
+
+  async function handleForgotPassword() {
+    if (!email) {
+      setError('Vul eerst je e-mailadres in.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/reset-password',
+    });
+    setLoading(false);
+    setResetSent(true);
+  }
+
+  if (resetSent) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="max-w-sm w-full text-center bg-card border border-border rounded-2xl p-8">
+          <div className="text-4xl mb-4">📬</div>
+          <h2 className="text-xl font-bold text-foreground mb-2">Check je e-mail</h2>
+          <p className="text-muted-foreground text-sm">
+            We hebben een herstelmail gestuurd naar <span className="text-foreground font-medium">{email}</span>.
+            Klik op de link om een nieuw wachtwoord in te stellen.
+          </p>
+          <button onClick={() => setResetSent(false)}
+            className="mt-6 text-sm text-primary hover:underline">
+            Terug naar inloggen
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (magicSent) {
@@ -151,10 +185,10 @@ export default function Login() {
           {mode === 'password' && (
             <button
               type="button"
-              onClick={() => { setMode('magic'); setError(''); }}
+              onClick={handleForgotPassword}
               className="w-full text-center text-xs text-muted-foreground hover:text-primary mt-3 transition-colors"
             >
-              Wachtwoord vergeten? Gebruik een magic link
+              Wachtwoord vergeten?
             </button>
           )}
         </div>

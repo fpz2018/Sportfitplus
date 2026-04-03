@@ -34,6 +34,7 @@ import Login from './pages/Login';
 import Premium from './pages/Premium';
 import MijnVoedingsmiddelen from './pages/MijnVoedingsmiddelen';
 import Admin from './pages/Admin';
+import ResetPassword from './pages/ResetPassword';
 
 const AuthenticatedApp = () => {
   const { isAuthenticated, isLoadingAuth } = useAuth();
@@ -49,11 +50,12 @@ const AuthenticatedApp = () => {
   if (!isAuthenticated) {
     return (
       <Routes>
-        <Route path="/admin"   element={<Admin />} />
-        <Route path="*"        element={<Landing />} />
-        <Route path="/landing" element={<Landing />} />
-        <Route path="/login"   element={<Login />} />
-        <Route path="/premium" element={<Premium />} />
+        <Route path="/admin"          element={<Admin />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="*"               element={<Landing />} />
+        <Route path="/landing"        element={<Landing />} />
+        <Route path="/login"          element={<Login />} />
+        <Route path="/premium"        element={<Premium />} />
       </Routes>
     );
   }
