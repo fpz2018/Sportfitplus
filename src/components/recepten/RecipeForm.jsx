@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Link, Loader2 } from 'lucide-react';
 import { callFunction } from '@/api/netlifyClient';
+import { useAuth } from '@/lib/AuthContext';
 
 const CATEGORIES = [
   { value: 'ontbijt', label: '🌅 Ontbijt' },
@@ -21,6 +22,8 @@ const empty = {
 };
 
 export default function RecipeForm({ recipe, onSave, onClose, initialImportUrl = '' }) {
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
   const [form, setForm] = useState(recipe ? {
     ...recipe,
     ingredients: recipe.ingredients?.length ? recipe.ingredients : [{ name: '', amount: '', unit: '' }],
@@ -137,8 +140,8 @@ ${html}`,
         </div>
 
         <div className="p-5 space-y-5">
-          {/* URL Import */}
-          {!recipe && (
+          {/* URL Import — alleen voor admins */}
+          {!recipe && isAdmin && (
             <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
               <label className="text-xs font-medium text-primary mb-2 block flex items-center gap-1.5">
                 <Link className="w-3.5 h-3.5" /> Importeer via URL
