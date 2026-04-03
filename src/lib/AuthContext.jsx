@@ -35,7 +35,14 @@ export const AuthProvider = ({ children }) => {
 
     // Luister naar auth-wijzigingen (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        // Supabase stuurt recovery-token soms naar de root-URL als hash.
+        // Detecteer dit event en stuur de gebruiker door naar de reset-pagina.
+        if (event === 'PASSWORD_RECOVERY') {
+          window.location.replace('/reset-password');
+          return;
+        }
+
         if (session?.user) {
           setUser(session.user);
           setIsAuthenticated(true);
