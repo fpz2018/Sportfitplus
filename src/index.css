@@ -5,7 +5,41 @@
 @tailwind utilities;
 
 @layer base {
+  /* Light mode */
   :root {
+    --background: 0 0% 98%;
+    --foreground: 222 28% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 28% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 28% 10%;
+    --primary: 145 63% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 222 28% 10%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 215 16% 44%;
+    --accent: 38 90% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 14% 86%;
+    --input: 220 14% 92%;
+    --ring: 145 63% 42%;
+    --radius: 0.75rem;
+    --font-inter: 'Inter', sans-serif;
+    --sidebar-background: 0 0% 97%;
+    --sidebar-foreground: 215 16% 44%;
+    --sidebar-primary: 145 63% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 94%;
+    --sidebar-accent-foreground: 222 28% 10%;
+    --sidebar-border: 220 14% 86%;
+    --sidebar-ring: 145 63% 42%;
+  }
+
+  /* Dark mode */
+  .dark {
     --background: 222 28% 6%;
     --foreground: 210 25% 96%;
     --card: 222 22% 10%;
@@ -25,8 +59,6 @@
     --border: 222 18% 18%;
     --input: 222 18% 14%;
     --ring: 145 63% 47%;
-    --radius: 0.75rem;
-    --font-inter: 'Inter', sans-serif;
     --sidebar-background: 222 28% 7%;
     --sidebar-foreground: 215 16% 65%;
     --sidebar-primary: 145 63% 47%;

@@ -1,7 +1,8 @@
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload, Newspaper, CalendarDays, TrendingUp, Menu, X, Pill, Brain, HeartPulse, Bell, ChevronRight, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload, Newspaper, CalendarDays, TrendingUp, Menu, X, Pill, Brain, HeartPulse, Bell, ChevronRight, ShieldCheck, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 import { useAuth } from '@/lib/AuthContext';
 import { useLanguage } from '@/lib/LanguageContext';
 import NotificationBell from '../NotificationBell';
@@ -42,6 +43,7 @@ export default function AppLayout() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
   const [menuOpen, setMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   // Sluit menu bij navigatie
   useEffect(() => {
@@ -87,6 +89,13 @@ export default function AppLayout() {
           <div className="flex items-center gap-2">
             <NotificationBell />
             <LanguageSwitcher />
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 rounded-lg hover:bg-secondary transition-all text-muted-foreground hover:text-foreground"
+              aria-label="Thema wisselen"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
             {/* Hamburger */}
             <button
               onClick={() => setMenuOpen(true)}

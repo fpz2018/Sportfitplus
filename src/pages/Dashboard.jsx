@@ -10,6 +10,7 @@ import DagWelzijn from '@/components/dashboard/DagWelzijn';
 import DagSupplementen from '@/components/dashboard/DagSupplementen';
 import DagHeader from '@/components/dashboard/DagHeader';
 import { Zap, ArrowRight } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
   const { user, profile } = useAuth();
@@ -68,8 +69,9 @@ export default function Dashboard() {
 
       {loading && (
         <div className="space-y-4">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-40 bg-card border border-border rounded-2xl animate-pulse" />
+          <Skeleton className="h-14 rounded-2xl" />
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} className="h-40 rounded-2xl" />
           ))}
         </div>
       )}

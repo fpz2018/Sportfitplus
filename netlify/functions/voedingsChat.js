@@ -3,7 +3,7 @@
  * Vervangt: base44/functions/voedingsChat/entry.ts
  */
 import Anthropic from '@anthropic-ai/sdk';
-import { getUserFromRequest, supabaseAdmin, corsHeaders, respond, respondError } from './_shared/supabaseAdmin.js';
+import { getUserFromRequest, supabaseAdmin, corsHeaders, respond, respondError, rateLimit } from './_shared/supabaseAdmin.js';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -14,8 +14,21 @@ export const handler = async (event) => {
     const user = await getUserFromRequest(event);
     if (!user) return respondError('Niet ingelogd', 401);
 
-    const { messages, userContext } = JSON.parse(event.body || '{}');
+    rateLimit(user.id, { maxRequests: 20, windowMs: 60_000 });
+
+    const { messages } = JSON.parse(event.body || '{}');
     if (!messages?.length) return respondError('Geen berichten meegegeven', 400);
+
+    // Valideer berichtstructuur
+    const validRoles = ['user', 'assistant'];
+    for (const msg of messages) {
+      if (!msg.role || !validRoles.includes(msg.role) || typeof msg.content !== 'string') {
+        return respondError('Ongeldig berichtformaat', 400);
+      }
+      if (msg.content.length > 3000) {
+        return respondError('Bericht te lang (max 3000 tekens)', 400);
+      }
+    }
 
     // Haal profiel op voor gepersonaliseerde context
     const { data: profile } = await supabaseAdmin

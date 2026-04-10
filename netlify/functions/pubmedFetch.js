@@ -14,8 +14,10 @@ export const handler = async (event) => {
 
   try {
     const user = await requireAdmin(event);
-    const { query, maxResults = 10 } = JSON.parse(event.body || '{}');
+    const { query, maxResults: rawMax = 10 } = JSON.parse(event.body || '{}');
     if (!query) return respondError('Zoekterm verplicht', 400);
+    if (query.length > 500) return respondError('Zoekterm te lang (max 500 tekens)', 400);
+    const maxResults = Math.min(Math.max(1, Number(rawMax) || 10), 25);
 
     // Stap 1: zoek PubMed IDs
     const searchUrl = `${PUBMED_BASE}/esearch.fcgi?db=pubmed&term=${encodeURIComponent(query)}&retmax=${maxResults}&retmode=json`;

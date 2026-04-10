@@ -3,7 +3,7 @@
  * Vervangt: base44/functions/analyseerBron/entry.ts
  */
 import Anthropic from '@anthropic-ai/sdk';
-import { requireAdmin, supabaseAdmin, corsHeaders, respond, respondError } from './_shared/supabaseAdmin.js';
+import { requireAdmin, supabaseAdmin, corsHeaders, respond, respondError, assertPublicUrl } from './_shared/supabaseAdmin.js';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -30,6 +30,7 @@ export const handler = async (event) => {
       // Haal paginabron op
       let bronTekst = '';
       if (bron.type === 'url' || bron.type === 'youtube') {
+        assertPublicUrl(bron.file_url);
         const res = await fetch(bron.file_url, {
           headers: { 'User-Agent': 'SportfitPlus/1.0' },
           signal: AbortSignal.timeout(10000),
@@ -46,14 +47,9 @@ export const handler = async (event) => {
         return respondError('Kon geen tekst ophalen', 422);
       }
 
-      const prompt = `Analyseer onderstaande tekst en extraheer wetenschappelijke inzichten relevant voor een orthomoleculaire gezondheidsapp (voeding, supplementen, training, welzijn).
+      const systemPrompt = `Je analyseert wetenschappelijke teksten en extraheert inzichten relevant voor een orthomoleculaire gezondheidsapp (voeding, supplementen, training, welzijn).
 
-Bron: ${bron.naam} (${bron.file_url})
-
-Tekst:
-${bronTekst.substring(0, 8000)}
-
-Geef ALLEEN een JSON-object terug:
+Geef ALLEEN een JSON-object terug met dit formaat:
 {
   "voorstellen": [
     {
@@ -70,7 +66,8 @@ Geef ALLEEN een JSON-object terug:
       const response = await anthropic.messages.create({
         model: 'claude-opus-4-6',
         max_tokens: 2048,
-        messages: [{ role: 'user', content: prompt }],
+        system: systemPrompt,
+        messages: [{ role: 'user', content: `Bron: ${(bron.naam || '').substring(0, 200)}\n\nTekst:\n${bronTekst.substring(0, 8000)}` }],
       });
 
       const rawText = response.content[0].text.trim();

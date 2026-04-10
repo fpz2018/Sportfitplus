@@ -2,7 +2,7 @@
  * fetchPageSource — Haalt de HTML-bron van een URL op
  * Vervangt: base44/functions/fetchPageSource/entry.ts
  */
-import { getUserFromRequest, corsHeaders, respond, respondError } from './_shared/supabaseAdmin.js';
+import { getUserFromRequest, corsHeaders, respond, respondError, assertPublicUrl } from './_shared/supabaseAdmin.js';
 
 export const handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: corsHeaders };
@@ -24,6 +24,7 @@ export const handler = async (event) => {
     if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
       return respondError('Alleen HTTP/HTTPS URLs toegestaan', 400);
     }
+    assertPublicUrl(url);
 
     const res = await fetch(url, {
       headers: { 'User-Agent': 'SportfitPlus/1.0' },

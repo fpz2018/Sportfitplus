@@ -72,6 +72,51 @@ export const corsHeadersForRequest = (event) => ({
   'Access-Control-Allow-Origin': getAllowedOrigin(event?.headers?.origin),
 });
 
+/**
+ * Blokkeer SSRF: weiger interne/private IP-adressen en metadata-endpoints.
+ * Gooit een Error als de URL naar een privé-adres wijst.
+ */
+export const assertPublicUrl = (urlString) => {
+  const parsed = new URL(urlString);
+  const hostname = parsed.hostname;
+
+  // Blokkeer private/reserved IP-ranges en metadata services
+  const blocked = [
+    /^127\./,                        // loopback
+    /^10\./,                         // class A private
+    /^172\.(1[6-9]|2\d|3[01])\./,   // class B private
+    /^192\.168\./,                   // class C private
+    /^169\.254\./,                   // link-local / cloud metadata
+    /^0\./,                          // "this" network
+    /^::1$/,                         // IPv6 loopback
+    /^fd[0-9a-f]{2}:/i,             // IPv6 ULA
+    /^fe80:/i,                       // IPv6 link-local
+    /^localhost$/i,
+  ];
+
+  if (blocked.some(re => re.test(hostname))) {
+    throw new Error(`Geblokkeerd: URL wijst naar een intern adres (${hostname})`);
+  }
+};
+
+/**
+ * Simpele per-user rate limiter (in-memory, reset bij cold start).
+ * Houdt een sliding window van requests bij per userId.
+ */
+const rateLimitStore = new Map();
+
+export const rateLimit = (userId, { maxRequests = 10, windowMs = 60_000 } = {}) => {
+  const now = Date.now();
+  const key = userId;
+  const timestamps = rateLimitStore.get(key) || [];
+  const recent = timestamps.filter(t => now - t < windowMs);
+  if (recent.length >= maxRequests) {
+    throw new Error('Te veel verzoeken — probeer het later opnieuw');
+  }
+  recent.push(now);
+  rateLimitStore.set(key, recent);
+};
+
 export const respond = (data, status = 200) => ({
   statusCode: status,
   headers: { ...corsHeaders, 'Content-Type': 'application/json' },

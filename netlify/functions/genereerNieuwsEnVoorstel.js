@@ -22,11 +22,8 @@ export const handler = async (event) => {
       .single();
     if (!artikel) return respondError('Artikel niet gevonden', 404);
 
-    const prompt = `Schrijf een informatief blogbericht voor de Sportfit Plus app op basis van dit wetenschappelijk artikel.
+    const systemPrompt = `Schrijf een informatief blogbericht voor de Sportfit Plus gezondheidsapp op basis van een wetenschappelijk artikel.
 Schrijf in het Nederlands, toegankelijk voor een breed publiek (fitness-enthousiastelingen, 18-80 jaar).
-
-Artikel: ${artikel.title_en}
-Samenvatting: ${artikel.summary_nl || artikel.abstract_en?.substring(0, 1000) || ''}
 
 Geef ALLEEN een JSON-object terug:
 {
@@ -38,10 +35,13 @@ Geef ALLEEN een JSON-object terug:
   "seo_description": "SEO meta-description (max 160 tekens)"
 }`;
 
+    const userContent = `Artikel: ${(artikel.title_en || '').substring(0, 500)}\nSamenvatting: ${(artikel.summary_nl || artikel.abstract_en || '').substring(0, 1000)}`;
+
     const response = await anthropic.messages.create({
       model: 'claude-opus-4-6',
       max_tokens: 2048,
-      messages: [{ role: 'user', content: prompt }],
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userContent }],
     });
 
     const rawText = response.content[0].text.trim();

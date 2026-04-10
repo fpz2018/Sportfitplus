@@ -4,7 +4,7 @@ import { DailyLog } from '@/api/entities';
 import { useLanguage } from '@/lib/LanguageContext';
 import { format } from 'date-fns';
 import { nl, enUS } from 'date-fns/locale';
-import { Plus, Check, TrendingDown, Scale, Flame, Dumbbell } from 'lucide-react';
+import { Plus, Check, TrendingDown, Scale, Flame, Dumbbell, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import KrachtVoortgang from '@/components/voortgang/KrachtVoortgang';
 import HRVTracker from '@/components/voortgang/HRVTracker';
@@ -13,6 +13,7 @@ export default function Voortgang() {
   const { t, language } = useLanguage();
   const { profile } = useAuth();
   const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [today] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [todayLog, setTodayLog] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -22,12 +23,14 @@ export default function Voortgang() {
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
+    setLoading(true);
     const [allLogs, tl] = await Promise.all([
       DailyLog.list(30),
       DailyLog.getByDate(today),
     ]);
     setLogs(allLogs);
     if (tl) { setTodayLog(tl); setForm({ ...tl }); }
+    setLoading(false);
   }
 
   async function saveLog() {
@@ -57,6 +60,14 @@ export default function Voortgang() {
     gewicht: l.weight_kg,
     cals: l.calories_eaten,
   }));
+
+  if (loading) {
+    return (
+      <div className="p-6 pb-8 max-w-4xl mx-auto flex justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 pb-8 max-w-4xl mx-auto">
