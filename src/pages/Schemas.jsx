@@ -225,15 +225,15 @@ export default function Schemas() {
           </button>
 
           {openDag === i && (
-            <div className="border-t border-border">
-              <div className="grid grid-cols-4 text-xs font-medium text-muted-foreground p-4 pb-2">
+            <div className="border-t border-border overflow-x-auto">
+              <div className="grid grid-cols-4 text-xs font-medium text-muted-foreground p-4 pb-2 min-w-[400px]">
                 <span>Oefening</span>
                 <span className="text-center">Sets × Reps</span>
                 <span className="text-center">Rust</span>
                 <span>Tip</span>
               </div>
               {dag.oefeningen.map((oe, j) => (
-                <div key={j} className={`grid grid-cols-4 gap-2 p-4 py-3 text-sm ${j % 2 === 0 ? 'bg-secondary/30' : ''}`}>
+                <div key={j} className={`grid grid-cols-4 gap-2 p-4 py-3 text-sm min-w-[400px] ${j % 2 === 0 ? 'bg-secondary/30' : ''}`}>
                   <span className="font-medium text-foreground">{oe.naam}</span>
                   <span className="text-center text-primary font-mono text-xs">{oe.sets}</span>
                   <span className="text-center text-muted-foreground text-xs">{oe.rust}</span>

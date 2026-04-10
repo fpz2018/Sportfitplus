@@ -5,7 +5,7 @@ import { supabase } from '@/api/supabaseClient';
 import {
   FlaskConical, Lightbulb, Upload, TrendingUp, Newspaper,
   ChefHat, Pill, Brain, Users, FileText, BookOpen,
-  ShieldCheck, Loader2, LogOut, Eye, EyeOff
+  ShieldCheck, Loader2, LogOut, Eye, EyeOff, Database
 } from 'lucide-react';
 
 // ─── Supabase stats ────────────────────────────────────────────────────────
@@ -41,6 +41,8 @@ const adminSections = [
   { to: '/voorstellen',        icon: Lightbulb,    label: 'Inhoudsvoorstellen',   description: 'AI-gegenereerde inhoudsuggesties',            color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
   { to: '/bronnen',            icon: Upload,       label: 'Bronbeheer',           description: 'Bronbestanden uploaden en beheren',           color: 'text-cyan-500',   bg: 'bg-cyan-500/10'   },
   { to: '/coach-analytics',    icon: TrendingUp,   label: 'Coach Analytics',      description: 'Gebruikersdata en voortgang inzien',          color: 'text-red-500',    bg: 'bg-red-500/10'    },
+  { to: '/content-bronnen',   icon: Database,     label: 'Content Bronnen',      description: 'Configureer nachtelijke artikel-sync bronnen', color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+  { to: '/gebruikers',        icon: Users,        label: 'Gebruikersbeheer',     description: 'Gebruikers bekijken, wijzigen en activiteit inzien', color: 'text-teal-500',   bg: 'bg-teal-500/10'   },
 ];
 
 const statCards = [

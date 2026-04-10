@@ -226,7 +226,7 @@ export default function Landing() {
           </div>
 
           {/* Stats row — boven de CTA */}
-          <div className="max-w-2xl mx-auto mb-8 grid grid-cols-3 gap-4">
+          <div className="max-w-2xl mx-auto mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { n: '10.000+', l: 'Actieve gebruikers' },
               { n: 'Alle leeftijden', l: 'Van 18 tot 80+' },

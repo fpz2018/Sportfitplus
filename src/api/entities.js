@@ -47,6 +47,12 @@ export const UserProfile = {
       await supabase.from('user_profiles').upsert({ id: userId, ...data }).select().single()
     );
   },
+  // Admin-only: update een ander profiel
+  async adminUpdate(userId, data) {
+    return unwrap(
+      await supabase.from('user_profiles').update(data).eq('id', userId).select().single()
+    );
+  },
 };
 
 // ─── DailyLog ───────────────────────────────────────────────────────────────
@@ -100,6 +106,17 @@ export const DailyLog = {
   async delete(id) {
     return unwrap(await supabase.from('daily_logs').delete().eq('id', id));
   },
+  // Admin-only: logs van een specifieke gebruiker
+  async listForUser(userId, limit = 30) {
+    return unwrap(
+      await supabase
+        .from('daily_logs')
+        .select(DAILY_LOG_COLUMNS)
+        .eq('user_id', userId)
+        .order('log_date', { ascending: false })
+        .limit(limit)
+    );
+  },
 };
 
 // ─── FoodLog ────────────────────────────────────────────────────────────────
@@ -148,6 +165,17 @@ export const FoodLog = {
         .upsert({ user_id: userId, log_date: date, ...data })
         .select()
         .single()
+    );
+  },
+  // Admin-only
+  async listForUser(userId, limit = 30) {
+    return unwrap(
+      await supabase
+        .from('food_logs')
+        .select(FOOD_LOG_COLUMNS)
+        .eq('user_id', userId)
+        .order('log_date', { ascending: false })
+        .limit(limit)
     );
   },
 };
@@ -313,6 +341,17 @@ export const HRVLog = {
   },
   async delete(id) {
     return unwrap(await supabase.from('hrv_logs').delete().eq('id', id));
+  },
+  // Admin-only
+  async listForUser(userId, limit = 30) {
+    return unwrap(
+      await supabase
+        .from('hrv_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .order('log_date', { ascending: false })
+        .limit(limit)
+    );
   },
 };
 
@@ -648,6 +687,33 @@ export const Nieuwsbericht = {
   },
   async delete(id) {
     return unwrap(await supabase.from('nieuwsberichten').delete().eq('id', id));
+  },
+};
+
+// ─── ContentBron ────────────────────────────────────────────────────────────
+
+export const ContentBron = {
+  async list() {
+    return unwrap(
+      await supabase
+        .from('content_bronnen')
+        .select('*')
+        .order('created_at', { ascending: false })
+    );
+  },
+  async create(data) {
+    const userId = await uid();
+    return unwrap(
+      await supabase.from('content_bronnen').insert({ ...data, created_by: userId }).select().single()
+    );
+  },
+  async update(id, data) {
+    return unwrap(
+      await supabase.from('content_bronnen').update(data).eq('id', id).select().single()
+    );
+  },
+  async delete(id) {
+    return unwrap(await supabase.from('content_bronnen').delete().eq('id', id));
   },
 };
 

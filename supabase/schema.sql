@@ -43,6 +43,7 @@ create table if not exists public.user_profiles (
   onboarding_complete boolean not null default false,
   full_name           text,
   avatar_url          text,
+  email               text,
   created_at          timestamptz not null default now(),
   updated_at          timestamptz not null default now()
 );
@@ -52,18 +53,20 @@ create policy "Gebruiker ziet eigen profiel"    on public.user_profiles for sele
 create policy "Gebruiker past eigen profiel aan" on public.user_profiles for update using (auth.uid() = id);
 create policy "Profiel aanmaken bij registratie" on public.user_profiles for insert with check (auth.uid() = id);
 create policy "Admin ziet alle profielen"        on public.user_profiles for select using (public.is_admin());
+create policy "Admin kan profielen wijzigen"     on public.user_profiles for update using (public.is_admin());
 
 -- Trigger: maak profiel automatisch aan bij nieuwe gebruiker
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer as $$
 begin
-  insert into public.user_profiles (id, full_name, avatar_url)
+  insert into public.user_profiles (id, full_name, avatar_url, email)
   values (
     new.id,
     new.raw_user_meta_data->>'full_name',
-    new.raw_user_meta_data->>'avatar_url'
+    new.raw_user_meta_data->>'avatar_url',
+    new.email
   )
-  on conflict (id) do nothing;
+  on conflict (id) do update set email = excluded.email;
   return new;
 end;
 $$;
@@ -136,6 +139,7 @@ create table if not exists public.food_logs (
 
 alter table public.food_logs enable row level security;
 create policy "Gebruiker ziet eigen voedingslog"        on public.food_logs for select using (auth.uid() = user_id);
+create policy "Admin ziet alle voedingslogs"            on public.food_logs for select using (public.is_admin());
 create policy "Gebruiker maakt eigen voedingslog"       on public.food_logs for insert with check (auth.uid() = user_id);
 create policy "Gebruiker past eigen voedingslog aan"    on public.food_logs for update using (auth.uid() = user_id);
 create policy "Gebruiker verwijdert eigen voedingslog"  on public.food_logs for delete using (auth.uid() = user_id);
@@ -233,6 +237,7 @@ create table if not exists public.daily_logs (
 
 alter table public.daily_logs enable row level security;
 create policy "Gebruiker ziet eigen daglog"        on public.daily_logs for select using (auth.uid() = user_id);
+create policy "Admin ziet alle daglogboeken"       on public.daily_logs for select using (public.is_admin());
 create policy "Gebruiker maakt eigen daglog"       on public.daily_logs for insert with check (auth.uid() = user_id);
 create policy "Gebruiker past eigen daglog aan"    on public.daily_logs for update using (auth.uid() = user_id);
 create policy "Gebruiker verwijdert eigen daglog"  on public.daily_logs for delete using (auth.uid() = user_id);
@@ -260,6 +265,7 @@ create table if not exists public.hrv_logs (
 
 alter table public.hrv_logs enable row level security;
 create policy "Gebruiker ziet eigen HRV"        on public.hrv_logs for select using (auth.uid() = user_id);
+create policy "Admin ziet alle HRV logs"        on public.hrv_logs for select using (public.is_admin());
 create policy "Gebruiker maakt eigen HRV"       on public.hrv_logs for insert with check (auth.uid() = user_id);
 create policy "Gebruiker past eigen HRV aan"    on public.hrv_logs for update using (auth.uid() = user_id);
 create policy "Gebruiker verwijdert eigen HRV"  on public.hrv_logs for delete using (auth.uid() = user_id);
@@ -594,6 +600,34 @@ create policy "Gebruiker verwijdert eigen workout log" on public.workout_logs fo
 
 create trigger set_workout_logs_updated_at
   before update on public.workout_logs
+  for each row execute function public.set_updated_at();
+
+-- ============================================================
+-- CONTENT_BRONNEN (configureerbare bronnen voor nachtelijke sync)
+-- ============================================================
+create table if not exists public.content_bronnen (
+  id              uuid primary key default gen_random_uuid(),
+  naam            text not null,
+  bron_type       text not null check (bron_type in ('pubmed', 'rss', 'website')),
+  zoekterm        text not null,
+  categorie       text check (categorie in (
+    'voeding','supplementen','training','welzijn','gewichtsverlies','overig'
+  )),
+  taal            text default 'en',
+  max_per_sync    int default 5 check (max_per_sync between 1 and 25),
+  actief          boolean default true,
+  laatste_sync    timestamptz,
+  sync_frequentie text default 'dagelijks' check (sync_frequentie in ('dagelijks','wekelijks','maandelijks')),
+  created_by      uuid references auth.users(id) on delete set null,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+
+alter table public.content_bronnen enable row level security;
+create policy "Alleen admin beheert content bronnen" on public.content_bronnen for all using (public.is_admin());
+
+create trigger set_content_bronnen_updated_at
+  before update on public.content_bronnen
   for each row execute function public.set_updated_at();
 
 -- ============================================================

@@ -210,7 +210,7 @@ ${html}`,
           </div>
 
           {/* Tijd & porties */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
               <label className={labelCls}>Voorbereidingstijd (min)</label>
               <input type="number" value={form.prep_time_min} onChange={e => set('prep_time_min', e.target.value)} placeholder="10" className={inputCls} />
@@ -228,7 +228,7 @@ ${html}`,
           {/* Voedingswaarden */}
           <div>
             <label className={labelCls}>Voedingswaarden (per portie)</label>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div>
                 <input type="number" value={form.calories_per_serving} onChange={e => set('calories_per_serving', e.target.value)} placeholder="Kcal" className={inputCls} />
               </div>

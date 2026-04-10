@@ -1,5 +1,5 @@
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload, Newspaper, CalendarDays, TrendingUp, Menu, X, Pill, Brain, HeartPulse, Bell, ChevronRight, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload, Newspaper, CalendarDays, TrendingUp, Menu, X, Pill, Brain, HeartPulse, Bell, ChevronRight, ShieldCheck, Sun, Moon, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
@@ -35,6 +35,8 @@ const adminNavItemsConfig = [
   { to: '/recepten-beheer', icon: ChefHat, label: 'Recepten beheer' },
   { to: '/supplementen-beheer', icon: Pill, label: 'Supplementen beheer' },
   { to: '/kennis-update', icon: Brain, label: 'Kennis Update' },
+  { to: '/content-bronnen', icon: Database, label: 'Content Bronnen' },
+  { to: '/gebruikers', icon: Users, label: 'Gebruikersbeheer' },
 ];
 
 export default function AppLayout() {

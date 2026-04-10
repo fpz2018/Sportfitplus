@@ -38,6 +38,8 @@ const Login = lazy(() => import('./pages/Login'));
 const Premium = lazy(() => import('./pages/Premium'));
 const MijnVoedingsmiddelen = lazy(() => import('./pages/MijnVoedingsmiddelen'));
 const Admin = lazy(() => import('./pages/Admin'));
+const ContentBronnen = lazy(() => import('./pages/ContentBronnen'));
+const GebruikersBeheer = lazy(() => import('./pages/GebruikersBeheer'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 const PageSpinner = () => (
@@ -96,6 +98,8 @@ const AuthenticatedApp = () => {
           <Route path="/supplementen"      element={<ErrorBoundary><Supplementen /></ErrorBoundary>} />
           <Route path="/supplementen-beheer" element={<ErrorBoundary><SupplementenBeheer /></ErrorBoundary>} />
           <Route path="/kennis-update"     element={<ErrorBoundary><KennisUpdate /></ErrorBoundary>} />
+          <Route path="/content-bronnen"  element={<ErrorBoundary><ContentBronnen /></ErrorBoundary>} />
+          <Route path="/gebruikers"       element={<ErrorBoundary><GebruikersBeheer /></ErrorBoundary>} />
           <Route path="/welzijn"           element={<ErrorBoundary><Welzijn /></ErrorBoundary>} />
           <Route path="/voedingsmiddelen"  element={<ErrorBoundary><MijnVoedingsmiddelen /></ErrorBoundary>} />
         </Route>
