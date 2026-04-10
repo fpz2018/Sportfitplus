@@ -1,8 +1,34 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { callFunction } from '@/api/netlifyClient';
-import { X, QrCode, ChevronLeft, Plus, Minus } from 'lucide-react';
+import { X, QrCode, ChevronLeft, Plus, Minus, Heart, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Html5QrcodeScanner } from 'html5-qrcode';
+
+const RECENTS_KEY = 'sfp_food_recents';
+const FAVORITES_KEY = 'sfp_food_favorites';
+const MAX_RECENTS = 10;
+
+function loadFromStorage(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
+}
+function saveToStorage(key, data) {
+  localStorage.setItem(key, JSON.stringify(data));
+}
+function addRecent(product) {
+  const recents = loadFromStorage(RECENTS_KEY).filter(r => r.id !== product.id);
+  recents.unshift(product);
+  saveToStorage(RECENTS_KEY, recents.slice(0, MAX_RECENTS));
+}
+function toggleFavorite(product) {
+  const favs = loadFromStorage(FAVORITES_KEY);
+  const idx = favs.findIndex(f => f.id === product.id);
+  if (idx >= 0) { favs.splice(idx, 1); } else { favs.push(product); }
+  saveToStorage(FAVORITES_KEY, favs);
+  return idx < 0; // true = nu favoriet
+}
+function isFavorite(productId) {
+  return loadFromStorage(FAVORITES_KEY).some(f => f.id === productId);
+}
 
 const UNIT_DEFAULTS = {
   'banaan': { unit: 'stuk', defaultQty: 1 },
@@ -40,6 +66,9 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
   const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState('g');
   
+  const [recents, setRecents] = useState(() => loadFromStorage(RECENTS_KEY));
+  const [favorites, setFavorites] = useState(() => loadFromStorage(FAVORITES_KEY));
+
   const scannerRef = useRef(null);
   const htmlScannerRef = useRef(null);
 
@@ -111,7 +140,11 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
 
   function handleConfirm() {
     if (!selectedProduct) return;
-    
+
+    // Sla op in recents
+    addRecent(selectedProduct);
+    setRecents(loadFromStorage(RECENTS_KEY));
+
     const multiplier = unit === 'stuk' ? quantity : quantity / 100;
 
     onSelect({
@@ -286,29 +319,86 @@ export default function FoodSearchWithQuantity({ onSelect, onClose }) {
               <div className="flex justify-center items-center py-12">
                 <p className="text-sm text-muted-foreground">Geen resultaten gevonden</p>
               </div>
+            ) : results.length === 0 && !query.trim() ? (
+              <div className="p-4 space-y-4">
+                {/* Favorieten */}
+                {favorites.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <Heart className="w-3 h-3" /> Favorieten
+                    </p>
+                    <div className="space-y-1.5">
+                      {favorites.map(product => (
+                        <button key={product.id} onClick={() => handleSelectProduct(product)}
+                          className="w-full flex items-center gap-3 p-2.5 rounded-xl border border-border hover:bg-secondary/50 transition-all text-left">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm text-foreground truncate">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">{product.calories} kcal · {product.protein_g}g P</p>
+                          </div>
+                          <Heart className="w-4 h-4 text-red-500 fill-red-500 shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recent gebruikt */}
+                {recents.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <Clock className="w-3 h-3" /> Recent gebruikt
+                    </p>
+                    <div className="space-y-1.5">
+                      {recents.map(product => (
+                        <button key={product.id} onClick={() => handleSelectProduct(product)}
+                          className="w-full flex items-center gap-3 p-2.5 rounded-xl border border-border hover:bg-secondary/50 transition-all text-left">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm text-foreground truncate">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">{product.calories} kcal · {product.protein_g}g P</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {favorites.length === 0 && recents.length === 0 && (
+                  <div className="flex justify-center items-center py-12">
+                    <p className="text-sm text-muted-foreground">Voer een zoekterm in of scan een barcode</p>
+                  </div>
+                )}
+              </div>
             ) : results.length === 0 ? (
               <div className="flex justify-center items-center py-12">
-                <p className="text-sm text-muted-foreground">Voer een zoekterm in</p>
+                <p className="text-sm text-muted-foreground">Geen resultaten gevonden</p>
               </div>
             ) : (
               <div className="space-y-2 p-4">
                 {results.map((product) => (
-                  <button
-                    key={product.id}
-                    onClick={() => handleSelectProduct(product)}
-                    className="w-full flex items-start gap-3 p-3 rounded-xl border border-border hover:bg-secondary/50 transition-all text-left"
-                  >
-                    {product.image_url && (
-                      <img src={product.image_url} alt={product.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-foreground truncate">{product.name}</p>
-                      {product.brands && <p className="text-xs text-muted-foreground">{product.brands}</p>}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {product.calories} kcal · {product.protein_g}g P · {product.carbs_g}g K · {product.fat_g}g V
-                      </p>
-                    </div>
-                  </button>
+                  <div key={product.id} className="flex items-start gap-1">
+                    <button
+                      onClick={() => handleSelectProduct(product)}
+                      className="flex-1 flex items-start gap-3 p-3 rounded-xl border border-border hover:bg-secondary/50 transition-all text-left"
+                    >
+                      {product.image_url && (
+                        <img src={product.image_url} alt={product.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-foreground truncate">{product.name}</p>
+                        {product.brands && <p className="text-xs text-muted-foreground">{product.brands}</p>}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {product.calories} kcal · {product.protein_g}g P · {product.carbs_g}g K · {product.fat_g}g V
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleFavorite(product); setFavorites(loadFromStorage(FAVORITES_KEY)); }}
+                      className="p-3 hover:bg-secondary rounded-lg transition-all shrink-0"
+                      aria-label={isFavorite(product.id) ? 'Verwijder uit favorieten' : 'Voeg toe aan favorieten'}
+                    >
+                      <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'text-red-500 fill-red-500' : 'text-muted-foreground'}`} />
+                    </button>
+                  </div>
                 ))}
               </div>
             )}

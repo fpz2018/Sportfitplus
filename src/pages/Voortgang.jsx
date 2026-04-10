@@ -55,9 +55,25 @@ export default function Voortgang() {
     setTimeout(() => setSaved(false), 3000);
   }
 
-  const chartData = [...logs].reverse().slice(-14).map(l => ({
+  // EMA (Exponential Moving Average) berekening voor smoothed gewichtstrend
+  const calcEMA = (data, smoothing = 0.2) => {
+    const withWeight = data.filter(d => d.weight_kg != null);
+    if (withWeight.length === 0) return data;
+    let ema = withWeight[0].weight_kg;
+    const emaMap = new Map();
+    for (const d of withWeight) {
+      ema = smoothing * d.weight_kg + (1 - smoothing) * ema;
+      emaMap.set(d.log_date, parseFloat(ema.toFixed(2)));
+    }
+    return emaMap;
+  };
+
+  const sortedLogs = [...logs].reverse().slice(-14);
+  const emaMap = calcEMA(sortedLogs);
+  const chartData = sortedLogs.map(l => ({
     date: format(new Date(l.log_date), 'dd/MM'),
     gewicht: l.weight_kg,
+    trend: emaMap.get(l.log_date) ?? null,
     cals: l.calories_eaten,
   }));
 
@@ -172,9 +188,11 @@ export default function Voortgang() {
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
               <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} domain={['auto', 'auto']} />
               <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', color: 'hsl(var(--foreground))' }} />
-              <Line type="monotone" dataKey="gewicht" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))' }} name="kg" />
+              <Line type="monotone" dataKey="gewicht" stroke="hsl(var(--muted-foreground))" strokeWidth={1} dot={{ fill: 'hsl(var(--muted-foreground))', r: 3 }} name="Weging" strokeDasharray="4 4" />
+              <Line type="monotone" dataKey="trend" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={false} name="Trend (EMA)" />
             </LineChart>
           </ResponsiveContainer>
+          <p className="text-xs text-muted-foreground mt-2">Stippellijn = dagelijkse weging · Groene lijn = smoothed trend (EMA)</p>
         </div>
       )}
 

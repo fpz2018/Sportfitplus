@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { UserProfile } from '@/api/entities';
 import { Calculator as CalcIcon, Save, Info } from 'lucide-react';
+import AdaptiveTDEE from '@/components/calculator/AdaptiveTDEE';
 
 const ACTIVITY_OPTIONS = [
   { value: 'sedentair', label: 'Sedentair', factor: 1.2, desc: 'Weinig of geen beweging' },
@@ -197,6 +198,15 @@ export default function CalculatorPage() {
           </button>
         </div>
       )}
+
+      {/* Adaptive TDEE op basis van werkelijke data */}
+      <AdaptiveTDEE
+        currentTDEE={tdee}
+        onSuggest={(suggestedTDEE) => {
+          setMode('handmatig');
+          setManualTdee(String(suggestedTDEE));
+        }}
+      />
 
       {/* Uitleg */}
       <div className="bg-card border border-border rounded-2xl p-6">
