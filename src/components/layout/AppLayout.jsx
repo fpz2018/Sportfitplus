@@ -1,5 +1,5 @@
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Lock, ChefHat, FlaskConical, Lightbulb, Upload, Newspaper, CalendarDays, TrendingUp, Menu, X, Pill, Brain, HeartPulse, Bell, ChevronRight, ShieldCheck, Sun, Moon, Database } from 'lucide-react';
+import { LayoutDashboard, Calculator, Dumbbell, BookOpen, BarChart2, Utensils, User, Users, Lock, ChefHat, FlaskConical, Lightbulb, Upload, Newspaper, CalendarDays, TrendingUp, Menu, X, Pill, Brain, HeartPulse, Bell, ChevronRight, ShieldCheck, Sun, Moon, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
