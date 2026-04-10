@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Dumbbell, Brain, Utensils, BarChart2, FlaskConical, HeartPulse, ChefHat, Zap, Check, Star, Lock, ArrowRight, Sparkles, Shield, Trophy, Users, ChevronDown } from 'lucide-react';
+import { Dumbbell, Brain, Utensils, BarChart2, FlaskConical, HeartPulse, ChefHat, Zap, Check, Star, Lock, ArrowRight, Sparkles, Shield, Trophy, Users, ChevronDown, TrendingUp, Moon, Heart, ScanQrCode } from 'lucide-react';
 import { useState } from 'react';
 
 const FEATURES = [
@@ -17,34 +17,43 @@ const FEATURES = [
     color: 'text-green-400',
     bg: 'bg-green-500/10',
     title: 'Voeding & Macro Coaching',
-    desc: 'Wekelijks menu, recepten, boodschappenlijst en dagelijkse tracking. Aangepast aan allergieën, darmklachten, diëten en calorie­doelen.',
+    desc: 'Log snel met favorieten en recente producten, scan barcodes, en volg je macro\'s real-time. Weekmenu\'s en recepten aangepast aan allergieën, darmklachten en diëten.',
     free: 'Zie je dagdoelen',
-    premium: 'Volledige weekmenu\'s & logging',
+    premium: 'Volledige weekmenu\'s, favorieten & logging',
   },
   {
-    icon: FlaskConical,
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/10',
-    title: 'Supplement Kennisbank',
-    desc: 'Wetenschappelijk onderbouwde informatie over supplementen — voor energie, darmen, immuunsysteem, slaap en meer.',
-    free: 'Bekijk de kennisbank',
-    premium: 'Persoonlijk AI supplement advies',
+    icon: TrendingUp,
+    color: 'text-cyan-400',
+    bg: 'bg-cyan-500/10',
+    title: 'Adaptive TDEE',
+    desc: 'Je caloriebehoefte wordt automatisch berekend op basis van je werkelijke gewichtstrend en intake — net als MacroFactor. Hoe langer je logt, hoe preciezer.',
+    free: 'TDEE calculator',
+    premium: 'Zelflerende TDEE op basis van jouw data',
   },
   {
     icon: BarChart2,
     color: 'text-accent',
     bg: 'bg-accent/10',
     title: 'Voortgang & Inzichten',
-    desc: 'Volg gewicht, energie, slaap en welzijn over weken en maanden. Begrijp welke factoren jouw gezondheid echt beïnvloeden.',
+    desc: 'Volg je gewicht met een smoothed trendlijn (EMA) die dagelijkse schommelingen wegfiltert. Begrijp welke factoren jouw gezondheid echt beïnvloeden.',
     free: 'Log je dagelijkse data',
-    premium: 'Geavanceerde analytics & trends',
+    premium: 'Geavanceerde analytics & gewichtstrend',
+  },
+  {
+    icon: FlaskConical,
+    color: 'text-blue-400',
+    bg: 'bg-blue-500/10',
+    title: 'Supplement Kennisbank',
+    desc: 'Wetenschappelijk onderbouwde informatie over supplementen, automatisch bijgewerkt met de laatste PubMed-publicaties en door ons team beoordeeld.',
+    free: 'Bekijk de kennisbank',
+    premium: 'Persoonlijk AI supplement advies',
   },
   {
     icon: HeartPulse,
     color: 'text-red-400',
     bg: 'bg-red-500/10',
     title: 'Herstel & Welzijn',
-    desc: 'Dagelijkse energiescore op basis van slaap, stress en herstel. AI geeft concreet advies over rust, ontspanning en leefstijl.',
+    desc: 'Dagelijkse energiescore op basis van slaap, stress en herstel. HRV-tracking en AI-advies over rust, ontspanning en leefstijl.',
     free: 'Check je energiescore',
     premium: 'AI welzijnsadvies & trendanalyse',
   },
@@ -56,6 +65,15 @@ const FEATURES = [
     desc: 'Honderden gezonde recepten — ook voor gevoelige darmen, ouderen of specifieke diëten. AI stelt een weekmenu samen dat echt bij je past.',
     free: 'Blader door recepten',
     premium: 'AI weekmenu generator',
+  },
+  {
+    icon: Shield,
+    color: 'text-emerald-400',
+    bg: 'bg-emerald-500/10',
+    title: 'Privacy & Snelheid',
+    desc: 'Dark mode, razendsnelle laadtijden door slimme caching, en enterprise-grade beveiliging. Jouw data is veilig — altijd.',
+    free: 'Dark/light mode & snelle app',
+    premium: 'Alle features, optimale performance',
   },
 ];
 
@@ -88,18 +106,20 @@ const PLAN_FREE = [
   'Trainingsschema\'s (1 voorbeeld)',
   'Supplement kennisbank bekijken',
   'Recepten bladeren',
-  'Dagelijkse gewicht logging',
+  'Dagelijkse gewicht logging met trendlijn',
   'Dagelijkse energie & herstelcheck',
+  'Dark mode & light mode',
   'Complete gids voor gezond afvallen',
 ];
 
 const PLAN_PREMIUM = [
   'Alles van Gratis',
   'Onbeperkt AI trainingsschema\'s',
+  'Zelflerende Adaptive TDEE',
   'Persoonlijk supplement advies',
   'Volledig weekmenu met AI',
-  'Macro & voeding logging',
-  'Geavanceerde voortgang analytics',
+  'Macro logging met favorieten & barcode',
+  'Smoothed gewichtstrend (EMA)',
   'AI welzijn & hersteladvies',
   'Prioriteit klantenservice',
 ];
@@ -123,7 +143,11 @@ const FAQ = [
   },
   {
     q: 'Is mijn data veilig?',
-    a: 'Ja. We slaan geen gegevens op bij derden en verkopen je data nooit. Privacy-first is geen marketingterm bij ons — het is hoe de app gebouwd is.',
+    a: 'Ja. We gebruiken enterprise-grade beveiliging: rate limiting, CORS-bescherming, SSRF-preventie en gescheiden AI-prompts. Je data wordt nooit aan derden verkocht. Privacy-first is geen marketingterm — het is hoe de app gebouwd is.',
+  },
+  {
+    q: 'Wat is Adaptive TDEE?',
+    a: 'Adaptive TDEE berekent je werkelijke calorieverbranding op basis van je gewichtstrend en calorie-intake over de afgelopen 7-14 dagen. Hoe langer je logt, hoe nauwkeuriger het wordt. Vergelijkbaar met wat MacroFactor doet — maar ingebouwd in Sportfit Plus.',
   },
 ];
 
@@ -179,7 +203,7 @@ export default function Landing() {
 
         <div className="relative max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-6">
-            <Sparkles className="w-3 h-3" /> Door experts ontwikkeld · AI-ondersteund
+            <Sparkles className="w-3 h-3" /> Door experts ontwikkeld · AI-ondersteund · Adaptive TDEE
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold text-foreground leading-tight mb-6">
@@ -281,7 +305,7 @@ export default function Landing() {
             <p className="text-muted-foreground max-w-xl mx-auto">Van beweegplan tot voedingscoaching — één slimme coach, volledig afgestemd op jóuw situatie, klachten en doelen.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {FEATURES.map(feat => {
               const Icon = feat.icon;
               return (
@@ -308,6 +332,30 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── TECH HIGHLIGHTS ────────────────────────────────── */}
+      <section className="py-12 px-4 bg-card/50 border-y border-border">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { icon: <TrendingUp className="w-5 h-5 text-cyan-400" />, title: 'Adaptive TDEE', desc: 'Zelflerende caloriebehoefte op basis van jouw echte data' },
+              { icon: <ScanQrCode className="w-5 h-5 text-green-400" />, title: 'Barcode scanning', desc: 'Scan een product en log het direct met één tik' },
+              { icon: <Heart className="w-5 h-5 text-red-400" />, title: 'Favorieten & recents', desc: 'Je vaste producten altijd binnen handbereik' },
+              { icon: <Moon className="w-5 h-5 text-indigo-400" />, title: 'Dark & light mode', desc: 'Prettig voor je ogen, dag en nacht' },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="flex items-start gap-3 p-4 bg-card border border-border rounded-2xl">
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                  {icon}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground text-sm">{title}</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── HOW IT WORKS ────────────────────────────────────── */}
       <section className="py-20 px-4 bg-card/50 border-y border-border">
         <div className="max-w-4xl mx-auto text-center">
@@ -317,7 +365,7 @@ export default function Landing() {
             {[
               { step: '01', icon: '🎯', title: 'Vertel wie je bent', desc: 'Vul de slimme onboarding in: je leeftijd, klachten, doelen, eetpatroon, slaap en activiteitsniveau. Geen oordeel, geen aannames.' },
               { step: '02', icon: '🧬', title: 'Experts + AI maken jouw plan', desc: 'Onze experts legden de wetenschappelijke basis. AI vertaalt dat naar een persoonlijk beweeg-, voedings- en welzijnsplan voor jóu.' },
-              { step: '03', icon: '📈', title: 'Log, volg & verbeter', desc: 'Dagelijks bijhouden is makkelijk. Het plan past zich aan naarmate je vordert — altijd gebaseerd op bewezen inzichten.' },
+              { step: '03', icon: '📈', title: 'Log, volg & verbeter', desc: 'Dagelijks bijhouden is makkelijk met favorieten en barcode scanning. Je TDEE leert mee, je gewichtstrend wordt automatisch smoothed, en het plan past zich aan naarmate je vordert.' },
             ].map(({ step, icon, title, desc }) => (
               <div key={step} className="text-center">
                 <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
