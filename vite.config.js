@@ -32,6 +32,14 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // SPA fallback — voorkomt blank scherm bij client-side routes
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api/, /^\/\.netlify/],
+        // Oude caches opruimen bij nieuwe SW versie
+        cleanupOutdatedCaches: true,
+        // Nieuwe SW meteen activeren, niet wachten op tab-sluiting
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
@@ -39,6 +47,7 @@ export default defineConfig({
             options: {
               cacheName: 'supabase-api',
               expiration: { maxEntries: 50, maxAgeSeconds: 300 },
+              networkTimeoutSeconds: 5,
             },
           },
           {
