@@ -1,16 +1,19 @@
 /**
- * fetchReceptenFromSheet — Lees recepttitels uit een Google Sheet
- * Vervangt: base44/functions/fetchReceptenFromSheet/entry.ts
- * Vereist: GOOGLE_SHEETS_API_KEY of GOOGLE_SERVICE_ACCOUNT_TOKEN in env
+ * fetchReceptenFromSheet — Lees recept-URL's uit een Google Sheet
+ * Kolom A = URL van het recept
+ * Kolom B = (optioneel) categorie (ontbijt, lunch, diner, snack, etc.)
+ * Vereist: GOOGLE_SHEETS_API_KEY in env
  */
-import { requireAdmin, corsHeaders, respond, respondError } from './_shared/supabaseAdmin.js';
+import { requireAdmin, corsHeaders, corsHeadersForRequest, respond, respondError } from './_shared/supabaseAdmin.js';
 
 export const handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: corsHeaders };
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers: corsHeadersForRequest(event) };
+  }
 
   try {
     await requireAdmin(event);
-    const { spreadsheet_id, range = 'A:A' } = JSON.parse(event.body || '{}');
+    const { spreadsheet_id, range = 'A:B' } = JSON.parse(event.body || '{}');
     if (!spreadsheet_id) return respondError('spreadsheet_id verplicht', 400);
 
     const apiKey = process.env.GOOGLE_SHEETS_API_KEY;
@@ -22,9 +25,18 @@ export const handler = async (event) => {
 
     const data = await res.json();
     const rows = data.values || [];
-    const titles = rows.flat().filter(v => v && v.trim());
 
-    return respond({ titles, count: titles.length });
+    // Skip header row if first cell looks like a header
+    const startIdx = (rows[0]?.[0] || '').toLowerCase().includes('url') ? 1 : 0;
+
+    const recipes = rows.slice(startIdx)
+      .filter(row => row[0] && row[0].trim().startsWith('http'))
+      .map(row => ({
+        url: row[0].trim(),
+        category: (row[1] || '').trim() || null,
+      }));
+
+    return respond({ recipes, count: recipes.length });
   } catch (err) {
     console.error('fetchReceptenFromSheet error:', err);
     if (err.message.includes('admin')) return respondError(err.message, 403);

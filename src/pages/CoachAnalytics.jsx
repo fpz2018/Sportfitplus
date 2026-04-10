@@ -24,13 +24,18 @@ export default function CoachAnalytics() {
         return;
       }
 
-      // Load all users for selection
-      const users = await UserProfile.listAll();
-      setAllUsers(users);
+      try {
+        // Load all users for selection
+        const users = await UserProfile.listAll();
+        setAllUsers(users);
 
-      // Load current user's data by default
-      await loadOwnAnalytics();
-      setLoading(false);
+        // Load current user's data by default
+        await loadOwnAnalytics();
+      } catch (err) {
+        console.error('Fout bij laden analytics:', err);
+      } finally {
+        setLoading(false);
+      }
     }
 
     if (profile !== undefined) loadData();

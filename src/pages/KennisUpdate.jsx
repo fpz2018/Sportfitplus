@@ -47,17 +47,22 @@ export default function KennisUpdate() {
 
   async function laadData() {
     setLoading(true);
-    const [ins, rs, allVoorstellen, taken] = await Promise.all([
-      AppInzicht.list(),
-      KennisAnalyseRun.list(),
-      WijzigingsVoorstel.list(),
-      CodeTaak.list(),
-    ]);
-    setInzichten(ins);
-    setRuns(rs);
-    setVoorstellen(allVoorstellen.filter(v => v.bron_type === 'pubmed'));
-    setCodeTaken(taken);
-    setLoading(false);
+    try {
+      const [ins, rs, allVoorstellen, taken] = await Promise.all([
+        AppInzicht.list(),
+        KennisAnalyseRun.list(),
+        WijzigingsVoorstel.list(),
+        CodeTaak.list(),
+      ]);
+      setInzichten(ins);
+      setRuns(rs);
+      setVoorstellen(allVoorstellen.filter(v => v.bron_type === 'pubmed'));
+      setCodeTaken(taken);
+    } catch (err) {
+      console.error('Fout bij laden kennisdata:', err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function startAnalyse() {

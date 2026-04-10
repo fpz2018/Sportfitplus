@@ -42,13 +42,21 @@ export default function Nieuwsbeheer() {
     );
   }
 
-  useEffect(() => { laadBerichten(); }, []);
+  useEffect(() => {
+    if (!isLoadingAuth && profile?.role === 'admin') laadBerichten();
+  }, [isLoadingAuth, profile]);
 
   async function laadBerichten() {
     setLoading(true);
-    const alle = await Nieuwsbericht.listAll();
-    setBerichten(alle);
-    setLoading(false);
+    try {
+      const alle = await Nieuwsbericht.listAll();
+      setBerichten(alle);
+    } catch (err) {
+      console.error('Fout bij laden berichten:', err);
+      setBerichten([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function updateStatus(id, newStatus) {

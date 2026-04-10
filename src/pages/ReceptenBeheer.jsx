@@ -42,13 +42,21 @@ export default function ReceptenBeheer() {
     );
   }
 
-  useEffect(() => { laadRecepten(); }, [filter]);
+  useEffect(() => {
+    if (!isLoadingAuth && profile?.role === 'admin') laadRecepten();
+  }, [isLoadingAuth, profile, filter]);
 
   async function laadRecepten() {
     setLoading(true);
-    const data = await Recipe.list(filter, 50);
-    setRecepten(data);
-    setLoading(false);
+    try {
+      const data = await Recipe.list(filter, 50);
+      setRecepten(data);
+    } catch (err) {
+      console.error('Fout bij laden recepten:', err);
+      setRecepten([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function setStatus(recept, nieuweStatus) {
