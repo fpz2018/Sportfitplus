@@ -59,7 +59,7 @@ export default function Voortgang() {
   }));
 
   return (
-    <div className="p-6 pb-24 md:pb-8 max-w-4xl mx-auto">
+    <div className="p-6 pb-8 max-w-4xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">{t('voortgang')}</h1>
         <p className="text-muted-foreground text-sm">{t('logJeDagelijkse')}</p>

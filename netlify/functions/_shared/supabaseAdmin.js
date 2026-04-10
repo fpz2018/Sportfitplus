@@ -49,12 +49,28 @@ export const requireAdmin = async (event) => {
   return user;
 };
 
-/** Standaard CORS-headers */
+/** Standaard CORS-headers — harde whitelist, nooit open fallback */
+const ALLOWED_ORIGINS = [
+  process.env.URL,                        // Netlify prod URL (automatisch gezet)
+  process.env.DEPLOY_PRIME_URL,           // Netlify preview deploys
+  'http://localhost:5173',                // lokale dev
+].filter(Boolean);
+
+const getAllowedOrigin = (requestOrigin) => {
+  if (requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)) return requestOrigin;
+  return ALLOWED_ORIGINS[0] || 'http://localhost:5173';
+};
+
 export const corsHeaders = {
-  'Access-Control-Allow-Origin': process.env.URL || 'http://localhost:5173',
+  'Access-Control-Allow-Origin': getAllowedOrigin(undefined),
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 };
+
+export const corsHeadersForRequest = (event) => ({
+  ...corsHeaders,
+  'Access-Control-Allow-Origin': getAllowedOrigin(event?.headers?.origin),
+});
 
 export const respond = (data, status = 200) => ({
   statusCode: status,

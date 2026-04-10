@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -6,35 +7,43 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import Dashboard from './pages/Dashboard';
-import Onboarding from './pages/Onboarding.jsx';
-import Calculator from './pages/Calculator';
-import Voortgang from './pages/Voortgang';
-import Schemas from './pages/Schemas';
 import AppLayout from './components/layout/AppLayout';
-import Voeding from './pages/Voeding';
-import Gids from './pages/Gids';
-import Profiel from './pages/Profiel';
-import Recepten from './pages/Recepten';
-import KennisMonitor from './pages/KennisMonitor';
-import InhoudsVoorstellen from './pages/InhoudsVoorstellen';
-import BronBeheer from './pages/BronBeheer';
-import ReceptenBeheer from './pages/ReceptenBeheer';
-import Weekmenu from './pages/Weekmenu';
-import Nieuwsbeheer from './pages/Nieuwsbeheer';
-import Nieuws from './pages/Nieuws';
-import MijnVoortgang from './pages/MijnVoortgang';
-import CoachAnalytics from './pages/CoachAnalytics';
-import Supplementen from './pages/Supplementen';
-import SupplementenBeheer from './pages/SupplementenBeheer';
-import KennisUpdate from './pages/KennisUpdate';
-import Welzijn from './pages/Welzijn';
-import Landing from './pages/Landing';
-import Login from './pages/Login';
-import Premium from './pages/Premium';
-import MijnVoedingsmiddelen from './pages/MijnVoedingsmiddelen';
-import Admin from './pages/Admin';
-import ResetPassword from './pages/ResetPassword';
+
+// Lazy-loaded pages — elk wordt een apart chunk
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Onboarding = lazy(() => import('./pages/Onboarding.jsx'));
+const Calculator = lazy(() => import('./pages/Calculator'));
+const Voortgang = lazy(() => import('./pages/Voortgang'));
+const Schemas = lazy(() => import('./pages/Schemas'));
+const Voeding = lazy(() => import('./pages/Voeding'));
+const Gids = lazy(() => import('./pages/Gids'));
+const Profiel = lazy(() => import('./pages/Profiel'));
+const Recepten = lazy(() => import('./pages/Recepten'));
+const KennisMonitor = lazy(() => import('./pages/KennisMonitor'));
+const InhoudsVoorstellen = lazy(() => import('./pages/InhoudsVoorstellen'));
+const BronBeheer = lazy(() => import('./pages/BronBeheer'));
+const ReceptenBeheer = lazy(() => import('./pages/ReceptenBeheer'));
+const Weekmenu = lazy(() => import('./pages/Weekmenu'));
+const Nieuwsbeheer = lazy(() => import('./pages/Nieuwsbeheer'));
+const Nieuws = lazy(() => import('./pages/Nieuws'));
+const MijnVoortgang = lazy(() => import('./pages/MijnVoortgang'));
+const CoachAnalytics = lazy(() => import('./pages/CoachAnalytics'));
+const Supplementen = lazy(() => import('./pages/Supplementen'));
+const SupplementenBeheer = lazy(() => import('./pages/SupplementenBeheer'));
+const KennisUpdate = lazy(() => import('./pages/KennisUpdate'));
+const Welzijn = lazy(() => import('./pages/Welzijn'));
+const Landing = lazy(() => import('./pages/Landing'));
+const Login = lazy(() => import('./pages/Login'));
+const Premium = lazy(() => import('./pages/Premium'));
+const MijnVoedingsmiddelen = lazy(() => import('./pages/MijnVoedingsmiddelen'));
+const Admin = lazy(() => import('./pages/Admin'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+
+const PageSpinner = () => (
+  <div className="fixed inset-0 flex items-center justify-center">
+    <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+  </div>
+);
 
 const AuthenticatedApp = () => {
   const { isAuthenticated, isLoadingAuth } = useAuth();
@@ -49,50 +58,54 @@ const AuthenticatedApp = () => {
 
   if (!isAuthenticated) {
     return (
-      <Routes>
-        <Route path="/admin"          element={<Admin />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="*"               element={<Landing />} />
-        <Route path="/landing"        element={<Landing />} />
-        <Route path="/login"          element={<Login />} />
-        <Route path="/premium"        element={<Premium />} />
-      </Routes>
+      <Suspense fallback={<PageSpinner />}>
+        <Routes>
+          <Route path="/admin"          element={<Admin />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="*"               element={<Landing />} />
+          <Route path="/landing"        element={<Landing />} />
+          <Route path="/login"          element={<Login />} />
+          <Route path="/premium"        element={<Premium />} />
+        </Routes>
+      </Suspense>
     );
   }
 
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/"                  element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
-        <Route path="/calculator"        element={<ErrorBoundary><Calculator /></ErrorBoundary>} />
-        <Route path="/voortgang"         element={<ErrorBoundary><Voortgang /></ErrorBoundary>} />
-        <Route path="/schemas"           element={<ErrorBoundary><Schemas /></ErrorBoundary>} />
-        <Route path="/voeding"           element={<ErrorBoundary><Voeding /></ErrorBoundary>} />
-        <Route path="/gids"              element={<ErrorBoundary><Gids /></ErrorBoundary>} />
-        <Route path="/profiel"           element={<ErrorBoundary><Profiel /></ErrorBoundary>} />
-        <Route path="/recepten"          element={<ErrorBoundary><Recepten /></ErrorBoundary>} />
-        <Route path="/kennis"            element={<ErrorBoundary><KennisMonitor /></ErrorBoundary>} />
-        <Route path="/voorstellen"       element={<ErrorBoundary><InhoudsVoorstellen /></ErrorBoundary>} />
-        <Route path="/bronnen"           element={<ErrorBoundary><BronBeheer /></ErrorBoundary>} />
-        <Route path="/recepten-beheer"   element={<ErrorBoundary><ReceptenBeheer /></ErrorBoundary>} />
-        <Route path="/weekmenu"          element={<ErrorBoundary><Weekmenu /></ErrorBoundary>} />
-        <Route path="/nieuws"            element={<ErrorBoundary><Nieuws /></ErrorBoundary>} />
-        <Route path="/mijn-voortgang"    element={<ErrorBoundary><MijnVoortgang /></ErrorBoundary>} />
-        <Route path="/coach-analytics"   element={<ErrorBoundary><CoachAnalytics /></ErrorBoundary>} />
-        <Route path="/nieuwsbeheer"      element={<ErrorBoundary><Nieuwsbeheer /></ErrorBoundary>} />
-        <Route path="/supplementen"      element={<ErrorBoundary><Supplementen /></ErrorBoundary>} />
-        <Route path="/supplementen-beheer" element={<ErrorBoundary><SupplementenBeheer /></ErrorBoundary>} />
-        <Route path="/kennis-update"     element={<ErrorBoundary><KennisUpdate /></ErrorBoundary>} />
-        <Route path="/welzijn"           element={<ErrorBoundary><Welzijn /></ErrorBoundary>} />
-        <Route path="/voedingsmiddelen"  element={<ErrorBoundary><MijnVoedingsmiddelen /></ErrorBoundary>} />
-      </Route>
-      <Route path="/onboarding"     element={<ErrorBoundary><Onboarding /></ErrorBoundary>} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/admin"          element={<Admin />} />
-      <Route path="/landing"        element={<Landing />} />
-      <Route path="/premium"        element={<Premium />} />
-      <Route path="*"               element={<PageNotFound />} />
-    </Routes>
+    <Suspense fallback={<PageSpinner />}>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/"                  element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+          <Route path="/calculator"        element={<ErrorBoundary><Calculator /></ErrorBoundary>} />
+          <Route path="/voortgang"         element={<ErrorBoundary><Voortgang /></ErrorBoundary>} />
+          <Route path="/schemas"           element={<ErrorBoundary><Schemas /></ErrorBoundary>} />
+          <Route path="/voeding"           element={<ErrorBoundary><Voeding /></ErrorBoundary>} />
+          <Route path="/gids"              element={<ErrorBoundary><Gids /></ErrorBoundary>} />
+          <Route path="/profiel"           element={<ErrorBoundary><Profiel /></ErrorBoundary>} />
+          <Route path="/recepten"          element={<ErrorBoundary><Recepten /></ErrorBoundary>} />
+          <Route path="/kennis"            element={<ErrorBoundary><KennisMonitor /></ErrorBoundary>} />
+          <Route path="/voorstellen"       element={<ErrorBoundary><InhoudsVoorstellen /></ErrorBoundary>} />
+          <Route path="/bronnen"           element={<ErrorBoundary><BronBeheer /></ErrorBoundary>} />
+          <Route path="/recepten-beheer"   element={<ErrorBoundary><ReceptenBeheer /></ErrorBoundary>} />
+          <Route path="/weekmenu"          element={<ErrorBoundary><Weekmenu /></ErrorBoundary>} />
+          <Route path="/nieuws"            element={<ErrorBoundary><Nieuws /></ErrorBoundary>} />
+          <Route path="/mijn-voortgang"    element={<ErrorBoundary><MijnVoortgang /></ErrorBoundary>} />
+          <Route path="/coach-analytics"   element={<ErrorBoundary><CoachAnalytics /></ErrorBoundary>} />
+          <Route path="/nieuwsbeheer"      element={<ErrorBoundary><Nieuwsbeheer /></ErrorBoundary>} />
+          <Route path="/supplementen"      element={<ErrorBoundary><Supplementen /></ErrorBoundary>} />
+          <Route path="/supplementen-beheer" element={<ErrorBoundary><SupplementenBeheer /></ErrorBoundary>} />
+          <Route path="/kennis-update"     element={<ErrorBoundary><KennisUpdate /></ErrorBoundary>} />
+          <Route path="/welzijn"           element={<ErrorBoundary><Welzijn /></ErrorBoundary>} />
+          <Route path="/voedingsmiddelen"  element={<ErrorBoundary><MijnVoedingsmiddelen /></ErrorBoundary>} />
+        </Route>
+        <Route path="/onboarding"     element={<ErrorBoundary><Onboarding /></ErrorBoundary>} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/admin"          element={<Admin />} />
+        <Route path="/landing"        element={<Landing />} />
+        <Route path="/premium"        element={<Premium />} />
+        <Route path="*"               element={<PageNotFound />} />
+      </Routes>
+    </Suspense>
   );
 };
 

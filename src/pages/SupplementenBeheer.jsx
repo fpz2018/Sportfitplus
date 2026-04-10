@@ -26,7 +26,7 @@ export default function SupplementenBeheer() {
   );
 
   return (
-    <div className="p-4 pb-24 md:pb-8 max-w-4xl mx-auto">
+    <div className="p-4 pb-8 max-w-4xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Supplementen Beheer</h1>
         <p className="text-muted-foreground text-sm">Beheer kennisbank, shop en nieuws</p>

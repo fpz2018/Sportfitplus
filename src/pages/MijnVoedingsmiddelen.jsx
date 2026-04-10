@@ -136,7 +136,7 @@ export default function MijnVoedingsmiddelen() {
   }
 
   return (
-    <div className="p-6 pb-24 md:pb-8 max-w-6xl mx-auto">
+    <div className="p-6 pb-8 max-w-6xl mx-auto">
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Mijn Voedingsmiddelen</h1>

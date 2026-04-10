@@ -51,13 +51,15 @@ export const UserProfile = {
 
 // ─── DailyLog ───────────────────────────────────────────────────────────────
 
+const DAILY_LOG_COLUMNS = 'id,user_id,log_date,calories_logged,protein_g,carbs_g,fat_g,training_type,steps,mood,weight_kg,created_at';
+
 export const DailyLog = {
   async list(limitDays = 30) {
     const userId = await uid();
     return unwrap(
       await supabase
         .from('daily_logs')
-        .select('*')
+        .select(DAILY_LOG_COLUMNS)
         .eq('user_id', userId)
         .order('log_date', { ascending: false })
         .limit(limitDays)
@@ -67,7 +69,7 @@ export const DailyLog = {
     const userId = await uid();
     const { data, error } = await supabase
       .from('daily_logs')
-      .select('*')
+      .select(DAILY_LOG_COLUMNS)
       .eq('user_id', userId)
       .eq('log_date', date)
       .maybeSingle();
@@ -102,13 +104,15 @@ export const DailyLog = {
 
 // ─── FoodLog ────────────────────────────────────────────────────────────────
 
+const FOOD_LOG_COLUMNS = 'id,user_id,log_date,meals,extras,total_calories,total_protein_g,total_carbs_g,total_fat_g,status,notes,created_at';
+
 export const FoodLog = {
   async list(limitDays = 30) {
     const userId = await uid();
     return unwrap(
       await supabase
         .from('food_logs')
-        .select('*')
+        .select(FOOD_LOG_COLUMNS)
         .eq('user_id', userId)
         .order('log_date', { ascending: false })
         .limit(limitDays)
@@ -118,7 +122,7 @@ export const FoodLog = {
     const userId = await uid();
     const { data, error } = await supabase
       .from('food_logs')
-      .select('*')
+      .select(FOOD_LOG_COLUMNS)
       .eq('user_id', userId)
       .eq('log_date', date)
       .maybeSingle();
@@ -150,17 +154,19 @@ export const FoodLog = {
 
 // ─── Food ───────────────────────────────────────────────────────────────────
 
+const FOOD_COLUMNS = 'id,name,brand,category,calories,protein_g,carbs_g,fat_g,fiber_g,source,created_by';
+
 export const Food = {
   async list(limit = 50) {
     return unwrap(
-      await supabase.from('food').select('*').order('name').limit(limit)
+      await supabase.from('food').select(FOOD_COLUMNS).order('name').limit(limit)
     );
   },
   async search(query) {
     return unwrap(
       await supabase
         .from('food')
-        .select('*')
+        .select(FOOD_COLUMNS)
         .ilike('name', `%${query}%`)
         .limit(20)
     );
@@ -188,18 +194,21 @@ export const Food = {
 
 // ─── Recipe ─────────────────────────────────────────────────────────────────
 
+const RECIPE_LIST_COLUMNS = 'id,title,description,image_url,category,prep_time_min,servings,calories_per_serving,protein_g,carbs_g,fat_g,is_favorite,status,created_by,created_at';
+
 export const Recipe = {
   async list(status = 'gepubliceerd', limit = 50) {
     return unwrap(
       await supabase
         .from('recipes')
-        .select('*')
+        .select(RECIPE_LIST_COLUMNS)
         .eq('status', status)
         .order('created_at', { ascending: false })
         .limit(limit)
     );
   },
   async get(id) {
+    // Volledig recept met ingrediënten/instructies
     return unwrap(
       await supabase.from('recipes').select('*').eq('id', id).single()
     );

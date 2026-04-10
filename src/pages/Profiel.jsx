@@ -61,7 +61,7 @@ export default function Profiel() {
   if (!user) return null;
 
   return (
-    <div className="p-6 pb-24 md:pb-8 max-w-2xl mx-auto">
+    <div className="p-6 pb-8 max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">Profiel</h1>
         <p className="text-muted-foreground text-sm">Jouw persoonlijke instellingen en doelen</p>

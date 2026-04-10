@@ -234,7 +234,7 @@ export default function Gids() {
   const [open, setOpen] = useState(0);
 
   return (
-    <div className="p-6 pb-24 md:pb-8 max-w-3xl mx-auto">
+    <div className="p-6 pb-8 max-w-3xl mx-auto">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">

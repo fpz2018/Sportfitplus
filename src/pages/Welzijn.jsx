@@ -356,7 +356,7 @@ export default function Welzijn() {
   ];
 
   return (
-    <div className="p-4 pb-24 md:pb-8 max-w-2xl mx-auto">
+    <div className="p-4 pb-8 max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Zap className="w-6 h-6 text-primary" /> Herstel & Welzijn

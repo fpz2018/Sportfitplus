@@ -124,7 +124,7 @@ export default function KennisUpdate() {
   );
 
   return (
-    <div className="p-4 pb-24 md:pb-8 max-w-4xl mx-auto">
+    <div className="p-4 pb-8 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-5">
         <div className="flex items-start justify-between gap-4 mb-4">

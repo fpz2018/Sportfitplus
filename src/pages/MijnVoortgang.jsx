@@ -53,7 +53,7 @@ export default function MijnVoortgang() {
   const weightChange = weightData.length > 1 ? (weightData[weightData.length - 1].weight - weightData[0].weight).toFixed(1) : null;
 
   return (
-    <div className="max-w-5xl mx-auto p-6 pb-24 md:pb-8">
+    <div className="max-w-5xl mx-auto p-6 pb-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">

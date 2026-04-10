@@ -141,7 +141,7 @@ export default function Schemas() {
   const schema = SCHEMAS[selected];
 
   return (
-    <div className="p-6 pb-24 md:pb-8 max-w-4xl mx-auto">
+    <div className="p-6 pb-8 max-w-4xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Trainingsschema's</h1>
         <p className="text-muted-foreground text-sm">Op maat gemaakte schema's gebaseerd op wetenschappelijk onderzoek</p>

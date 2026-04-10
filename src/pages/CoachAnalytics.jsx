@@ -118,7 +118,7 @@ export default function CoachAnalytics() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 pb-24 md:pb-8">
+    <div className="max-w-7xl mx-auto p-6 pb-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">

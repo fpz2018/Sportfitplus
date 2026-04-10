@@ -14,7 +14,7 @@ const PREMIUM_FEATURES = [
 
 export default function Premium() {
   return (
-    <div className="p-4 pb-24 md:pb-8 max-w-lg mx-auto">
+    <div className="p-4 pb-8 max-w-lg mx-auto">
       <Link to="/" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-all">
         <ArrowLeft className="w-4 h-4" /> Terug
       </Link>

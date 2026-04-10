@@ -54,7 +54,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-6 pb-24 md:pb-10 space-y-5">
+    <div className="w-full max-w-3xl mx-auto px-4 py-6 pb-8 space-y-5">
       <DagHeader user={user} profile={profile} loading={loading} />
 
       {!loading && profile && (

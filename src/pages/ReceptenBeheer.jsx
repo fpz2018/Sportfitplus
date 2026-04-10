@@ -66,7 +66,7 @@ export default function ReceptenBeheer() {
   }
 
   return (
-    <div className="p-6 pb-24 md:pb-8 max-w-3xl mx-auto">
+    <div className="p-6 pb-8 max-w-3xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Recepten beheer</h1>
         <p className="text-muted-foreground text-sm">Controleer en publiceer geïmporteerde recepten</p>
