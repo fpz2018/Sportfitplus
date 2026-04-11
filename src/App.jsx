@@ -17,6 +17,7 @@ const Calculator = lazy(() => import('./pages/Calculator'));
 const Voortgang = lazy(() => import('./pages/Voortgang'));
 const Schemas = lazy(() => import('./pages/Schemas'));
 const Voeding = lazy(() => import('./pages/Voeding'));
+const MacroDetail = lazy(() => import('./pages/MacroDetail'));
 const Gids = lazy(() => import('./pages/Gids'));
 const Profiel = lazy(() => import('./pages/Profiel'));
 const Recepten = lazy(() => import('./pages/Recepten'));
@@ -83,6 +84,7 @@ const AuthenticatedApp = () => {
           <Route path="/voortgang"         element={<ErrorBoundary><Voortgang /></ErrorBoundary>} />
           <Route path="/schemas"           element={<ErrorBoundary><Schemas /></ErrorBoundary>} />
           <Route path="/voeding"           element={<ErrorBoundary><Voeding /></ErrorBoundary>} />
+          <Route path="/voeding/:macro"    element={<ErrorBoundary><MacroDetail /></ErrorBoundary>} />
           <Route path="/gids"              element={<ErrorBoundary><Gids /></ErrorBoundary>} />
           <Route path="/profiel"           element={<ErrorBoundary><Profiel /></ErrorBoundary>} />
           <Route path="/recepten"          element={<ErrorBoundary><Recepten /></ErrorBoundary>} />
