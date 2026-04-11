@@ -25,18 +25,30 @@ export default function Dashboard() {
   }, [user]);
 
   async function loadData() {
-    const log = await DailyLog.getByDate(today);
-    setTodayLog(log);
-    setLoading(false);
+    try {
+      const log = await DailyLog.getByDate(today);
+      setTodayLog(log);
+    } catch (err) {
+      console.error('Dashboard loadData error', err);
+      setTodayLog(null);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function refreshLog() {
-    const log = await DailyLog.getByDate(today);
-    setTodayLog(log);
+    try {
+      const log = await DailyLog.getByDate(today);
+      setTodayLog(log);
+    } catch (err) {
+      console.error('Dashboard refreshLog error', err);
+    }
   }
 
-  // Onboarding nog niet gedaan
-  if (!loading && !profile?.onboarding_complete) {
+  // Onboarding nog niet gedaan — accepteer beide velden (Supabase schema
+  // gebruikt onboarding_complete, sommige legacy rijen hebben onboarding_done)
+  const onboardingDone = profile?.onboarding_complete ?? profile?.onboarding_done;
+  if (!loading && !onboardingDone) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="max-w-md w-full text-center">
