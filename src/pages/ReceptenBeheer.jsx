@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Check, X, ExternalLink, ChevronDown, ChevronUp, Loader2, ShieldAlert } from 'lucide-react';
+import { Check, X, ExternalLink, ChevronDown, ChevronUp, Loader2, ShieldAlert, RefreshCw } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/lib/AuthContext';
 import { Recipe } from '@/api/entities';
+import { supabase } from '@/api/supabaseClient';
 
 const CATEGORIE_KLEUREN = {
   ontbijt:  'bg-yellow-500/10 text-yellow-400',
@@ -30,6 +31,32 @@ export default function ReceptenBeheer() {
   const [filter, setFilter]       = useState('concept');
   const [openId, setOpenId]       = useState(null);
   const [bezig, setBezig]         = useState({});
+  const [syncing, setSyncing]     = useState(false);
+  const [syncResult, setSyncResult] = useState(null);
+
+  async function syncNu() {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/syncReceptenNightly', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || ''}`,
+        },
+      });
+      const data = await res.json().catch(() => ({ error: 'Geen geldig JSON antwoord' }));
+      setSyncResult({ status: res.status, data });
+      if (res.ok && data.ok && data.imported?.length > 0) {
+        await laadRecepten();
+      }
+    } catch (err) {
+      setSyncResult({ status: 0, data: { error: err.message } });
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   // ── Admin guard ──────────────────────────────────────────────────────────
   if (!isLoadingAuth && profile?.role !== 'admin') {
@@ -75,10 +102,87 @@ export default function ReceptenBeheer() {
 
   return (
     <div className="p-6 pb-8 max-w-3xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Recepten beheer</h1>
-        <p className="text-muted-foreground text-sm">Controleer en publiceer geïmporteerde recepten</p>
+      <div className="mb-6 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Recepten beheer</h1>
+          <p className="text-muted-foreground text-sm">Controleer en publiceer geïmporteerde recepten</p>
+        </div>
+        <button
+          onClick={syncNu}
+          disabled={syncing}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-all disabled:opacity-50"
+        >
+          {syncing
+            ? <Loader2 className="w-4 h-4 animate-spin" />
+            : <RefreshCw className="w-4 h-4" />
+          }
+          {syncing ? 'Synchroniseren...' : 'Sync nu'}
+        </button>
       </div>
+
+      {/* Sync resultaat */}
+      {syncResult && (
+        <div className={`mb-6 p-4 rounded-2xl border text-sm ${
+          syncResult.data?.ok
+            ? 'border-primary/30 bg-primary/5 text-foreground'
+            : 'border-destructive/30 bg-destructive/5 text-foreground'
+        }`}>
+          <p className="font-medium mb-2">
+            {syncResult.data?.ok ? '✓ Sync gelukt' : '✗ Sync mislukt'}
+            {syncResult.status ? ` (${syncResult.status})` : ''}
+          </p>
+          {syncResult.data?.message && (
+            <p className="text-xs text-muted-foreground mb-2">{syncResult.data.message}</p>
+          )}
+          {syncResult.data?.missing?.length > 0 && (
+            <div className="text-xs text-destructive mb-2">
+              <p className="font-medium">Ontbrekende env vars in Netlify:</p>
+              <ul className="list-disc list-inside mt-1">
+                {syncResult.data.missing.map(m => <li key={m}><code>{m}</code></li>)}
+              </ul>
+            </div>
+          )}
+          {typeof syncResult.data?.urlsInSheet === 'number' && (
+            <div className="text-xs text-muted-foreground space-y-0.5">
+              <p>URLs in sheet: <span className="text-foreground tabular-nums">{syncResult.data.urlsInSheet}</span></p>
+              {typeof syncResult.data.urlsAlreadyImported === 'number' && (
+                <p>Al geïmporteerd: <span className="text-foreground tabular-nums">{syncResult.data.urlsAlreadyImported}</span></p>
+              )}
+              {typeof syncResult.data.newUrls === 'number' && (
+                <p>Nieuw deze run: <span className="text-foreground tabular-nums">{syncResult.data.newUrls}</span></p>
+              )}
+              {syncResult.data.imported?.length > 0 && (
+                <p className="pt-1">
+                  <span className="font-medium text-primary">Geïmporteerd ({syncResult.data.imported.length}):</span>{' '}
+                  {syncResult.data.imported.join(', ')}
+                </p>
+              )}
+              {typeof syncResult.data.skippedDueToLimit === 'number' && syncResult.data.skippedDueToLimit > 0 && (
+                <p className="text-yellow-500">
+                  {syncResult.data.skippedDueToLimit} overgeslagen wegens limiet (10/run) — klik nogmaals
+                </p>
+              )}
+            </div>
+          )}
+          {syncResult.data?.errors?.length > 0 && (
+            <details className="text-xs mt-2">
+              <summary className="cursor-pointer text-destructive">
+                {syncResult.data.errors.length} fouten
+              </summary>
+              <ul className="mt-1 space-y-1">
+                {syncResult.data.errors.map((e, i) => (
+                  <li key={i} className="text-muted-foreground break-all">
+                    <code className="text-destructive">{e.error}</code> — {e.url}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+          {syncResult.data?.error && !syncResult.data.message && (
+            <p className="text-xs text-destructive break-all">{syncResult.data.error}</p>
+          )}
+        </div>
+      )}
 
       {/* Filter tabs */}
       <div className="flex gap-2 mb-6">

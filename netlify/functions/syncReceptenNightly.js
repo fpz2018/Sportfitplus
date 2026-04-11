@@ -14,7 +14,7 @@
  *   SUPABASE_SERVICE_ROLE_KEY   — Supabase service role key
  */
 import Anthropic from '@anthropic-ai/sdk';
-import { supabaseAdmin, assertPublicUrl } from './_shared/supabaseAdmin.js';
+import { supabaseAdmin, assertPublicUrl, requireAdmin } from './_shared/supabaseAdmin.js';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -60,14 +60,53 @@ function resolveUrl(imgUrl, pageUrl) {
   return imgUrl;
 }
 
+// JSON response helper — voor zowel manual trigger als scheduled invocation
+const jsonResponse = (status, payload) => ({
+  statusCode: status,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload),
+});
+
 export const handler = async (event) => {
+  // Manual trigger via /api/syncReceptenNightly: vereis admin auth.
+  // Scheduled invocation door Netlify heeft geen Authorization header.
+  const authHeader = event?.headers?.authorization || event?.headers?.Authorization;
+  const isManual = Boolean(authHeader);
+  if (isManual) {
+    try {
+      await requireAdmin(event);
+    } catch (err) {
+      return jsonResponse(401, { error: err.message || 'Niet geautoriseerd' });
+    }
+  }
+
   const spreadsheetId = process.env.RECIPE_SPREADSHEET_ID;
   const apiKey = process.env.GOOGLE_SHEETS_API_KEY;
   const range = process.env.RECIPE_SHEET_RANGE || 'A:B';
 
   if (!spreadsheetId || !apiKey) {
-    console.log('syncReceptenNightly: RECIPE_SPREADSHEET_ID of GOOGLE_SHEETS_API_KEY niet ingesteld, overslaan.');
-    return { statusCode: 200, body: 'Skipped — missing config' };
+    const missing = [
+      !spreadsheetId && 'RECIPE_SPREADSHEET_ID',
+      !apiKey && 'GOOGLE_SHEETS_API_KEY',
+    ].filter(Boolean);
+    console.log('syncReceptenNightly: env vars ontbreken:', missing.join(', '));
+    return jsonResponse(200, {
+      ok: false,
+      skipped: true,
+      reason: 'missing_env',
+      missing,
+      message: `Configuratie ontbreekt in Netlify. Stel deze env vars in: ${missing.join(', ')}`,
+    });
+  }
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return jsonResponse(200, {
+      ok: false,
+      skipped: true,
+      reason: 'missing_env',
+      missing: ['ANTHROPIC_API_KEY'],
+      message: 'ANTHROPIC_API_KEY ontbreekt in Netlify env vars.',
+    });
   }
 
   console.log('syncReceptenNightly: Start nachtelijke recept-sync...');
@@ -91,7 +130,14 @@ export const handler = async (event) => {
 
     if (entries.length === 0) {
       console.log('syncReceptenNightly: Geen URLs gevonden in sheet.');
-      return { statusCode: 200, body: 'No URLs found' };
+      return jsonResponse(200, {
+        ok: true,
+        sheetRows: rows.length,
+        urlsInSheet: 0,
+        imported: [],
+        errors: [],
+        message: 'Geen URLs gevonden in de Google Sheet (kolom A moet URLs bevatten).',
+      });
     }
 
     // 2. Check welke URLs al bestaan
@@ -106,7 +152,15 @@ export const handler = async (event) => {
     console.log(`syncReceptenNightly: ${entries.length} URLs in sheet, ${newEntries.length} nieuw.`);
 
     if (newEntries.length === 0) {
-      return { statusCode: 200, body: 'All recipes already imported' };
+      return jsonResponse(200, {
+        ok: true,
+        sheetRows: rows.length,
+        urlsInSheet: entries.length,
+        urlsAlreadyImported: existingUrls.size,
+        imported: [],
+        errors: [],
+        message: 'Alle recepten uit de Google Sheet zijn al geïmporteerd.',
+      });
     }
 
     // 3. Importeer nieuwe recepten (max 10 per nacht om kosten te beperken)
@@ -173,7 +227,13 @@ JSON-formaat:
         const recipeData = JSON.parse(jsonMatch[0]);
         if (entry.category) recipeData.category = entry.category;
 
-        const { data: saved } = await supabaseAdmin
+        // Forceer geldige category waarde — schema constraint is strikt.
+        const VALID_CATEGORIES = ['ontbijt', 'lunch', 'diner', 'snack', 'dessert', 'smoothie'];
+        if (!VALID_CATEGORIES.includes(recipeData.category)) {
+          recipeData.category = 'diner';
+        }
+
+        const { data: saved, error: insertErr } = await supabaseAdmin
           .from('recipes')
           .insert({
             ...recipeData,
@@ -183,6 +243,8 @@ JSON-formaat:
           })
           .select('id, title')
           .single();
+
+        if (insertErr) throw new Error(`DB insert: ${insertErr.message}`);
 
         if (saved) {
           imported.push(saved.title);
@@ -194,12 +256,23 @@ JSON-formaat:
       }
     }
 
-    const summary = `Sync klaar: ${imported.length} geïmporteerd, ${errors.length} fouten, ${newEntries.length - imported.length - errors.length} overgeslagen (limiet).`;
+    const skipped = newEntries.length - imported.length - errors.length;
+    const summary = `Sync klaar: ${imported.length} geïmporteerd, ${errors.length} fouten, ${skipped} overgeslagen (limiet 10/run).`;
     console.log(`syncReceptenNightly: ${summary}`);
 
-    return { statusCode: 200, body: summary };
+    return jsonResponse(200, {
+      ok: true,
+      sheetRows: rows.length,
+      urlsInSheet: entries.length,
+      urlsAlreadyImported: existingUrls.size,
+      newUrls: newEntries.length,
+      imported,
+      errors,
+      skippedDueToLimit: skipped,
+      message: summary,
+    });
   } catch (err) {
     console.error('syncReceptenNightly error:', err);
-    return { statusCode: 500, body: err.message };
+    return jsonResponse(500, { ok: false, error: err.message });
   }
 };
