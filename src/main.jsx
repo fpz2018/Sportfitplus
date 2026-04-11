@@ -9,8 +9,26 @@ import '@/index.css'
 // in een eindeloos draaiende Suspense-fallback. Onderstaande helpers vangen
 // dat op door eenmalig te herladen, of in het ergste geval de SW te
 // deregistreren en hard te herladen.
+//
+// BELANGRIJK: tijdens een Supabase magic-link flow staan one-time auth-tokens
+// in de URL (#access_token=... bij implicit, ?code=... bij PKCE). Een reload
+// op dat moment verbruikt de tokens en breekt de login. Alle reload-paden
+// hieronder controleren daarom eerst of er een auth-flow bezig is.
 
 const RECOVERY_KEY = 'sw-recovery-attempted';
+
+function isAuthFlowInProgress() {
+  if (typeof window === 'undefined') return false;
+  const hash = window.location.hash || '';
+  const search = window.location.search || '';
+  return (
+    hash.includes('access_token') ||
+    hash.includes('refresh_token') ||
+    hash.includes('type=recovery') ||
+    hash.includes('type=magiclink') ||
+    /[?&]code=/.test(search)
+  );
+}
 
 async function unregisterServiceWorkers() {
   if (!('serviceWorker' in navigator)) return;
@@ -27,6 +45,8 @@ async function unregisterServiceWorkers() {
 }
 
 function recoverFromStaleChunks() {
+  // Niet recoveren tijdens een auth-flow: dat zou de tokens verbranden.
+  if (isAuthFlowInProgress()) return;
   // Maximaal één recovery-poging per sessie om reload-loops te voorkomen.
   if (sessionStorage.getItem(RECOVERY_KEY)) return;
   sessionStorage.setItem(RECOVERY_KEY, '1');
@@ -36,7 +56,11 @@ function recoverFromStaleChunks() {
 }
 
 // Ontsnappingsroute: gebruiker kan handmatig recovery forceren via ?reset=1
-if (typeof window !== 'undefined' && window.location.search.includes('reset=1')) {
+if (
+  typeof window !== 'undefined' &&
+  /[?&]reset=1(?:&|$)/.test(window.location.search) &&
+  !isAuthFlowInProgress()
+) {
   unregisterServiceWorkers().finally(() => {
     const url = window.location.pathname;
     window.location.replace(url);
@@ -51,7 +75,8 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 
   // Wanneer een nieuwe SW de pagina overneemt, eenmalig herladen zodat de
   // gebruiker fresh assets krijgt. We slaan de eerste install (geen vorige
-  // controller) over om reload op het eerste bezoek te vermijden.
+  // controller) over om reload op het eerste bezoek te vermijden, en we
+  // reloaden NOOIT tijdens een auth-flow.
   let hadInitialController = !!navigator.serviceWorker.controller;
   let reloadedForUpdate = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -60,6 +85,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
       hadInitialController = !!navigator.serviceWorker.controller;
       return;
     }
+    if (isAuthFlowInProgress()) return;
     reloadedForUpdate = true;
     window.location.reload();
   });
