@@ -22,6 +22,68 @@ const uid = async () => {
 
 // ─── UserProfile ────────────────────────────────────────────────────────────
 
+// Kolommen die client-side veilig naar `user_profiles` gestuurd mogen worden,
+// gegroepeerd op type. Alles wat hier niet in staat wordt door sanitizeProfile
+// uit de payload gefilterd, zodat onbekende velden de UPDATE niet laten falen.
+const PROFILE_COLUMNS_INT = [
+  'age', 'height_cm', 'tdee', 'target_calories',
+  'protein_target_g', 'carbs_target_g', 'fat_target_g', 'stress_niveau',
+];
+const PROFILE_COLUMNS_NUMERIC = ['weight_kg', 'slaap_uren'];
+const PROFILE_COLUMNS_BOOL = ['onboarding_complete'];
+const PROFILE_COLUMNS_TEXT = [
+  'gender', 'activity_level', 'goal_group', 'ai_welzijn_advies',
+  'full_name', 'avatar_url', 'email',
+];
+
+const PROFILE_KNOWN = new Set([
+  ...PROFILE_COLUMNS_INT,
+  ...PROFILE_COLUMNS_NUMERIC,
+  ...PROFILE_COLUMNS_BOOL,
+  ...PROFILE_COLUMNS_TEXT,
+]);
+
+// Aliases voor velden die in legacy code anders heten dan in de database
+const PROFILE_ALIASES = {
+  onboarding_done: 'onboarding_complete',
+};
+
+/**
+ * Filter en cast een profile-payload naar wat de DB accepteert.
+ * - Onbekende kolommen worden weggegooid (zodat updates niet falen op
+ *   legacy Base44 velden die nog in de UI rondzwerven).
+ * - Stringwaarden voor numerieke kolommen worden geparsed.
+ * - Lege strings worden naar null gemapt zodat optional velden gewist kunnen worden.
+ */
+function sanitizeProfile(input) {
+  if (!input || typeof input !== 'object') return {};
+  const out = {};
+  for (const [rawKey, rawVal] of Object.entries(input)) {
+    const key = PROFILE_ALIASES[rawKey] || rawKey;
+    if (!PROFILE_KNOWN.has(key)) continue;
+    if (rawVal === '' || rawVal === undefined) {
+      out[key] = null;
+      continue;
+    }
+    if (rawVal === null) {
+      out[key] = null;
+      continue;
+    }
+    if (PROFILE_COLUMNS_INT.includes(key)) {
+      const n = parseInt(rawVal, 10);
+      if (!Number.isNaN(n)) out[key] = n;
+    } else if (PROFILE_COLUMNS_NUMERIC.includes(key)) {
+      const n = parseFloat(rawVal);
+      if (!Number.isNaN(n)) out[key] = n;
+    } else if (PROFILE_COLUMNS_BOOL.includes(key)) {
+      out[key] = Boolean(rawVal);
+    } else {
+      out[key] = rawVal;
+    }
+  }
+  return out;
+}
+
 export const UserProfile = {
   async get() {
     const userId = await uid();
@@ -37,20 +99,23 @@ export const UserProfile = {
   },
   async update(data) {
     const userId = await uid();
+    const cleaned = sanitizeProfile(data);
     return unwrap(
-      await supabase.from('user_profiles').update(data).eq('id', userId).select().single()
+      await supabase.from('user_profiles').update(cleaned).eq('id', userId).select().single()
     );
   },
   async upsert(data) {
     const userId = await uid();
+    const cleaned = sanitizeProfile(data);
     return unwrap(
-      await supabase.from('user_profiles').upsert({ id: userId, ...data }).select().single()
+      await supabase.from('user_profiles').upsert({ id: userId, ...cleaned }).select().single()
     );
   },
   // Admin-only: update een ander profiel
   async adminUpdate(userId, data) {
+    const cleaned = sanitizeProfile(data);
     return unwrap(
-      await supabase.from('user_profiles').update(data).eq('id', userId).select().single()
+      await supabase.from('user_profiles').update(cleaned).eq('id', userId).select().single()
     );
   },
 };

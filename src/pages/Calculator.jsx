@@ -18,6 +18,7 @@ export default function CalculatorPage() {
   const [manualTdee, setManualTdee] = useState('');
   const [mode, setMode] = useState('berekend');
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   function update(k, v) { setForm(p => ({ ...p, [k]: v })); }
 
@@ -40,20 +41,32 @@ export default function CalculatorPage() {
 
   async function saveToProfile() {
     if (!tdee) return;
+    setSaveError(null);
     const target = Math.round(tdee * 0.8);
     const p = Math.round(parseFloat(form.weight) * 2.0);
     const fatCals = Math.round(target * 0.25);
     const fat = Math.round(fatCals / 9);
     const carbCals = target - (p * 4) - fatCals;
     const carbs = Math.round(carbCals / 4);
-    const profileData = { tdee, target_calories: target, protein_target_g: p, carbs_target_g: carbs, fat_target_g: fat, tdee_source: mode };
-    if (profile) {
-      await UserProfile.update(profileData);
-    } else {
-      await UserProfile.upsert({ ...profileData, onboarding_done: false });
+    const profileData = {
+      tdee,
+      target_calories: target,
+      protein_target_g: p,
+      carbs_target_g: carbs,
+      fat_target_g: fat,
+    };
+    try {
+      if (profile) {
+        await UserProfile.update(profileData);
+      } else {
+        await UserProfile.upsert({ ...profileData, onboarding_complete: false });
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error('TDEE opslaan mislukt:', err);
+      setSaveError(err?.message || 'Onbekende fout bij opslaan');
     }
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
   }
 
   return (
@@ -196,6 +209,11 @@ export default function CalculatorPage() {
             <Save className="w-4 h-4" />
             {saved ? '✓ Opgeslagen in profiel!' : 'Opslaan in mijn profiel'}
           </button>
+          {saveError && (
+            <div className="mt-3 p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-xs text-destructive">
+              Opslaan mislukt: {saveError}
+            </div>
+          )}
         </div>
       )}
 
