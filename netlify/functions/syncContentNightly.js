@@ -29,13 +29,13 @@ const jsonResponse = (status, payload) => ({
 
 // ─── PubMed sync ────────────────────────────────────────────────────────────
 
-async function syncPubMed(bron) {
-  const maxResults = Math.min(bron.max_per_sync || 5, 25);
+async function syncPubMed(bron, opts = {}) {
+  const limit = opts.maxPerSource ?? Math.min(bron.max_per_sync || 5, 25);
 
   // Zoek recent gepubliceerde artikelen (afgelopen 30 dagen)
   const query = `${bron.zoekterm} AND ("last 30 days"[PDat])`;
-  const searchUrl = `${PUBMED_BASE}/esearch.fcgi?db=pubmed&term=${encodeURIComponent(query)}&retmax=${maxResults}&retmode=json&sort=date`;
-  const searchRes = await fetch(searchUrl);
+  const searchUrl = `${PUBMED_BASE}/esearch.fcgi?db=pubmed&term=${encodeURIComponent(query)}&retmax=${limit}&retmode=json&sort=date`;
+  const searchRes = await fetch(searchUrl, { signal: AbortSignal.timeout(8000) });
   const searchData = await searchRes.json();
   const ids = searchData.esearchresult?.idlist || [];
 
@@ -43,7 +43,7 @@ async function syncPubMed(bron) {
 
   // Haal details op
   const fetchUrl = `${PUBMED_BASE}/efetch.fcgi?db=pubmed&id=${ids.join(',')}&retmode=xml`;
-  const fetchRes = await fetch(fetchUrl);
+  const fetchRes = await fetch(fetchUrl, { signal: AbortSignal.timeout(8000) });
   const xmlText = await fetchRes.text();
 
   const articleBlocks = xmlText.match(/<PubmedArticle>[\s\S]*?<\/PubmedArticle>/g) || [];
@@ -68,9 +68,11 @@ async function syncPubMed(bron) {
       .maybeSingle();
     if (existing) continue;
 
-    // AI-samenvatting
+    // AI-samenvatting (overgeslagen in quick-mode om de HTTP timeout
+    // van Netlify Functions te respecteren — de cron 's nachts vult ze
+    // alsnog aan via een tweede pass of bij de volgende run)
     let summary_nl = '';
-    if (abstract) {
+    if (abstract && !opts.skipAiSummary) {
       try {
         const res = await anthropic.messages.create({
           model: 'claude-haiku-4-5-20251001',
@@ -106,10 +108,11 @@ async function syncPubMed(bron) {
 
 // ─── RSS sync ───────────────────────────────────────────────────────────────
 
-async function syncRSS(bron) {
+async function syncRSS(bron, opts = {}) {
+  const limit = opts.maxPerSource ?? (bron.max_per_sync || 5);
   const res = await fetch(bron.zoekterm, {
     headers: { 'User-Agent': 'SportfitPlus/1.0' },
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(8000),
   });
   const xml = await res.text();
 
@@ -130,7 +133,7 @@ async function syncRSS(bron) {
   }
 
   let saved = 0;
-  for (const item of items.slice(0, bron.max_per_sync || 5)) {
+  for (const item of items.slice(0, limit)) {
     // Dedup op URL
     const { data: existing } = await supabaseAdmin
       .from('kennis_artikelen')
@@ -140,7 +143,7 @@ async function syncRSS(bron) {
     if (existing) continue;
 
     let summary_nl = '';
-    if (item.desc) {
+    if (item.desc && !opts.skipAiSummary) {
       try {
         const res = await anthropic.messages.create({
           model: 'claude-haiku-4-5-20251001',
@@ -189,7 +192,15 @@ export const handler = async (event) => {
 
   // Optie: bij een manual trigger kan ?force=1 de sync_frequentie filter
   // overrulen, zodat je direct kan testen zonder te wachten tot de volgende dag.
-  const forceAll = isManual && /[?&]force=1/.test(event?.rawQueryString || event?.rawQuery || '');
+  const queryStr = event?.rawQueryString || event?.rawQuery || '';
+  const forceAll = isManual && /[?&]force=1/.test(queryStr);
+  // Quick-mode: standaard AAN bij manual trigger om binnen Netlify's HTTP
+  // function timeout (10-26s) te blijven. Skip AI samenvattingen, beperk
+  // het aantal sources en artikelen per source. Cron-pad blijft volledig.
+  const fullMode = isManual && /[?&]full=1/.test(queryStr);
+  const quickMode = isManual && !fullMode;
+  const QUICK_MAX_SOURCES = 3;
+  const QUICK_MAX_PER_SOURCE = 3;
 
   console.log('syncContentNightly: Start nachtelijke content sync...');
 
@@ -259,16 +270,24 @@ export const handler = async (event) => {
       });
     }
 
+    // In quick-mode beperken we het aantal bronnen dat we behandelen
+    const bronnenToProcess = quickMode
+      ? activeBronnen.slice(0, QUICK_MAX_SOURCES)
+      : activeBronnen;
+    const syncOpts = quickMode
+      ? { skipAiSummary: true, maxPerSource: QUICK_MAX_PER_SOURCE }
+      : {};
+
     const results = [];
-    for (const bron of activeBronnen) {
+    for (const bron of bronnenToProcess) {
       try {
         let result;
         switch (bron.bron_type) {
           case 'pubmed':
-            result = await syncPubMed(bron);
+            result = await syncPubMed(bron, syncOpts);
             break;
           case 'rss':
-            result = await syncRSS(bron);
+            result = await syncRSS(bron, syncOpts);
             break;
           case 'website':
             result = { fetched: 0, saved: 0, note: 'Website scraping nog niet geïmplementeerd' };
@@ -313,10 +332,14 @@ export const handler = async (event) => {
       bronnenTotaal: allBronnen.length,
       bronnenActief: bronnen.length,
       bronnenVerwerkt: results.length,
+      bronnenOvergeslagen: quickMode ? Math.max(0, activeBronnen.length - bronnenToProcess.length) : 0,
       artikelenOpgeslagen: totalSaved,
       fouten: totalErrors,
+      quickMode,
       results,
-      message: summary,
+      message: quickMode
+        ? `${summary} (Snelle test — geen AI samenvattingen, max ${QUICK_MAX_PER_SOURCE}/bron, ${QUICK_MAX_SOURCES} bronnen. Volledige sync met AI draait elke nacht 03:00 UTC.)`
+        : summary,
     });
   } catch (err) {
     console.error('syncContentNightly error:', err);

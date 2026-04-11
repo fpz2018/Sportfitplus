@@ -39,20 +39,32 @@ export default function ReceptenBeheer() {
     setSyncResult(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 28000);
       const res = await fetch('/api/syncReceptenNightly', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.access_token || ''}`,
         },
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       const data = await res.json().catch(() => ({ error: 'Geen geldig JSON antwoord' }));
       setSyncResult({ status: res.status, data });
       if (res.ok && data.ok && data.imported?.length > 0) {
         await laadRecepten();
       }
     } catch (err) {
-      setSyncResult({ status: 0, data: { error: err.message } });
+      const isTimeout = err.name === 'AbortError';
+      setSyncResult({
+        status: 0,
+        data: {
+          error: isTimeout
+            ? 'De sync duurt langer dan 28 seconden — Netlify functie timeout. Klik nogmaals voor de volgende batch (max 3 per call in quick mode), of wacht op de nachtelijke cron.'
+            : err.message,
+        },
+      });
     } finally {
       setSyncing(false);
     }

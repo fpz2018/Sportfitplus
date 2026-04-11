@@ -80,6 +80,16 @@ export const handler = async (event) => {
     }
   }
 
+  // Quick-mode: bij manual trigger beperken we het aantal recepten dat
+  // we per call importeren zodat we binnen Netlify's HTTP function timeout
+  // (10-26s) blijven. Elk recept is een fetch + AI call van ~5-10s, dus
+  // 10 recepten = ruim over de timeout. Cron-pad krijgt het volledige
+  // limiet van 10. ?full=1 forceert volledig limiet ook bij manual.
+  const queryStr = event?.rawQueryString || event?.rawQuery || '';
+  const fullMode = isManual && /[?&]full=1/.test(queryStr);
+  const quickMode = isManual && !fullMode;
+  const MAX_PER_RUN = quickMode ? 3 : 10;
+
   const spreadsheetId = process.env.RECIPE_SPREADSHEET_ID;
   const apiKey = process.env.GOOGLE_SHEETS_API_KEY;
   const range = process.env.RECIPE_SHEET_RANGE || 'A:B';
@@ -163,11 +173,12 @@ export const handler = async (event) => {
       });
     }
 
-    // 3. Importeer nieuwe recepten (max 10 per nacht om kosten te beperken)
+    // 3. Importeer nieuwe recepten — quick-mode bij manual trigger,
+    //    volledige run (max 10) bij cron of ?full=1
     const imported = [];
     const errors = [];
 
-    for (const entry of newEntries.slice(0, 10)) {
+    for (const entry of newEntries.slice(0, MAX_PER_RUN)) {
       try {
         assertPublicUrl(entry.url);
 
@@ -257,7 +268,10 @@ JSON-formaat:
     }
 
     const skipped = newEntries.length - imported.length - errors.length;
-    const summary = `Sync klaar: ${imported.length} geïmporteerd, ${errors.length} fouten, ${skipped} overgeslagen (limiet 10/run).`;
+    const baseSummary = `Sync klaar: ${imported.length} geïmporteerd, ${errors.length} fouten, ${skipped} overgeslagen (limiet ${MAX_PER_RUN}/run).`;
+    const summary = quickMode
+      ? `${baseSummary} (Snelle test — max ${MAX_PER_RUN} per call. Klik nogmaals voor de volgende batch, of wacht op de nachtelijke cron voor max 10/run.)`
+      : baseSummary;
     console.log(`syncReceptenNightly: ${summary}`);
 
     return jsonResponse(200, {
@@ -269,6 +283,7 @@ JSON-formaat:
       imported,
       errors,
       skippedDueToLimit: skipped,
+      quickMode,
       message: summary,
     });
   } catch (err) {
