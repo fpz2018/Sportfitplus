@@ -9,6 +9,7 @@ import DagVoeding from '@/components/dashboard/DagVoeding';
 import DagWelzijn from '@/components/dashboard/DagWelzijn';
 import DagSupplementen from '@/components/dashboard/DagSupplementen';
 import DagHeader from '@/components/dashboard/DagHeader';
+import MacroTiles from '@/components/dashboard/MacroTiles';
 import { Zap, ArrowRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -61,6 +62,7 @@ export default function Dashboard() {
       {!loading && profile && (
         <>
           <DagTraining profile={profile} todayLog={todayLog} onLogUpdate={refreshLog} />
+          <MacroTiles profile={profile} />
           <DagVoeding profile={profile} todayLog={todayLog} today={today} />
           <DagSupplementen profile={profile} />
           <DagWelzijn profile={profile} todayLog={todayLog} onLogUpdate={refreshLog} />

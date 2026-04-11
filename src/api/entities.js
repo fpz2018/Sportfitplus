@@ -146,6 +146,19 @@ export const FoodLog = {
     if (error) throw new Error(error.message);
     return data;
   },
+  // Logs binnen een datum-bereik (inclusief from/to, ISO yyyy-MM-dd)
+  async listRange(from, to) {
+    const userId = await uid();
+    return unwrap(
+      await supabase
+        .from('food_logs')
+        .select(FOOD_LOG_COLUMNS)
+        .eq('user_id', userId)
+        .gte('log_date', from)
+        .lte('log_date', to)
+        .order('log_date', { ascending: true })
+    );
+  },
   async create(data) {
     const userId = await uid();
     return unwrap(
