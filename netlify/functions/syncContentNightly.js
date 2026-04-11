@@ -11,7 +11,7 @@
  * opgeslagen in kennis_artikelen met status='pending'.
  */
 import Anthropic from '@anthropic-ai/sdk';
-import { supabaseAdmin } from './_shared/supabaseAdmin.js';
+import { supabaseAdmin, requireAdmin } from './_shared/supabaseAdmin.js';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const PUBMED_BASE = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils';
@@ -19,6 +19,13 @@ const PUBMED_BASE = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils';
 export const config = {
   schedule: '0 3 * * *',
 };
+
+// JSON response helper — voor zowel manual trigger als scheduled invocation
+const jsonResponse = (status, payload) => ({
+  statusCode: status,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload),
+});
 
 // ─── PubMed sync ────────────────────────────────────────────────────────────
 
@@ -167,25 +174,65 @@ async function syncRSS(bron) {
 
 // ─── Handler ────────────────────────────────────────────────────────────────
 
-export const handler = async () => {
+export const handler = async (event) => {
+  // Manual trigger via /api/syncContentNightly: vereis admin auth.
+  // Scheduled invocaties hebben geen Authorization header.
+  const authHeader = event?.headers?.authorization || event?.headers?.Authorization;
+  const isManual = Boolean(authHeader);
+  if (isManual) {
+    try {
+      await requireAdmin(event);
+    } catch (err) {
+      return jsonResponse(401, { ok: false, error: err.message || 'Niet geautoriseerd' });
+    }
+  }
+
+  // Optie: bij een manual trigger kan ?force=1 de sync_frequentie filter
+  // overrulen, zodat je direct kan testen zonder te wachten tot de volgende dag.
+  const forceAll = isManual && /[?&]force=1/.test(event?.rawQueryString || event?.rawQuery || '');
+
   console.log('syncContentNightly: Start nachtelijke content sync...');
 
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.warn('syncContentNightly: ANTHROPIC_API_KEY ontbreekt — AI-samenvattingen worden overgeslagen.');
+  }
+
   try {
-    // Laad actieve bronnen
-    const { data: bronnen, error: bronErr } = await supabaseAdmin
+    // Laad alle bronnen (actief filter komt hieronder)
+    const { data: allBronnen, error: bronErr } = await supabaseAdmin
       .from('content_bronnen')
-      .select('*')
-      .eq('actief', true);
+      .select('*');
 
     if (bronErr) throw bronErr;
-    if (!bronnen?.length) {
-      console.log('syncContentNightly: Geen actieve bronnen geconfigureerd.');
-      return { statusCode: 200, body: 'No active sources' };
+
+    if (!allBronnen?.length) {
+      return jsonResponse(200, {
+        ok: true,
+        bronnenTotaal: 0,
+        bronnenActief: 0,
+        bronnenVerwerkt: 0,
+        artikelenOpgeslagen: 0,
+        results: [],
+        message: 'Geen content_bronnen geconfigureerd. Voeg er een toe via /content-bronnen.',
+      });
     }
 
-    // Filter op frequentie
+    const bronnen = allBronnen.filter(b => b.actief);
+    if (!bronnen.length) {
+      return jsonResponse(200, {
+        ok: true,
+        bronnenTotaal: allBronnen.length,
+        bronnenActief: 0,
+        bronnenVerwerkt: 0,
+        artikelenOpgeslagen: 0,
+        results: [],
+        message: `${allBronnen.length} bronnen gevonden, maar geen enkele staat op actief.`,
+      });
+    }
+
+    // Filter op frequentie (overslaan als ?force=1 bij manual trigger)
     const now = new Date();
-    const activeBronnen = bronnen.filter(bron => {
+    const activeBronnen = forceAll ? bronnen : bronnen.filter(bron => {
       if (!bron.laatste_sync) return true; // nooit gesynct
       const lastSync = new Date(bron.laatste_sync);
       const hoursSince = (now - lastSync) / (1000 * 60 * 60);
@@ -198,7 +245,19 @@ export const handler = async () => {
       }
     });
 
-    console.log(`syncContentNightly: ${activeBronnen.length}/${bronnen.length} bronnen moeten synce worden.`);
+    console.log(`syncContentNightly: ${activeBronnen.length}/${bronnen.length} bronnen moeten gesynced worden.`);
+
+    if (activeBronnen.length === 0) {
+      return jsonResponse(200, {
+        ok: true,
+        bronnenTotaal: allBronnen.length,
+        bronnenActief: bronnen.length,
+        bronnenVerwerkt: 0,
+        artikelenOpgeslagen: 0,
+        results: [],
+        message: `Alle ${bronnen.length} actieve bronnen zijn recent gesynced. Gebruik ?force=1 om alsnog te draaien.`,
+      });
+    }
 
     const results = [];
     for (const bron of activeBronnen) {
@@ -212,7 +271,6 @@ export const handler = async () => {
             result = await syncRSS(bron);
             break;
           case 'website':
-            // Website scraping — placeholder voor toekomstige uitbreiding
             result = { fetched: 0, saved: 0, note: 'Website scraping nog niet geïmplementeerd' };
             break;
           default:
@@ -233,20 +291,35 @@ export const handler = async () => {
       }
     }
 
-    // Audit log
     const totalSaved = results.reduce((sum, r) => sum + (r.saved || 0), 0);
-    await supabaseAdmin.from('audit_logs').insert({
-      actie: 'nightly_content_sync',
-      gebruiker: 'system',
-      details: { bronnen_verwerkt: results.length, artikelen_opgeslagen: totalSaved, details: results },
-    });
+    const totalErrors = results.filter(r => r.error).length;
 
-    const summary = `Sync klaar: ${results.length} bronnen verwerkt, ${totalSaved} nieuwe artikelen.`;
+    // Audit log (best-effort, niet kritiek als het faalt)
+    try {
+      await supabaseAdmin.from('audit_logs').insert({
+        actie: 'nightly_content_sync',
+        gebruiker: isManual ? 'admin_manual' : 'system',
+        details: { bronnen_verwerkt: results.length, artikelen_opgeslagen: totalSaved, details: results },
+      });
+    } catch (auditErr) {
+      console.warn('audit_logs insert failed:', auditErr.message);
+    }
+
+    const summary = `Sync klaar: ${results.length} bronnen verwerkt, ${totalSaved} nieuwe artikelen, ${totalErrors} fouten.`;
     console.log(`syncContentNightly: ${summary}`);
 
-    return { statusCode: 200, body: summary };
+    return jsonResponse(200, {
+      ok: true,
+      bronnenTotaal: allBronnen.length,
+      bronnenActief: bronnen.length,
+      bronnenVerwerkt: results.length,
+      artikelenOpgeslagen: totalSaved,
+      fouten: totalErrors,
+      results,
+      message: summary,
+    });
   } catch (err) {
     console.error('syncContentNightly error:', err);
-    return { statusCode: 500, body: err.message };
+    return jsonResponse(500, { ok: false, error: err.message });
   }
 };
