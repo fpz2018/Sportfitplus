@@ -15,7 +15,10 @@ import '@/index.css'
 // op dat moment verbruikt de tokens en breekt de login. Alle reload-paden
 // hieronder controleren daarom eerst of er een auth-flow bezig is.
 
-const RECOVERY_KEY = 'sw-recovery-attempted';
+const RECOVERY_TS_KEY = 'sw-recovery-ts';
+const RECOVERY_COUNT_KEY = 'sw-recovery-count';
+const RECOVERY_MIN_INTERVAL_MS = 3000; // anti-loop guard
+const RECOVERY_MAX_PER_SESSION = 5;    // hard cap
 
 function isAuthFlowInProgress() {
   if (typeof window === 'undefined') return false;
@@ -47,12 +50,41 @@ async function unregisterServiceWorkers() {
 function recoverFromStaleChunks() {
   // Niet recoveren tijdens een auth-flow: dat zou de tokens verbranden.
   if (isAuthFlowInProgress()) return;
-  // Maximaal één recovery-poging per sessie om reload-loops te voorkomen.
-  if (sessionStorage.getItem(RECOVERY_KEY)) return;
-  sessionStorage.setItem(RECOVERY_KEY, '1');
+
+  let lastTs = 0;
+  let count = 0;
+  try {
+    lastTs = parseInt(sessionStorage.getItem(RECOVERY_TS_KEY) || '0', 10);
+    count = parseInt(sessionStorage.getItem(RECOVERY_COUNT_KEY) || '0', 10);
+  } catch {}
+
+  const now = Date.now();
+  // Anti-loop: minimaal 3s tussen pogingen
+  if (now - lastTs < RECOVERY_MIN_INTERVAL_MS) return;
+  // Hard cap: maximaal 5 recoveries per sessie zodat we nooit eindeloos
+  // herstarten als de root-cause niet de cache is.
+  if (count >= RECOVERY_MAX_PER_SESSION) return;
+
+  try {
+    sessionStorage.setItem(RECOVERY_TS_KEY, String(now));
+    sessionStorage.setItem(RECOVERY_COUNT_KEY, String(count + 1));
+  } catch {}
+
   unregisterServiceWorkers().finally(() => {
     window.location.reload();
   });
+}
+
+// Wanneer de app succesvol opgestart is (10s zonder crash) ruimen we de
+// recovery-counter op zodat een toekomstige stale state opnieuw hersteld
+// kan worden.
+function scheduleRecoveryReset() {
+  setTimeout(() => {
+    try {
+      sessionStorage.removeItem(RECOVERY_TS_KEY);
+      sessionStorage.removeItem(RECOVERY_COUNT_KEY);
+    } catch {}
+  }, 10000);
 }
 
 // Ontsnappingsroute: gebruiker kan handmatig recovery forceren via ?reset=1
@@ -95,10 +127,12 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 // een deploy) en herstel automatisch.
 function isChunkLoadError(message = '') {
   return (
-    /Loading chunk \d+ failed/.test(message) ||
-    /Failed to fetch dynamically imported module/.test(message) ||
-    /error loading dynamically imported module/.test(message) ||
-    /Importing a module script failed/.test(message)
+    /Loading chunk/i.test(message) ||
+    /Loading CSS chunk/i.test(message) ||
+    /ChunkLoadError/i.test(message) ||
+    /Failed to fetch dynamically imported/i.test(message) ||
+    /error loading dynamically imported/i.test(message) ||
+    /Importing a module script failed/i.test(message)
   );
 }
 
@@ -116,10 +150,17 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 });
 
+// Vite vuurt dit event af bij een mislukte modulePreload — meest betrouwbaar
+// signaal voor stale chunk references na een deploy.
+window.addEventListener('vite:preloadError', () => {
+  recoverFromStaleChunks();
+});
+
 // Vangnet: als React crasht, toon foutmelding i.p.v. wit scherm
 const root = document.getElementById('root');
 try {
   ReactDOM.createRoot(root).render(<App />);
+  scheduleRecoveryReset();
 } catch (err) {
   root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui;color:#888"><p>Er ging iets mis. Probeer de pagina te herladen.</p></div>';
 }
