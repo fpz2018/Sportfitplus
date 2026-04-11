@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { ChevronRight, ChevronLeft, Loader2, Sparkles, Dumbbell } from 'lucide-react';
 import { StepHeader, OptionCard, ToggleChip, SliderField, NumberInput } from '@/components/onboarding/OnboardingStep';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useAuth } from '@/lib/AuthContext';
 import { UserProfile, Supplement, KennisArtikel } from '@/api/entities';
 import { supabase } from '@/api/supabaseClient';
 
@@ -142,6 +143,7 @@ const ALL_STEPS = ['doel', 'profiel', 'leefstijl', 'training', 'welzijn', 'voedi
 export default function Onboarding() {
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const { refreshProfile } = useAuth();
   const lang = language || 'en';
 
   const [step, setStep] = useState(0);
@@ -336,6 +338,10 @@ export default function Onboarding() {
       };
 
       await UserProfile.upsert(profileData);
+      // Forceer dat AuthContext de nieuwe profile-state ophaalt voordat
+      // we naar het dashboard navigeren — anders ziet Dashboard nog de
+      // oude profile zonder onboarding_complete en stuurt ons terug.
+      await refreshProfile();
       navigate('/');
     } catch (err) {
       console.error('Onboarding afronden mislukt:', err);

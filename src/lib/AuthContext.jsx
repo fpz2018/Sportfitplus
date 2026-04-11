@@ -68,8 +68,8 @@ export const AuthProvider = ({ children }) => {
     window.location.href = '/landing';
   };
 
-  const refreshProfile = () => {
-    if (user?.id) loadProfile(user.id);
+  const refreshProfile = async () => {
+    if (user?.id) await loadProfile(user.id);
   };
 
   return (
