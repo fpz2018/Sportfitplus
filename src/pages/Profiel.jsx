@@ -32,6 +32,7 @@ export default function Profiel() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   useEffect(() => {
     if (authProfile) {
@@ -41,17 +42,23 @@ export default function Profiel() {
   }, [authProfile]);
 
   async function save() {
-    if (profile) {
-      await UserProfile.update(form);
-    } else {
-      await UserProfile.upsert(form);
+    setSaveError(null);
+    try {
+      if (profile) {
+        await UserProfile.update(form);
+      } else {
+        await UserProfile.upsert(form);
+      }
+      setSaved(true);
+      setEditing(false);
+      const updated = await UserProfile.get();
+      setProfile(updated);
+      setForm(updated);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error('Profiel opslaan mislukt:', err);
+      setSaveError(err?.message || 'Onbekende fout bij opslaan');
     }
-    setSaved(true);
-    setEditing(false);
-    const updated = await UserProfile.get();
-    setProfile(updated);
-    setForm(updated);
-    setTimeout(() => setSaved(false), 3000);
   }
 
   function update(k, v) {
@@ -269,6 +276,12 @@ export default function Profiel() {
               <Check className="w-4 h-4" /> Opslaan
             </button>
           </div>
+
+          {saveError && (
+            <div className="mt-3 p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-xs text-destructive">
+              Opslaan mislukt: {saveError}
+            </div>
+          )}
         </div>
       )}
 

@@ -36,7 +36,7 @@ export default function Dashboard() {
   }
 
   // Onboarding nog niet gedaan
-  if (!loading && !profile?.onboarding_done) {
+  if (!loading && !profile?.onboarding_complete) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="max-w-md w-full text-center">
