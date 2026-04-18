@@ -1,47 +1,71 @@
 # Top 20 Claude Skills op GitHub
 
-Een overzicht van de populairste en nuttigste Claude (Code) Skills en skill-collecties die op GitHub te vinden zijn. Sterren zijn indicatief en veranderen snel.
+Overzicht van populaire en nuttige Claude (Code) Skills en skill-collecties op GitHub, inclusief waarvoor je ze kunt gebruiken. Sterren zijn indicatief en veranderen snel.
 
-## Officiële / Anthropic
+## Officieel / Anthropic
 
-1. **anthropics/skills** — De officiële Anthropic Agent Skills repository. Bevat skills zoals `pdf`, `docx`, `xlsx`, `pptx`, `webapp-testing`, `artifacts-builder`, `skill-creator` en `mcp-builder`.
-2. **anthropics/claude-code** — Niet strikt een skill, maar de basis-CLI waar alle skills op draaien. Referentie-implementatie en voorbeelden.
+1. **[anthropics/skills](https://github.com/anthropics/skills)** — Officiële Anthropic Agent Skills repo.
+   *Wat kun je ermee:* PDF/Office-documenten lezen en genereren, webapps testen, Artifacts bouwen, nieuwe skills scaffolden, MCP-servers opzetten. Startpunt voor alles.
 
-## Curated lijsten (meta-skills)
+2. **[anthropics/claude-code](https://github.com/anthropics/claude-code)** — De CLI zelf.
+   *Wat kun je ermee:* Referentie-implementatie, voorbeelden van hooks/slash commands, bug-reports. Handig om te zien hoe skills geladen worden.
 
-3. **hesreallyhim/awesome-claude-code** — Meest gerefereerde curated lijst met skills, hooks, slash-commands en plugins voor Claude Code.
-4. **VoltAgent/awesome-agent-skills** — 1000+ skills van officiële dev-teams (Anthropic, Vercel, Stripe, Cloudflare, Netlify, Sentry, Figma, Hugging Face) en community.
-5. **ComposioHQ/awesome-claude-skills** — Bekende curated lijst, georganiseerd per workflow-type.
-6. **karanb192/awesome-claude-skills** — 50+ geverifieerde skills voor Claude Code, Claude.ai en API.
-7. **travisvn/awesome-claude-skills** — Alternatieve curated verzameling voor customizing Claude-workflows.
-8. **webfuse-com/awesome-claude** — Bredere lijst van alles rond Anthropic Claude.
+## Curated lijsten (vind snel de juiste skill)
+
+3. **[hesreallyhim/awesome-claude-code](https://github.com/hesreallyhim/awesome-claude-code)** — Meest gebruikte index.
+   *Wat kun je ermee:* Ontdekken van skills, hooks, slash-commands, agent-orchestrators en plugins.
+
+4. **[VoltAgent/awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills)** — 1000+ skills van officiële dev-teams (Vercel, Stripe, Cloudflare, Netlify, Sentry, Figma, Hugging Face).
+   *Wat kun je ermee:* Skills vinden voor specifieke SaaS-stacks — relevant voor Sportfit Plus (Netlify, Supabase-achtige integraties).
+
+5. **[ComposioHQ/awesome-claude-skills](https://github.com/ComposioHQ/awesome-claude-skills)** — Per workflow-type georganiseerd.
+   *Wat kun je ermee:* Snel een skill kiezen op basis van taak (data, devops, content, etc.).
+
+6. **[karanb192/awesome-claude-skills](https://github.com/karanb192/awesome-claude-skills)** — 50+ geverifieerde skills.
+   *Wat kun je ermee:* "Safe list" — alleen skills die getest en onderhouden zijn.
+
+7. **[travisvn/awesome-claude-skills](https://github.com/travisvn/awesome-claude-skills)** — Alternatieve curated lijst.
+   *Wat kun je ermee:* Inspiratie voor customizing Claude workflows.
+
+8. **[webfuse-com/awesome-claude](https://github.com/webfuse-com/awesome-claude)** — Brede Anthropic-lijst.
+   *Wat kun je ermee:* Overzicht van tools, libraries, research en community-projecten rond Claude.
 
 ## Frameworks / skill-pakketten
 
-9. **obra/superpowers** — 20+ battle-tested skills: TDD, debugging, `/brainstorm`, `/write-plan`, `/execute-plan`.
-10. **SuperClaude-Org/SuperClaude** — Configuration framework met gespecialiseerde commands, personas en methodologies (~20k ⭐).
-11. **musistudio/claude-code-router** — Claude Code als fundament voor coding-infra (~25k ⭐).
-12. **MiniMax-AI/skills** — Development skills voor AI coding agents.
-13. **abubakarsiddik31/claude-skills-collection** — Officieel + community skills voor productivity, coding, creativity.
+9. **obra/superpowers** — 20+ battle-tested skills.
+   *Wat kun je ermee:* TDD-workflow, systematisch debuggen, `/brainstorm`, `/write-plan`, `/execute-plan` — handig voor grotere features in Sportfit Plus (bv. weekmenu-generatie).
+
+10. **SuperClaude-Org/SuperClaude** (~20k ⭐)
+    *Wat kun je ermee:* Pre-configured personas (architect, reviewer, tester), gespecialiseerde commands en methodologies. Direct productiever zonder zelf prompts te schrijven.
+
+11. **musistudio/claude-code-router** (~25k ⭐)
+    *Wat kun je ermee:* Claude Code routeren naar verschillende modellen/endpoints, bv. Opus voor planning en Haiku voor uitvoering — scheelt kosten.
+
+12. **MiniMax-AI/skills** — Dev-skills voor AI coding agents.
+    *Wat kun je ermee:* Extra coding-capabilities (refactoring, code-review, generatie) bovenop Claude Code.
+
+13. **abubakarsiddik31/claude-skills-collection** — Officieel + community.
+    *Wat kun je ermee:* Modulaire skills voor productivity, coding, creativity — goed startpakket.
 
 ## Domein-specifieke skills
 
-14. **Anthropic-Cybersecurity-Skills** — 753+ gestructureerde cybersecurity skills voor AI-agents.
-15. **marketingskills** — CRO, copywriting, SEO, analytics en growth-engineering skills.
-16. **dev-browser** — Skill die je agent een volwaardige web-browser geeft.
-17. **pdf / docx / xlsx / pptx** (uit `anthropics/skills`) — Documentverwerking (lezen én genereren).
-18. **webapp-testing** (uit `anthropics/skills`) — Geautomatiseerd testen van web-apps met Playwright.
-19. **skill-creator** (uit `anthropics/skills`) — Meta-skill om nieuwe skills consistent te scaffolden.
-20. **mcp-builder** (uit `anthropics/skills`) — Helpt MCP-servers bouwen zodat je Claude makkelijk koppelt aan eigen tools (Supabase, Netlify, etc.).
+14. **Anthropic-Cybersecurity-Skills** — 753+ cybersecurity skills.
+    *Wat kun je ermee:* Secure code review, vulnerability scanning, threat modeling — voor een fitness-app met user-data (Supabase auth, premium) waardevol bij audits.
 
----
+15. **marketingskills** — CRO, copywriting, SEO, analytics, growth.
+    *Wat kun je ermee:* Landingspagina's optimaliseren, e-mails schrijven, SEO van publieke pagina's (Landing, Nieuws, Gids) verbeteren.
 
-## Bronnen
-- <https://github.com/anthropics/skills>
-- <https://github.com/hesreallyhim/awesome-claude-code>
-- <https://github.com/VoltAgent/awesome-agent-skills>
-- <https://github.com/ComposioHQ/awesome-claude-skills>
-- <https://github.com/karanb192/awesome-claude-skills>
-- <https://github.com/travisvn/awesome-claude-skills>
-- <https://github.com/webfuse-com/awesome-claude>
-- <https://github.com/abubakarsiddik31/claude-skills-collection>
+16. **dev-browser** — Browser voor je agent.
+    *Wat kun je ermee:* Claude echte webpagina's laten bezoeken — scraping, UI-testen, concurrentie-onderzoek.
+
+17. **pdf / docx / xlsx / pptx** (uit `anthropics/skills`) — Documentverwerking.
+    *Wat kun je ermee:* Trainingsschema's exporteren naar PDF, voedingsrapporten als Excel, labresultaten uit PDF inlezen voor KennisMonitor.
+
+18. **webapp-testing** (uit `anthropics/skills`) — Playwright-based.
+    *Wat kun je ermee:* End-to-end tests voor Dashboard, Voeding, Weekmenu, Onboarding — regressies vangen voor je ze live zet.
+
+19. **skill-creator** (uit `anthropics/skills`) — Meta-skill.
+    *Wat kun je ermee:* Zelf nieuwe skills genereren die passen bij dit project (bv. een `sportfit-recept-import` skill op basis van `fetchReceptenFromSheet.js`).
+
+20. **mcp-builder** (uit `anthropics/skills`) — MCP-servers bouwen.
+    *Wat kun je ermee:* Claude direct laten praten met Supabase, Netlify Functions of PubMed — minder glue-code, snellere iteratie op AI-features.
