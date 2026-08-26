@@ -1,0 +1,56 @@
+{
+  "name": "WorkoutLog",
+  "type": "object",
+  "properties": {
+    "log_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "schema_name": {
+      "type": "string"
+    },
+    "dag_naam": {
+      "type": "string"
+    },
+    "exercises": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "naam": {
+            "type": "string"
+          },
+          "sets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "set_nr": {
+                  "type": "number"
+                },
+                "gewicht_kg": {
+                  "type": "number"
+                },
+                "reps": {
+                  "type": "number"
+                },
+                "voltooid": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "duration_min": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "log_date"
+  ]
+}

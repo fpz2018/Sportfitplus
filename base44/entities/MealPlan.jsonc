@@ -1,0 +1,82 @@
+{
+  "name": "MealPlan",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "goal_group": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "gevorderd",
+        "vrouw",
+        "50plus",
+        "atleet"
+      ]
+    },
+    "calories": {
+      "type": "number"
+    },
+    "protein_g": {
+      "type": "number"
+    },
+    "carbs_g": {
+      "type": "number"
+    },
+    "fat_g": {
+      "type": "number"
+    },
+    "meals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "meal_name": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "foods": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "amount_g": {
+                  "type": "number"
+                },
+                "calories": {
+                  "type": "number"
+                },
+                "protein_g": {
+                  "type": "number"
+                },
+                "carbs_g": {
+                  "type": "number"
+                },
+                "fat_g": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "is_template": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_premium": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "CustomSchema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "days": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dag_naam": {
+            "type": "string"
+          },
+          "oefeningen": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "naam": {
+                  "type": "string"
+                },
+                "sets": {
+                  "type": "string"
+                },
+                "rust": {
+                  "type": "string"
+                },
+                "tip": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

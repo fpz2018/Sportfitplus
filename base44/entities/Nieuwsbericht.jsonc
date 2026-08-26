@@ -1,0 +1,63 @@
+{
+  "name": "Nieuwsbericht",
+  "type": "object",
+  "properties": {
+    "titel": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-vriendelijke versie van de titel"
+    },
+    "intro": {
+      "type": "string",
+      "description": "Korte intro (1-2 zinnen) voor de preview"
+    },
+    "inhoud": {
+      "type": "string",
+      "description": "Volledig blogpost artikel in Markdown"
+    },
+    "categorie": {
+      "type": "string",
+      "enum": [
+        "voeding",
+        "training",
+        "herstel",
+        "supplementen",
+        "hormonen",
+        "overig"
+      ]
+    },
+    "bron_artikel_id": {
+      "type": "string",
+      "description": "ID van het KennisArtikel waarop dit gebaseerd is"
+    },
+    "bron_pubmed_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "concept",
+        "gepubliceerd",
+        "afgewezen"
+      ],
+      "default": "concept"
+    },
+    "gepubliceerd_op": {
+      "type": "string",
+      "format": "date"
+    },
+    "afbeelding_url": {
+      "type": "string"
+    },
+    "seo_description": {
+      "type": "string",
+      "description": "Meta description voor SEO (max 160 tekens)"
+    }
+  },
+  "required": [
+    "titel",
+    "inhoud"
+  ]
+}
